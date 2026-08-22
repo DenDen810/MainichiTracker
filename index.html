@@ -382,6 +382,10 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
       <p class="empty" style="margin:13px 0 0">Everything lives on this device only. Export now and then so a wiped phone doesn't take the year with it.</p>
     </div>
     <div class="panel">
+      <p class="eyebrow">About</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)">B</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+    </div>
+    <div class="panel">
       <p class="eyebrow">Danger</p>
       <button class="btn line" id="wipe" style="color:var(--shu)">Erase all data</button>
     </div>
@@ -846,7 +850,9 @@ function setTotal(v){
 function renderHome(){
   var y=view.getFullYear(), m=view.getMonth();
   $("mlabel").textContent=MONTHS[m]+" "+y;
-  var mine=monthLessons(view), sumv=sum(mine.map(function(l){return l.amount}));
+  var mine=monthLessons(view);
+  mine.forEach(function(l){var a=num(l.amount); if(a!==l.amount){l.amount=a; saveDB()}});
+  var sumv=num(sum(mine.map(function(l){return l.amount})));
   setTotal(sumv);
 
   var prevD=new Date(y,m-1,1), prevSum=earnedIn(prevD);
