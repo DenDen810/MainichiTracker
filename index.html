@@ -383,7 +383,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)">B</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)">C</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Danger</p>
@@ -839,12 +839,19 @@ function setTotal(v){
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches||Math.abs(diff)<1){
     shown=v; el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+Math.round(v).toLocaleString("en-US"); return;
   }
-  (function step(t){
-    if(!t0)t0=t;
+  function paint(x){
+    x=num(x);
+    el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+Math.round(x).toLocaleString("en-US");
+  }
+  function step(t){
+    if(t0===null)t0=t;                       /* t only exists when rAF supplies it */
     var p=Math.min((t-t0)/520,1), e=1-Math.pow(1-p,3);
-    el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+Math.round(from+diff*e).toLocaleString("en-US");
-    if(p<1)requestAnimationFrame(step); else shown=v;
-  })();
+    paint(from+diff*e);
+    if(p<1)requestAnimationFrame(step);
+    else{shown=v;paint(v)}
+  }
+  paint(from);
+  requestAnimationFrame(step);
 }
 
 function renderHome(){
