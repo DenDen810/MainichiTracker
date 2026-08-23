@@ -176,21 +176,20 @@ button,input,select{font-family:var(--body)}
 @keyframes bump{0%{transform:scale(1)}34%{transform:scale(1.06)}100%{transform:scale(1)}}
 .total.bump{animation:bump .58s cubic-bezier(.3,1.5,.5,1);transform-origin:left center}
 
-.herobar{height:26px;margin-top:16px;position:relative;z-index:1}
+.herobar{height:34px;margin-top:14px;position:relative;z-index:1}
 
 /* ---------- collapsed hero: a stamped paper tag ---------- */
 .minibar{
   position:fixed;top:0;left:0;right:0;z-index:45;
-  padding:calc(7px + env(safe-area-inset-top)) 14px 0;
+  padding:calc(16px + env(safe-area-inset-top)) 14px 0;
   pointer-events:none;
   /* no transform on the fixed shell: Safari can strand it in the compositor */
 }
 .minibar .inner{
   max-width:540px;margin:0 auto;position:relative;
-  transform:translateY(calc(-100% - 26px));
+  transform:translateY(-140%);
   opacity:0;
-  transition:transform .34s cubic-bezier(.22,1.12,.36,1),opacity .22s ease;
-  will-change:transform;
+  will-change:transform,opacity;
   background:#161F2C;
   border:1px solid var(--line);
   /* cut corner, like a paper tag rather than another pill */
@@ -200,17 +199,18 @@ button,input,select{font-family:var(--body)}
   box-shadow:0 8px 26px rgba(0,0,0,.5);
   cursor:pointer;overflow:hidden;
 }
-.minibar.on .inner{transform:translateY(0);opacity:1;pointer-events:auto}
+.minibar.on .inner{pointer-events:auto}
 /* the seal */
 .seal{
   flex:0 0 34px;width:34px;height:34px;border-radius:50%;
   border:2px solid var(--shu);color:var(--shu);
+  background-repeat:no-repeat;background-position:center;background-size:72% auto;
   display:flex;align-items:center;justify-content:center;
   font-family:var(--display);font-weight:700;font-size:17px;line-height:1;
   transition:background .4s,color .4s;
 }
 .minibar.on .seal{animation:press .42s cubic-bezier(.3,1.5,.5,1)}
-.minibar.record .seal{background:var(--shu);color:#fff}
+.seal.mark{color:transparent;border-color:var(--line)}
 .minibar .topline{display:flex;align-items:center;gap:11px;margin-bottom:3px;padding-right:2px}
 
 .minibar b{
@@ -224,7 +224,7 @@ button,input,select{font-family:var(--body)}
   color:var(--muted);white-space:nowrap;
 }
 .minibar.record .note{color:#7FC69B}
-.expbar{display:block;width:100%;height:16px}
+.expbar{display:block;width:100%;height:22px}
 
 
 /* ---------- panels ---------- */
@@ -409,7 +409,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
   max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;
 }
 .toast.on{transform:translate(-50%,0)}
-body.barup .toast{top:calc(84px + env(safe-area-inset-top))}
+body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
 .toast .grab{display:block;width:26px;height:3px;border-radius:100px;background:rgba(12,17,26,.25);margin:0 auto 6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -575,7 +575,7 @@ body.barup .toast{top:calc(84px + env(safe-area-inset-top))}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)">AD</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)">AG</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -746,7 +746,13 @@ function hideToast(){
   t.classList.remove("on");
 }
 function toast(m){
+  if(!m)return;                      /* never flash an empty pill */
   var t=$("toast");
+  var bar=$("minibar");
+  if(bar&&bar.classList.contains("on")){
+    var b=bar.getBoundingClientRect().bottom;
+    if(b>0)t.style.top=(b+10)+"px";
+  } else t.style.top="";
   t.innerHTML='<span class="grab"></span>'+esc(m);
   t.style.transition=""; t.style.opacity=""; t.style.transform="";
   t.classList.add("on");
@@ -1562,7 +1568,7 @@ function renderToday(){
 }
 
 var KANJI_MONTH=["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
-var STEP=100;
+var STEP=102;   /* so round numbers land near the far right, not back at zero */
 function updateMini(){
   var bar=$("minibar"); if(!bar)return;
   var cur=earnedIn(view);
@@ -1590,36 +1596,52 @@ function updateMini(){
    Not a fill inside a shape — the shape itself is the creature. Its outline is
    rebuilt every frame from three stacked waves, so it never repeats. Every
    $100 earned changes its colour and makes it wilder. */
+/* value noise: smooth, non-repeating drift instead of stacked sine waves */
+function nhash(n){
+  n=(n<<13)^n;
+  return 1-(((n*(n*n*15731+789221)+1376312589)&0x7fffffff)/1073741824);
+}
+function vnoise(x){
+  var i=Math.floor(x), f=x-i, u=f*f*(3-2*f);
+  return nhash(i)*(1-u)+nhash(i+1)*u;
+}
+function fbm(x){
+  return vnoise(x)*0.55+vnoise(x*2.13+13.7)*0.30+vnoise(x*4.31+51.2)*0.15;
+}
+function ease(x){return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
+
 function makeBar(id,opt){
   opt=opt||{};
   var cv=$(id);
   if(!cv||!cv.getContext)return {set:function(){},run:function(){},kick:function(){}};
   var ctx=cv.getContext("2d");
   var W=0,H=0,dpr=1,t=0,raf=null,alive=false;
-  var target=0, fill=0, vel=0, level=0, surge=0;
+  var target=0, fill=0, vel=0, level=0, surge=0, stiff=0.020;
   var col={r:224,g:87,b:76}, want={r:224,g:87,b:76};
+  var seed=Math.random()*500;
+
+  /* the evolution: gather right, roll back left as a ball, grow out again */
+  var EVO=2600, evoT=-1, evoLvl=0, evoFill=0;
 
   var PAL=[
     [224,87,76],[232,130,60],[216,178,74],[159,201,74],[95,201,140],
     [67,199,190],[76,163,224],[110,127,216],[169,111,216],[216,111,192],[232,90,127]
   ];
   function pal(lv){var c=PAL[((lv%PAL.length)+PAL.length)%PAL.length];return {r:c[0],g:c[1],b:c[2]}}
-  function rgb(c,a){return "rgba("+(c.r|0)+","+(c.g|0)+","+(c.b|0)+","+(a==null?1:a)+")"}
+  function rgb(c){return "rgb("+(c.r|0)+","+(c.g|0)+","+(c.b|0)+")"}
 
   function size(){
     var r=cv.getBoundingClientRect();
     if(!r.width||!r.height)return false;
     dpr=Math.min(window.devicePixelRatio||1,2);
     if(cv.width!==Math.round(r.width*dpr)||cv.height!==Math.round(r.height*dpr)){
-      W=r.width; H=r.height;
-      cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+      cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
-    } else { W=r.width; H=r.height; }
+    }
+    W=r.width; H=r.height;
     return true;
   }
 
-  /* one closed loop, every corner rounded by a catmull-rom bezier, so the
-     outline never stops or starts anywhere */
   function loop(pts){
     var n=pts.length;
     ctx.beginPath();
@@ -1639,101 +1661,151 @@ function makeBar(id,opt){
     if(!size())return;
     ctx.clearRect(0,0,W,H);
 
-    /* a spring, so a level change drains with a little overshoot */
-    vel+=(target-fill)*0.020; vel*=0.86; fill+=vel;
+    if(evoT<0){ vel+=(target-fill)*stiff; vel*=0.88; fill+=vel; }
     if(fill<0)fill=0; if(fill>1.04)fill=1.04;
+    col.r+=(want.r-col.r)*0.05; col.g+=(want.g-col.g)*0.05; col.b+=(want.b-col.b)*0.05;
 
-    /* colour eases across instead of snapping */
-    col.r+=(want.r-col.r)*0.055; col.g+=(want.g-col.g)*0.055; col.b+=(want.b-col.b)*0.055;
+    var trait=((level%4)+4)%4;
+    var FREQ =[1.00,1.65,0.68,1.28][trait];   /* sleek · spiky · lumbering · rippled */
+    var THICK=[1.00,0.80,1.22,0.92][trait];
+    var DROPS=[0,1,0,3][trait];
+    var mid=H/2, sc=opt.scale||1, wildBase=1+Math.min(2.3,level*0.16);
+    var wild=(wildBase+surge*1.2)*(opt.wild||1);
 
-    var mid=H/2, sc=opt.scale||1, sp=opt.speed||1;
-    var wild=(1+Math.min(2.3,level*0.16)+surge*1.5)*(opt.wild||1);
-    var baseR=H*(opt.thick||0.40);
-    var fw=Math.max(baseR*2.1, W*fill);
+    /* size the body and its wobble so nothing can ever touch an edge */
+    var pad=3.5*sc;
+    var maxHalf=H/2-1.2*sc;
+    var baseR=Math.min(H*(opt.thick||0.40)*THICK, maxHalf*0.52);
+    var room=maxHalf-baseR;
+    var amp=Math.min(room*0.95, room*0.62*wild);
+    var usable=W-pad*2;
 
-    function wobC(x){
-      return (Math.sin(x*0.030/sc+t*1.5)*1.5+Math.sin(x*0.081/sc-t*2.0)*0.7)*wild*sc*0.5;
+    /* ---- phase ---- */
+    var shownFill = evoT>=0 ? evoFill : fill;
+    var headX = pad+Math.max(baseR*2.1, usable*shownFill);
+    var xaN=pad, xbN=headX, radMul=1, squash=1, ballOnly=false;
+    var impact=0, spin=0;
+    if(evoT>=0){
+      var e=evoT/EVO;
+      var ballR=maxHalf*0.94;
+      var midX=(pad+headX)/2;
+      if(e<0.30){                                   /* both ends rush the middle */
+        var g=ease(e/0.30);
+        xaN=pad+(midX-pad)*g;
+        xbN=headX-(headX-midX)*g;
+        radMul=1+(ballR/baseR-1)*g;
+        if(g>0.9)ballOnly=true;
+      } else if(e<0.38){                            /* they meet */
+        xaN=xbN=midX; radMul=ballR/baseR; ballOnly=true;
+        impact=1-(e-0.30)/0.08;
+        squash=1+0.42*impact;
+        if(want!==pal(evoLvl))want=pal(evoLvl);
+      } else if(e<0.68){                            /* the ball rolls home */
+        var m=(e-0.38)/0.30, mm=ease(m);
+        var cx=midX+((pad+ballR)-midX)*mm;
+        xaN=xbN=cx; radMul=ballR/baseR; ballOnly=true;
+        squash=1+0.3*Math.sin(m*Math.PI);
+        spin=m*7.5;                                 /* it tumbles as it goes */
+      } else {                                      /* springs back out */
+        var r2=(e-0.68)/0.32;
+        var endX=pad+Math.max(baseR*2.1, usable*target);
+        /* springs out past its mark and wobbles back, rather than sliding to a stop */
+        var springy=ease(r2)*(1+0.18*Math.pow(1-r2,2)*Math.sin(r2*11.5));
+        xaN=pad;
+        xbN=pad+ballR*2+(endX-ballR*2)*springy;
+        radMul=ballR/baseR+(1-ballR/baseR)*ease(r2);
+      }
+      evoT+=16;
+      if(evoT>EVO){evoT=-1;surge=0;fill=target;vel=0}
     }
-    function rad(x){
-      var w=(Math.sin(x*0.030/sc+t*1.4+1.7)*1.7+
-             Math.sin(x*0.072/sc-t*2.1)*0.95+
-             Math.sin(x*0.155/sc+t*1.0)*0.4)*wild*sc*0.5;
-      return Math.max(1, baseR*(0.84+0.16*Math.sin(x*0.02+t*0.9))+w);
+
+    var wob=wild*sc;
+    function nz(x,off,sp){ return fbm((x+seed)*0.030*FREQ/sc + t*sp + off); }
+    function yc(x){ return mid + nz(x,0,0.22)*amp*0.90 + nz(x,17.3,0.51)*amp*0.40; }
+    function rTop(x){ return Math.max(1, baseR*radMul*(0.88+0.16*nz(x,4.1,0.18)) + nz(x,8.8,0.37)*amp*1.0); }
+    function rBot(x){ return Math.max(1, baseR*radMul*(0.88+0.16*nz(x,29.6,0.16)) + nz(x,41.2,0.33)*amp*1.0); }
+
+    var xa=xaN, xb=Math.max(xbN,xaN);
+    var rHead=(rTop(xb)+rBot(xb))/2, rTail=(rTop(xa)+rBot(xa))/2*(ballOnly?1:0.66);
+    var bodyA=Math.min(xa+rTail, xb), bodyB=Math.max(xb-rHead, bodyA);
+
+    var N=ballOnly?2:Math.max(14,Math.round((bodyB-bodyA)/5));
+    var M=16, pts=[], i,x,th,rr;
+
+    for(i=0;i<=N;i++){ x=bodyA+(bodyB-bodyA)*i/N; pts.push({x:x,y:yc(x)-rTop(x)}); }
+    var yh=yc(bodyB);
+    for(i=1;i<M;i++){
+      th=-Math.PI/2+Math.PI*i/M;
+      rr=rHead*(1+(0.11+impact*0.22)*fbm(th*1.7+t*1.1+spin*2+seed));
+      pts.push({x:bodyB+Math.cos(th)*rr*squash, y:yh+Math.sin(th)*rr/squash});
     }
-
-    var rT=rad(0)*0.62, rH=rad(fw)*0.95;
-    var xa=Math.min(rT, fw*0.3), xb=Math.max(fw-rH, xa+0.5);
-    var N=Math.max(16,Math.round((xb-xa)/6)), M=12;
-    var pts=[],i,x,th,rr;
-
-    for(i=0;i<=N;i++){ x=xa+(xb-xa)*i/N; pts.push({x:x,y:mid+wobC(x)-rad(x)}); }
-    var yh=mid+wobC(xb);
-    for(i=1;i<M;i++){ th=-Math.PI/2+Math.PI*i/M; rr=rH*(1+0.10*Math.sin(th*3+t*2.2));
-      pts.push({x:xb+Math.cos(th)*rr,y:yh+Math.sin(th)*rr}); }
-    for(i=N;i>=0;i--){ x=xa+(xb-xa)*i/N; pts.push({x:x,y:mid+wobC(x)+rad(x)}); }
-    var yt=mid+wobC(xa);
-    for(i=1;i<M;i++){ th=Math.PI/2+Math.PI*i/M; rr=rT*(1+0.12*Math.sin(th*3-t*1.8));
-      pts.push({x:xa+Math.cos(th)*rr,y:yt+Math.sin(th)*rr}); }
+    for(i=N;i>=0;i--){ x=bodyA+(bodyB-bodyA)*i/N; pts.push({x:x,y:yc(x)+rBot(x)}); }
+    var yt=yc(bodyA);
+    for(i=1;i<M;i++){
+      th=Math.PI/2+Math.PI*i/M;
+      rr=rTail*(1+(0.13+impact*0.22)*fbm(th*1.9-t*0.9-spin*2+seed+9));
+      pts.push({x:bodyA+Math.cos(th)*rr*squash, y:yt+Math.sin(th)*rr/squash});
+    }
 
     ctx.save();
     ctx.shadowColor=rgb(col);
-    ctx.shadowBlur=6+level*0.4+surge*16;
-
-    if(surge>0.01){
-      /* a band of light sweeps the length as it takes on the new colour */
-      var pos=(1-surge)*1.35-0.18;
-      var g=ctx.createLinearGradient(0,0,Math.max(fw,1),0);
-      var lift={r:Math.min(255,col.r+90),g:Math.min(255,col.g+90),b:Math.min(255,col.b+90)};
-      [[pos-0.22,col],[pos,lift],[pos+0.22,col]].forEach(function(s){
-        var o=Math.max(0,Math.min(1,s[0]));
-        g.addColorStop(o,rgb(s[1]));
-      });
-      ctx.fillStyle=g;
-    } else {
-      ctx.fillStyle=rgb(col);
-    }
-
+    ctx.shadowBlur=5+level*0.35+surge*14;
+    ctx.fillStyle=rgb(col);
     loop(pts);
     ctx.fill();
 
-    /* droplets, sized off the head so they belong to it */
-    var drops=(opt.drops||2)+Math.min(4,Math.floor(level/3));
-    for(var k=0;k<drops;k++){
-      var ph=t*1.4+k*2.1;
-      var dx=fw+(5+k*6.5)*sc+Math.sin(ph)*3*sc;
-      if(dx>W-1)continue;
-      var r2=(2.5-k*0.42)*sc*(0.55+0.45*Math.sin(ph*1.7));
-      if(r2<0.4)continue;
-      ctx.beginPath();
-      ctx.arc(dx,mid+Math.sin(ph*2.4)*2.4*sc,r2,0,6.2832);
-      ctx.fill();
+    if(impact>0.02){
+      /* the collision throws liquid outward */
+      var cxi=(xaN+xbN)/2, cyi=yc(cxi), n=10;
+      for(var s2=0;s2<n;s2++){
+        var ang=(s2/n)*6.2832+seed;
+        var dist=(1-impact)*maxHalf*3.4;
+        var rr2=Math.max(0.5,(1.9-0.9*(1-impact))*sc);
+        ctx.beginPath();
+        ctx.arc(cxi+Math.cos(ang)*dist*1.9, cyi+Math.sin(ang)*dist*0.55, rr2, 0, 6.2832);
+        ctx.fill();
+      }
+    }
+
+    if(!ballOnly){
+      var drops=(opt.drops||2)+DROPS+Math.min(3,Math.floor(level/4));
+      for(var k=0;k<drops;k++){
+        var ph=t*1.3+k*2.1+seed;
+        var dx=xb+(5+k*6.5)*sc+fbm(ph)*4*sc;
+        if(dx>W-2)continue;
+        var r2b=(2.4-k*0.4)*sc*(0.55+0.45*fbm(ph*1.7+3));
+        if(r2b<0.4)continue;
+        ctx.beginPath();
+        ctx.arc(dx, yc(xb)+fbm(ph*2.1+7)*3*sc, r2b, 0, 6.2832);
+        ctx.fill();
+      }
     }
     ctx.restore();
 
-    if(surge>0)surge=Math.max(0,surge-0.010);
+    if(surge>0&&evoT<0)surge=Math.max(0,surge-0.010);
   }
 
   function tick(){
     if(!alive){raf=null;return}
-    t+=0.016*sp0();
+    t+=0.016*(opt.speed||1)*(1+surge*0.5);
     draw();
     raf=requestAnimationFrame(tick);
   }
-  function sp0(){return (opt.speed||1)*(1+surge*0.9)}
 
   return {
     set:function(f,lv,bumped){
       target=Math.max(0,Math.min(1,f));
       if(lv!==level){
-        want=pal(lv);
-        if(bumped&&level!==null)surge=1;
+        if(bumped){ evoLvl=lv; evoT=0; surge=1; evoFill=fill; }
+        else want=pal(lv);
+        level=lv;
       }
-      level=lv;
     },
     run:function(on){
       alive=!!on;
       if(alive&&!raf)raf=requestAnimationFrame(tick);
     },
+    pace:function(ms){ stiff=Math.max(0.0022,Math.min(0.035,26/Math.max(400,ms))); },
     kick:function(){surge=1}
   };
 }
@@ -1741,29 +1813,47 @@ function makeBar(id,opt){
 var expBar =makeBar("expBar");
 var heroBar=makeBar("heroBar",{scale:1.7,thick:0.42,wild:1.25,drops:3,speed:0.82});
 
-/* the hero folds into a bar once you scroll past it */
+/* The tag is driven straight off scroll position rather than flipping at a
+   threshold, so it can never miss an event and it reads as the hero total
+   folding upward into the bar. */
 (function(){
-  var bar=$("minibar"), ticking=false;
+  var bar=$("minibar"), inner=bar.querySelector(".inner"), ticking=false, lastP=-1;
   function check(){
     ticking=false;
     var homeOn=$("v-home").classList.contains("on");
     var hero=document.querySelector(".hero");
-    if(!homeOn||!hero){bar.classList.remove("on");return}
-    var r=hero.getBoundingClientRect();
-    var show = r.bottom < 44;
-    bar.classList.toggle("on", show);
-    document.body.classList.toggle("barup", show);   /* nudges the toast clear */
-    expBar.run(show && !document.hidden);
-    heroBar.run(!show && r.bottom > 0 && !document.hidden);
+    var total=$("total");
+    if(!homeOn||!hero||!total){
+      if(lastP!==0){inner.style.transform="translateY(-140%)";inner.style.opacity="0";lastP=0}
+      bar.classList.remove("on");
+      document.body.classList.remove("barup");
+      expBar.run(false); heroBar.run(false);
+      return;
+    }
+    /* the handover runs across the last stretch of the big number leaving the screen */
+    var r=total.getBoundingClientRect();
+    var p=(24-r.bottom)/56;
+    p=p<0?0:(p>1?1:p);
+    if(Math.abs(p-lastP)>0.004){
+      inner.style.transform="translateY("+(-140*(1-p)).toFixed(2)+"%)";
+      inner.style.opacity=p.toFixed(3);
+      lastP=p;
+    }
+    var shown=p>0.02;
+    bar.classList.toggle("on",shown);
+    document.body.classList.toggle("barup",p>0.55);
+    expBar.run(shown && !document.hidden);
+    heroBar.run(p<0.99 && hero.getBoundingClientRect().bottom>0 && !document.hidden);
   }
   function queue(){ if(!ticking){ticking=true;requestAnimationFrame(check)} }
-  /* iOS momentum scrolling does not always deliver scroll to window alone */
-  ["scroll","touchmove","touchend"].forEach(function(ev){
+  ["scroll","touchmove","touchend","wheel"].forEach(function(ev){
     window.addEventListener(ev,queue,{passive:true});
     document.addEventListener(ev,queue,{passive:true,capture:true});
   });
   window.addEventListener("resize",check);
   window.addEventListener("orientationchange",function(){setTimeout(check,160)});
+  /* a slow safety net: iOS can swallow the last event of a momentum flick */
+  setInterval(function(){ if(!document.hidden)queue() },500);
   bar.onclick=function(){
     try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){window.scrollTo(0,0)}
   };
@@ -2457,7 +2547,13 @@ function stopAudio(){
 function playMark(name,cb){
   var list=TRACKS[name]||[];
   var done=false;
-  function once(ms){if(!done){done=true;setCountPace(ms);cb(ms)}}
+  function once(ms){
+    if(done)return;
+    done=true;
+    setCountPace(ms);
+    try{expBar.pace(ms*0.55);heroBar.pace(ms*0.55)}catch(e){}
+    cb(ms);
+  }
   if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
   /* whatever happens to the audio, the confetti still gets its cue */
   setTimeout(function(){once(FALLBACK_MS)},2500);
@@ -2672,6 +2768,16 @@ if("serviceWorker" in navigator){
 }
 
 /* ================= boot ================= */
+/* a different mark in the seal on every launch */
+(function(){
+  var s=document.querySelector(".minibar .seal");
+  if(!s||typeof CONFETTI==="undefined"||!CONFETTI.length)return;
+  var m=CONFETTI[(Math.random()*CONFETTI.length)|0];
+  s.classList.add("mark");
+  s.style.backgroundImage="url("+m.src+")";
+  s.setAttribute("aria-label",m.name);
+})();
+
 $("sfxBtn").textContent="Sound: "+(cfg.sfx===false?"off":"on");
 $("gcalCid").value=cfg.gcalCid||"";
 renderGcal();
