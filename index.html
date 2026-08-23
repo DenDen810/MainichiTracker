@@ -100,6 +100,12 @@ button,input,select{font-family:var(--body)}
 @keyframes press{0%{transform:scale(1.9) rotate(-11deg);opacity:0}55%{transform:scale(.9) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 .cell .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:100px;background:var(--shu);color:#fff;font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;border:2px solid var(--surf)}
 .cell.multi .badge{display:flex}
+.tick.booked .amt{color:#4A5768}
+.tick.overdue .main small u.late{color:var(--shu)}
+.daygroup{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+.daygroup:first-child{margin-top:0}
+.cell.booked{border-color:#3A4658;border-style:dashed}
+.cell.booked .n{color:var(--sky)}
 .cardfoot{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted)}
 .cardfoot b{font-family:var(--display);font-size:17px;color:var(--text);font-variant-numeric:tabular-nums}
 
@@ -130,7 +136,10 @@ button,input,select{font-family:var(--body)}
 .cbx:active{transform:scale(.92)}
 .tick .main{flex:1;min-width:0}
 .tick .main span{display:block;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tick .main small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.tick .main small{color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.tick .main small b.t{font-size:15px;font-weight:700;color:var(--text);font-family:var(--display);margin-right:2px}
+.tick.done .main small b.t{color:var(--muted);font-weight:500}
+.row .main small{font-size:13.5px;font-variant-numeric:tabular-nums}
 .tick .main small u{text-decoration:none;color:var(--sky)}
 .tick .main small u.out{color:var(--shu)}
 .tick .amt{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;color:#4A5768}
@@ -144,6 +153,36 @@ button,input,select{font-family:var(--body)}
 .slotline:last-of-type{border-bottom:0}
 .slotline .jp{font-family:var(--display);color:var(--shu);flex:0 0 20px}
 .slotline .tm{flex:1;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------- lesson completed ---------- */
+@keyframes cbpop{0%{transform:scale(1)}42%{transform:scale(1.38)}100%{transform:scale(1)}}
+.cbx.pop{animation:cbpop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rowflash{0%{background:transparent}22%{background:var(--flash)}100%{background:transparent}}
+.tick.celebrate{animation:rowflash .62s ease-out;border-radius:10px}
+.tick.collapse{
+  overflow:hidden;
+  transition:max-height .34s cubic-bezier(.4,0,.2,1),opacity .28s,transform .3s,padding .34s,margin .34s;
+  opacity:0;transform:translateX(26px);max-height:0!important;padding-top:0;padding-bottom:0;border-bottom-color:transparent;
+}
+.floatamt{
+  position:fixed;z-index:80;pointer-events:none;
+  font-family:var(--display);font-weight:700;font-size:21px;color:#7FC69B;
+  text-shadow:0 2px 12px rgba(0,0,0,.7);
+  animation:rise 1.05s cubic-bezier(.2,.8,.3,1) forwards;
+}
+@keyframes rise{
+  0%{opacity:0;transform:translate(-100%,4px) scale(.7)}
+  18%{opacity:1;transform:translate(-100%,-8px) scale(1.12)}
+  100%{opacity:0;transform:translate(-100%,-62px) scale(1)}
+}
+.floatamt.big{font-size:27px;animation-name:rise2;animation-duration:1.25s}
+@keyframes rise2{
+  0%{opacity:0;transform:translateY(14px) scale(.75)}
+  16%{opacity:1;transform:translateY(-2px) scale(1.16)}
+  100%{opacity:0;transform:translateY(-54px) scale(1)}
+}
+@keyframes bump{0%{transform:scale(1)}34%{transform:scale(1.06)}100%{transform:scale(1)}}
+.total.bump{animation:bump .58s cubic-bezier(.3,1.5,.5,1);transform-origin:left center}
 
 /* ---------- students ---------- */
 .stu{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
@@ -202,7 +241,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .btn.alt{background:var(--surf2);color:var(--text)}
 .btn.line{background:none;border:1px solid var(--line);color:var(--muted);font-weight:400}
 .seg{display:flex;gap:6px;background:#111925;padding:4px;border-radius:11px;margin-bottom:15px}
-.seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px;border-radius:8px;font-size:13.5px;cursor:pointer}
+.seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--surf2);color:var(--text);font-weight:500}
 
 /* ---------- sheet ---------- */
@@ -258,6 +297,23 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .view{display:none}
 .view.on{display:block;animation:fade .22s ease}
 @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ---------- full-size photo ---------- */
+.lightbox{position:fixed;inset:0;z-index:95;background:rgba(6,9,14,.96);display:none;align-items:center;justify-content:center;padding:26px;cursor:pointer}
+.lightbox.on{display:flex}
+.lightbox img{max-width:min(86vw,420px);max-height:70vh;border-radius:22px;display:block;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lightbox .cap{position:absolute;left:0;right:0;bottom:calc(34px + env(safe-area-inset-bottom));text-align:center;font-family:var(--display);font-size:19px;font-weight:700}
+.lightbox .cap small{display:block;font-family:var(--body);font-size:12px;color:var(--muted);font-weight:400;margin-top:5px}
+.av.tap{cursor:pointer}
+
+/* ---------- student picker ---------- */
+.chips{display:flex;gap:10px;overflow-x:auto;padding:3px 2px 7px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip-s{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:2px;width:64px;cursor:pointer}
+.chip-s .av{flex:0 0 46px;width:46px;height:46px;font-size:17px;box-shadow:0 0 0 2px transparent}
+.chip-s.on .av{box-shadow:0 0 0 2px var(--text)}
+.chip-s b{font-size:11px;font-weight:500;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.55}
+.chip-s.on b{opacity:1}
 
 /* ---------- photo cropper ---------- */
 .cropper{
@@ -324,6 +380,12 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
       </div>
       <div id="todayList"></div>
       <div id="gcalToday"></div>
+    </div>
+
+    <div class="panel" id="upcomingPanel" style="display:none">
+      <p class="eyebrow">Booked ahead <em id="upcomingNote"></em></p>
+      <p class="empty" style="margin:-6px 0 12px">Tick one off when you have taught it. That is when the money counts.</p>
+      <div id="upcomingList"></div>
     </div>
 
     <div class="panel">
@@ -419,6 +481,13 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
         <div class="field" style="margin-top:13px"><label for="gcalCal">Calendar</label><select id="gcalCal"></select></div>
         <button class="btn line" id="gcalPullBtn" style="margin-bottom:9px">Pull events into today: off</button>
         <button class="btn line" id="gcalPushBtn" style="margin-bottom:9px">Push logged lessons: off</button>
+        <div class="field" style="margin-bottom:9px"><label for="gcalRemind">Remind me before each lesson</label><select id="gcalRemind">
+          <option value="0">No reminder</option>
+          <option value="10">10 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+          <option value="1440">1 day before</option>
+        </select></div>
         <button class="btn line" id="gcalOut" style="color:var(--shu)">Disconnect</button>
       </div>
       <p class="empty" style="margin:13px 0 0">Pull shows today's calendar events in the checklist so you can tick them off. Push writes each lesson you log back as an event. Setup instructions are in the README.</p>
@@ -432,7 +501,12 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)">F</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)">Q</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Tidy up</p>
+      <button class="btn line" id="dedupe">Remove duplicate lessons</button>
+      <p class="empty" style="margin:13px 0 0">Finds lessons with the same student, date and time, keeps one, and deletes the calendar events for the rest.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Danger</p>
@@ -478,6 +552,8 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
   </div>
 </div>
 
+<div class="lightbox" id="lightbox"><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+
 <div class="cropper" id="cropper">
   <h3>Adjust photo</h3>
   <p class="hint">Drag to move, pinch or use the slider to zoom</p>
@@ -501,9 +577,10 @@ var store=(function(){
 })();
 var DB="mjp.db.v2", SET="mjp.settings.v1", OLD="mjp.income.v1";
 
-var db={students:[],bundles:[],lessons:[],slots:[]};
+var db={students:[],bundles:[],lessons:[],slots:[],bookings:[]};
 try{var raw=JSON.parse(store.getItem(DB)); if(raw&&raw.lessons)db=raw;}catch(e){}
 if(!db.slots)db.slots=[];
+if(!db.bookings)db.bookings=[];
 var cfg={}; try{cfg=JSON.parse(store.getItem(SET))||{}}catch(e){}
 if(!cfg.cur)cfg.cur="$";
 if(cfg.goalName===undefined)cfg.goalName="Japan trip";
@@ -708,36 +785,78 @@ $("scrim").onclick=closeSheet;
 })();
 
 /* ---------- log sheet ---------- */
-var logMode="lesson";
-$("openLog").onclick=function(){logSheet()};
+var logMode="book";   /* the + opens on Book ahead */
+$("openLog").onclick=function(){logMode="book";logSheet()};
+
+function studentChips(inputId,includeNone){
+  var out='<div class="chips">';
+  db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(s){
+    out+='<button type="button" class="chip-s" data-pick="'+inputId+'" data-sid="'+s.id+'">'+
+      avatarHTML(s)+'<b style="color:'+colorFor(s)+'">'+esc(s.name)+'</b></button>';
+  });
+  if(includeNone){
+    out+='<button type="button" class="chip-s" data-pick="'+inputId+'" data-sid="">'+
+      '<div class="av" style="background:#2A3547;color:var(--muted)">–</div><b>Other</b></button>';
+  }
+  return out+'</div>';
+}
+function wireChips(inputId,onPick){
+  var nodes=$("sheetBody").querySelectorAll('[data-pick="'+inputId+'"]');
+  function paint(){
+    Array.prototype.forEach.call(nodes,function(n){
+      n.classList.toggle("on",n.dataset.sid===$(inputId).value);
+    });
+  }
+  Array.prototype.forEach.call(nodes,function(n){
+    n.onclick=function(){$(inputId).value=n.dataset.sid;paint();if(onPick)onPick()};
+  });
+  paint();
+}
 
 function logSheet(){
-  var opts=db.students.map(function(s){
-    var c=credits(s.id);
-    return '<option value="'+s.id+'">'+esc(s.name)+(c.lessons?" ("+c.lessons+" left)":"")+'</option>';
-  }).join("");
+  var opts="";
   openSheet(
     '<h3>Log</h3>'+
-    '<div class="seg"><button id="mL" class="'+(logMode==="lesson"?"on":"")+'">Lesson taught</button>'+
-    '<button id="mB" class="'+(logMode==="bundle"?"on":"")+'">Prepay bundle</button></div>'+
+    '<div class="seg"><button id="mL" class="'+(logMode==="lesson"?"on":"")+'">Taught</button>'+
+    '<button id="mS" class="'+(logMode==="book"?"on":"")+'">Book ahead</button>'+
+    '<button id="mB" class="'+(logMode==="bundle"?"on":"")+'">Prepay</button></div>'+
     '<div id="logForm"></div>'
   );
   $("mL").onclick=function(){logMode="lesson";logSheet()};
+  $("mS").onclick=function(){logMode="book";logSheet()};
   $("mB").onclick=function(){logMode="bundle";logSheet()};
-  $("logForm").innerHTML = logMode==="lesson" ? lessonForm(opts) : bundleForm(opts);
+  $("logForm").innerHTML = logMode==="lesson" ? lessonForm(opts)
+                         : logMode==="book"   ? bookForm(opts)
+                         : bundleForm(opts);
   wireLog();
 }
 
 function lessonForm(opts){
-  return '<div class="field"><label for="lStu">Student</label><select id="lStu">'+opts+'<option value="">No student / other</option></select></div>'+
+  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
+  return '<div class="field"><label>Student</label>'+studentChips("lStu",true)+
+  '<input type="hidden" id="lStu" value="'+first+'"></div>'+
   '<div class="two"><div class="field"><label for="lDate">Date</label><input id="lDate" type="date"></div>'+
   '<div class="field"><label for="lTime">Time</label><input id="lTime" type="time"></div></div>'+
   '<div class="field"><label for="lQty">How many lessons</label><input id="lQty" type="number" inputmode="numeric" min="1" max="12" value="1"></div>'+
   '<div class="field"><label for="lAmt">Charge per lesson <span id="lHint" style="color:var(--sky)"></span></label><input id="lAmt" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>'+
   '<button class="btn" id="lGo">Log lesson</button>';
 }
+function bookForm(opts){
+  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
+  return '<div class="field"><label>Student</label>'+studentChips("kStu",false)+
+  '<input type="hidden" id="kStu" value="'+first+'"></div>'+
+  '<div class="two"><div class="field"><label for="kDate">Date</label><input id="kDate" type="date"></div>'+
+  '<div class="field"><label for="kTime">Time</label><input id="kTime" type="time" value="16:00"></div></div>'+
+  '<div class="field"><label for="kRepeat">Repeat weekly</label><select id="kRepeat">'+
+    '<option value="1">Just this once</option><option value="2">2 weeks</option>'+
+    '<option value="4">4 weeks</option><option value="8">8 weeks</option></select></div>'+
+  '<button class="btn" id="kGo">Book it</button>'+
+  '<p class="empty" style="margin:13px 0 0">Booking puts the lesson on your schedule without counting the money. Tick it off on the day you teach it and that is when it gets paid.</p>';
+}
 function bundleForm(opts){
-  return '<div class="field"><label for="bStu">Student</label><select id="bStu">'+opts+'</select></div>'+
+  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
+  return '<div class="field"><label>Student</label>'+studentChips("bStu",false)+
+  '<input type="hidden" id="bStu" value="'+first+'"></div>'+
   '<div class="two"><div class="field"><label for="bDate">Date paid</label><input id="bDate" type="date"></div>'+
   '<div class="field"><label for="bQty">Lessons in bundle</label><input id="bQty" type="number" inputmode="numeric" min="1" value="4"></div></div>'+
   '<div class="field"><label for="bAmt">Total paid</label><input id="bAmt" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>'+
@@ -768,7 +887,7 @@ function wireLog(){
         if(s&&s.rate)$("lAmt").value=s.rate;
       }
     };
-    $("lStu").onchange=syncHint; syncHint();
+    wireChips("lStu",syncHint); syncHint();
     $("lGo").onclick=function(){
       var sid=$("lStu").value, d=$("lDate").value||today;
       var qty=Math.max(1,Math.min(12,parseInt($("lQty").value)||1));
@@ -786,14 +905,38 @@ function wireLog(){
       view=new Date(d+"T12:00:00"); view.setDate(1);
       fresh=d; selDay=null;
       closeSheet(); renderAll();
-      setTimeout(function(){burst(Math.min(14+qty*8,48))},170);
+      setTimeout(function(){burst(Math.min(14+qty*8,48));totalPop(made)},210);
       toast(qty>1 ? qty+" lessons, "+money(made) : "Logged "+money(made)+(drew?" from prepay":""));
+    };
+  } else if(logMode==="book"){
+    if(!db.students.length){
+      $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab.</p>';
+      return;
+    }
+    wireChips("kStu");
+    $("kDate").value = selDay ? iso(new Date(view.getFullYear(),view.getMonth(),selDay)) : today;
+    $("kGo").onclick=function(){
+      var sid=$("kStu").value, d=$("kDate").value||today, tm=$("kTime").value||"16:00";
+      if(!sid){toast("Pick a student");return}
+      var reps=Math.max(1,parseInt($("kRepeat").value)||1), made=0;
+      for(var i=0;i<reps;i++){
+        var dt=new Date(d+"T12:00:00"); dt.setDate(dt.getDate()+i*7);
+        var ds=iso(dt);
+        if(db.bookings.some(function(b){return b.studentId===sid&&b.date===ds&&b.time===tm}))continue;
+        var bk={id:uid(),studentId:sid,date:ds,time:tm,doneId:null};
+        db.bookings.push(bk); gPushBooking(bk); made++;
+      }
+      saveDB(); closeSheet();
+      view=new Date(d+"T12:00:00"); view.setDate(1);
+      renderAll();
+      toast(made>1 ? made+" lessons booked" : made ? "Booked "+sName(sid) : "Already booked");
     };
   } else {
     if(!db.students.length){
       $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab.</p>';
       return;
     }
+    wireChips("bStu");
     $("bDate").value=today;
     $("bGo").onclick=function(){
       var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=parseFloat($("bAmt").value)||0;
@@ -805,6 +948,15 @@ function wireLog(){
     };
   }
 }
+
+function openPhoto(s){
+  if(!s||!s.photo)return;
+  $("lbImg").src=s.photo;
+  var taught=db.lessons.filter(function(l){return l.studentId===s.id}).length;
+  $("lbCap").innerHTML=esc(s.name)+'<small>'+taught+' lesson'+(taught===1?'':'s')+' taught</small>';
+  $("lightbox").classList.add("on");
+}
+$("lightbox").onclick=function(){this.classList.remove("on");$("lbImg").src=""};
 
 /* ---------- photo cropper: pan, pinch, slider, then confirm ---------- */
 function openCropper(file,done){
@@ -923,7 +1075,7 @@ function studentSheet(id){
   }).join("")||'<p class="empty">No prepay bundles.</p>';
 
   openSheet(
-    '<div class="avrow">'+avatarHTML(s,"big")+
+    '<div class="avrow">'+avatarHTML(s,"big"+(s.photo?" tap":""))+
       '<div class="who"><b>'+esc(s.name)+'</b>'+
         '<button id="pickPhoto">'+(s.photo?"Change photo":"Add photo")+'</button>'+
         (s.photo?'<button id="dropPhoto">Remove</button>':'')+
@@ -957,6 +1109,8 @@ function studentSheet(id){
     b.onclick=function(){s.color=b.dataset.col;saveDB();studentSheet(id);renderAll()};
   });
   $("pickPhoto").onclick=function(){$("pfp").click()};
+  var bigAv=$("sheetBody").querySelector(".av.big.tap");
+  if(bigAv)bigAv.onclick=function(){openPhoto(s)};
   if($("dropPhoto"))$("dropPhoto").onclick=function(){
     delete s.photo; saveDB(); studentSheet(id); renderAll(); toast("Photo removed");
   };
@@ -1014,7 +1168,55 @@ function addLesson(sid,dateStr,time,slotId){
   gPush(l);
   return l;
 }
+/* the same green number, but landing on the month total */
+function totalPop(amount){
+  if(!amount)return;
+  var el=$("total");
+  if(!el||window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+  var r=el.getBoundingClientRect();
+  var f=document.createElement("div");
+  f.className="floatamt big";
+  f.textContent="+"+money(amount);
+  f.style.left=Math.min(r.right+14,innerWidth-96)+"px";
+  f.style.top=Math.max(10,r.top+6)+"px";     /* stays visible even if scrolled down */
+  document.body.appendChild(f);
+  setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f)},1300);
+}
+
+/* a finished lesson gets a moment before it disappears */
+function celebrate(btn,amount,colour,then){
+  var row=btn&&btn.closest?btn.closest(".tick"):null;
+  if(!row||window.matchMedia("(prefers-reduced-motion:reduce)").matches){
+    burst(18,btn||null); then(); totalPop(amount); return;
+  }
+  btn.classList.add("on","pop");
+  row.style.setProperty("--flash",(colour||"#E0574C")+"33");
+  row.classList.add("celebrate");
+
+  var r=btn.getBoundingClientRect();
+  var f=document.createElement("div");
+  f.className="floatamt";
+  f.textContent="+"+money(amount);
+  f.style.left=(row.getBoundingClientRect().right-6)+"px";
+  f.style.top=(r.top-2)+"px";
+  document.body.appendChild(f);
+  setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f)},1150);
+
+  burst(20,btn);
+
+  setTimeout(function(){
+    row.style.maxHeight=row.offsetHeight+"px";
+    void row.offsetWidth;
+    row.classList.add("collapse");
+    setTimeout(function(){then();totalPop(amount)},330);
+  },430);
+}
+
 function delLesson(l){
+  if(l.fromBooking){
+    db.bookings.forEach(function(b){if(b.id===l.fromBooking)b.doneId=null});
+  }
   gUnpush(l);
   if(l.bundleId){
     var b=db.bundles.filter(function(x){return x.id===l.bundleId})[0];
@@ -1026,6 +1228,11 @@ function delLesson(l){
 
 /* ================= render ================= */
 var shown=0;
+var COUNT_MS=1100;                    /* how long the total takes to climb */
+function setCountPace(trackMs){
+  /* a share of the clip, so a long song counts slower — but never tedious */
+  COUNT_MS=Math.max(900,Math.min(3200,trackMs*0.13));
+}
 function setTotal(v){
   v=num(v);
   if(!isFinite(shown))shown=0;
@@ -1039,7 +1246,7 @@ function setTotal(v){
   }
   function step(t){
     if(t0===null)t0=t;                       /* t only exists when rAF supplies it */
-    var p=Math.min((t-t0)/520,1), e=1-Math.pow(1-p,3);
+    var p=Math.min((t-t0)/COUNT_MS,1), e=1-Math.pow(1-p,2);   /* gentler tail over a long climb */
     paint(from+diff*e);
     if(p<1)requestAnimationFrame(step);
     else{shown=v;paint(v)}
@@ -1088,6 +1295,7 @@ function renderHome(){
       if(ds===today)c.classList.add("today");
       if(selDay===d)c.classList.add("sel");
       if(info){c.classList.add("stamped"); if(info.n>1)c.classList.add("multi"); if(fresh===ds)c.classList.add("fresh")}
+      else if(db.bookings.some(function(b){return !b.doneId&&b.date===ds}))c.classList.add("booked");
       c.innerHTML='<span class="n">'+d+'</span><span class="mark"></span><span class="badge">'+(info?info.n:"")+'</span>';
       c.setAttribute("aria-label",ds+(info?", "+info.n+" lessons, "+money(info.v):""));
       c.onclick=function(){selDay=(selDay===d?null:d);renderHome();};
@@ -1119,7 +1327,7 @@ function renderHome(){
       var dd=new Date(l.date+"T12:00:00");
       var row=document.createElement("div"); row.className="row";
       row.innerHTML='<div class="d"><b>'+dd.getDate()+'</b>'+MONTHS[dd.getMonth()].slice(0,3)+'</div>'+
-        '<div class="main"><span><i class="dot" style="background:'+colorFor(student(l.studentId))+'"></i>'+esc(sName(l.studentId))+
+        '<div class="main"><span style="color:'+colorFor(student(l.studentId))+'">'+esc(sName(l.studentId))+
         (l.bundleId?'<span class="tag bundle">prepay</span>':'')+'</span>'+
         (l.time?'<small>'+ampm(l.time)+'</small>':'')+'</div>'+
         '<div class="amt">'+money(l.amount)+'</div>';
@@ -1140,26 +1348,32 @@ function renderToday(){
   var slots=db.slots.filter(function(s){return s.dow===dow})
     .sort(function(a,b){return (a.time||"").localeCompare(b.time||"")});
   var done=db.lessons.filter(function(l){return l.date===ds});
-  var loose=done.filter(function(l){return !l.slotId});
+  var loose=done.filter(function(l){return !l.slotId&&!l.fromBooking});
   var box=$("todayList"); box.innerHTML="";
 
   function tick(opts){
     var el=document.createElement("div");
-    el.className="tick"+(opts.on?" done":"");
+    el.className="tick"+(opts.on?" done":"")+(opts.booked?" booked":"")+(opts.late?" overdue":"");
     var c=credits(opts.sid), sub=[];
-    if(opts.time)sub.push(ampm(opts.time));
+    if(opts.time)sub.push('<b class="t">'+ampm(opts.time)+'</b>');
+    if(opts.lateLabel)sub.push('<u class="late">booked '+opts.lateLabel+'</u>');
     if(c.lessons)sub.push('<u>'+c.lessons+' prepaid left</u>');
     else if(opts.sid)sub.push('<u class="out">no prepay</u>');
     el.innerHTML='<button class="cbx'+(opts.on?" on":"")+'" aria-label="Mark taught">'+
       '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></button>'+
       avatarHTML(student(opts.sid))+
-      '<div class="main"><span>'+esc(opts.name)+'</span><small>'+sub.join(" · ")+'</small></div>'+
+      '<div class="main"><span style="color:'+(opts.sid?colorFor(student(opts.sid)):"inherit")+'">'+esc(opts.name)+'</span><small>'+sub.join(" · ")+'</small></div>'+
       '<div class="amt">'+money(opts.amount)+'</div>';
     el.querySelector(".cbx").onclick=opts.toggle;
     if(opts.extra){
       var b=document.createElement("button");
       b.className="add1"; b.innerHTML="&#43;"; b.setAttribute("aria-label","Log another today");
       b.onclick=opts.extra; el.appendChild(b);
+    }
+    if(opts.drop){
+      var d2=document.createElement("button");
+      d2.className="add1"; d2.innerHTML="&times;"; d2.setAttribute("aria-label","Remove booking");
+      d2.onclick=opts.drop; el.appendChild(d2);
     }
     box.appendChild(el);
   }
@@ -1175,14 +1389,50 @@ function renderToday(){
         var l=addLesson(s.studentId,ds,s.time,s.id);
         if(!l){toast("Set a rate or add prepay for "+st.name);studentSheet(s.studentId);return}
         fresh=ds; view=new Date(); view.setDate(1);
-        renderAll(); burst(18);
         toast("Logged "+money(l.amount)+(l.bundleId?" from prepay":""));
+        celebrate(this,l.amount,colorFor(st),renderAll);
       },
       extra:function(){
         var l=addLesson(s.studentId,ds,nowTime(),null);
         if(!l){toast("Set a rate or add prepay for "+st.name);return}
         fresh=ds; renderAll(); burst(18); toast("Extra lesson logged");
       }
+    });
+  });
+
+  /* booked lessons for today, plus anything booked earlier and never ticked off */
+  db.bookings.filter(function(b){
+    return !b.doneId && (b.date===ds || b.date<ds);
+  }).sort(function(a,b){return (a.date+a.time)<(b.date+b.time)?-1:1}).forEach(function(bk){
+    var st=student(bk.studentId); if(!st)return;
+    var late=bk.date<ds;
+    tick({
+      sid:bk.studentId, name:st.name, time:bk.time, on:false, booked:true, late:late,
+      lateLabel:late?bk.date:null,
+      amount:priceFor(bk.studentId).amount,
+      toggle:function(){
+        var l=addLesson(bk.studentId,bk.date,bk.time,null);
+        if(!l){toast("Set a rate or add prepay for "+st.name);studentSheet(bk.studentId);return}
+        l.fromBooking=bk.id; bk.doneId=l.id; saveDB();
+        fresh=bk.date; view=new Date(bk.date+"T12:00:00"); view.setDate(1);
+        toast("Taught · "+money(l.amount)+(l.bundleId?" from prepay":""));
+        celebrate(this,l.amount,colorFor(st),renderAll);
+      },
+      drop:function(){
+        db.bookings=db.bookings.filter(function(x){return x.id!==bk.id});
+        gUnpushBooking(bk); saveDB(); renderAll(); toast("Booking removed");
+      }
+    });
+  });
+
+  /* a lesson that came from a booking can be un-ticked back to booked */
+  db.bookings.filter(function(b){return b.doneId&&b.date===ds}).forEach(function(bk){
+    var l=db.lessons.filter(function(x){return x.id===bk.doneId})[0];
+    if(!l)return;
+    var st=student(bk.studentId); if(!st)return;
+    tick({
+      sid:bk.studentId, name:st.name, time:bk.time, on:true, amount:l.amount,
+      toggle:function(){delLesson(l)}
     });
   });
 
@@ -1202,6 +1452,63 @@ function renderToday(){
     : (taught?taught+" logged · "+money(sum(done.map(function(l){return l.amount}))):"nothing scheduled");
 }
 
+function renderUpcoming(){
+  var ds=iso(new Date()), panel=$("upcomingPanel"), box=$("upcomingList");
+  var soon=db.bookings.filter(function(b){return !b.doneId&&b.date>ds})
+    .sort(function(a,b){return (a.date+a.time)<(b.date+b.time)?-1:1});
+  if(!soon.length){panel.style.display="none";box.innerHTML="";return}
+  panel.style.display="block";
+
+  var owed=0;
+  soon.forEach(function(b){owed+=priceFor(b.studentId).amount});
+  $("upcomingNote").textContent=soon.length+" booked · "+money(owed)+" to come";
+
+  var html="", day="";
+  soon.slice(0,30).forEach(function(b){
+    if(b.date!==day){
+      day=b.date;
+      var d=new Date(day+"T12:00:00");
+      html+='<p class="daygroup">'+DOWEN[d.getDay()]+", "+MONTHS[d.getMonth()].slice(0,3)+" "+d.getDate()+'</p>';
+    }
+    var s=student(b.studentId);
+    html+='<div class="tick booked">'+
+      '<button class="cbx" data-done="'+b.id+'" aria-label="Mark taught">'+
+        '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></button>'+
+      avatarHTML(s)+
+      '<div class="main"><span style="color:'+colorFor(s)+'">'+esc(sName(b.studentId))+'</span>'+
+      '<small><b class="t">'+ampm(b.time)+'</b></small></div>'+
+      '<div class="amt">'+money(priceFor(b.studentId).amount)+'</div>'+
+      '<button class="add1" data-drop="'+b.id+'" aria-label="Remove booking">&times;</button></div>';
+  });
+  box.innerHTML=html;
+
+  /* tick any booked lesson off from here, whatever day it is for */
+  Array.prototype.forEach.call(box.querySelectorAll("[data-done]"),function(btn){
+    btn.onclick=function(){
+      var bk=db.bookings.filter(function(x){return x.id===btn.dataset.done})[0];
+      if(!bk||bk.doneId)return;
+      var st=student(bk.studentId);
+      if(!st){toast("Student missing");return}
+      btn.disabled=true;
+      var l=addLesson(bk.studentId,bk.date,bk.time,null);
+      if(!l){btn.disabled=false;toast("Set a rate or add prepay for "+sName(bk.studentId));studentSheet(bk.studentId);return}
+      l.fromBooking=bk.id; bk.doneId=l.id; saveDB();
+      fresh=bk.date;
+      view=new Date(bk.date+"T12:00:00"); view.setDate(1);
+      toast("Taught · "+money(l.amount)+(l.bundleId?" from prepay":""));
+      celebrate(btn,l.amount,colorFor(st),renderAll);
+    };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-drop]"),function(btn){
+    btn.onclick=function(){
+      var bk=db.bookings.filter(function(x){return x.id===btn.dataset.drop})[0];
+      if(!bk)return;
+      db.bookings=db.bookings.filter(function(x){return x.id!==bk.id});
+      gUnpushBooking(bk); saveDB(); renderAll(); toast("Booking removed");
+    };
+  });
+}
+
 function renderStudents(){
   var box=$("stulist"); box.innerHTML="";
   var low=0;
@@ -1215,7 +1522,7 @@ function renderStudents(){
       var cls=c.lessons===0?"zero":(c.lessons<=1?"low":"");
       var el=document.createElement("div"); el.className="stu";
       el.innerHTML=avatarHTML(s)+
-        '<div class="main"><span>'+esc(s.name)+'</span><small>'+taught+' lessons taught'+(s.rate?" · "+money(s.rate)+"/lesson":"")+'</small></div>'+
+        '<div class="main"><span style="color:'+colorFor(s)+'">'+esc(s.name)+'</span><small>'+taught+' lessons taught'+(s.rate?" · "+money(s.rate)+"/lesson":"")+'</small></div>'+
         '<div class="bal '+cls+'"><b>'+c.lessons+'</b><small>'+(c.lessons?money(c.value):"no credit")+'</small></div>';
       el.onclick=function(){studentSheet(s.id)};
       box.appendChild(el);
@@ -1313,7 +1620,7 @@ function renderStats(){
   $("tBest").textContent=money(best);
 }
 
-function renderAll(){renderToday();renderHome();renderStudents();renderStats();gPullToday()}
+function renderAll(){renderToday();renderUpcoming();renderHome();renderStudents();renderStats();gPullToday()}
 
 /* ================= actions ================= */
 $("prev").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
@@ -1344,6 +1651,7 @@ $("gcalConnect").onclick=function(){
       }).join("");
       if(!cfg.gcalCal&&items.length){cfg.gcalCal=items[0].id;saveSet()}
       if(cfg.gcalCal)sel.value=cfg.gcalCal;
+      cfg.gcalOk=true; saveSet();
       renderGcal();
       toast("Connected · "+items.length+" calendars");
     }).catch(function(){toast("Connected, but couldn't list calendars")});
@@ -1355,12 +1663,13 @@ $("gcalPullBtn").onclick=function(){
   if(cfg.gcalPull)gPullToday(true); else $("gcalToday").innerHTML="";
 };
 $("gcalPushBtn").onclick=function(){cfg.gcalPush=!cfg.gcalPush;saveSet();renderGcal()};
+$("gcalRemind").onchange=function(){cfg.gcalRemind=num(this.value);saveSet();toast(num(this.value)?"Reminders on for new bookings":"Reminders off")};
 $("gcalOut").onclick=function(){
   if(gTok&&window.google&&google.accounts&&google.accounts.oauth2){
     try{google.accounts.oauth2.revoke(gTok)}catch(e){}
   }
-  gTok=null; gExp=0; gCache={t:0,items:[]};
-  cfg.gcalPull=false; cfg.gcalPush=false; saveSet();
+  gTok=null; gExp=0; gCache={t:0,items:[]}; gPushing={};
+  cfg.gcalPull=false; cfg.gcalPush=false; cfg.gcalOk=false; saveSet();
   $("gcalToday").innerHTML=""; renderGcal(); toast("Disconnected");
 };
 $("testSfx").onclick=function(){
@@ -1450,28 +1759,42 @@ $("import").onchange=function(e){
   };
   fr.readAsText(f); e.target.value="";
 };
+$("dedupe").onclick=function(){
+  var seen={}, dupes=[];
+  db.lessons.slice().sort(function(a,b){return (a.id>b.id)?1:-1}).forEach(function(l){
+    var k=(l.studentId||"_")+"|"+l.date+"|"+(l.time||"");
+    if(seen[k])dupes.push(l); else seen[k]=1;
+  });
+  if(!dupes.length){toast("No duplicates found");return}
+  dupes.forEach(function(l){delLesson(l)});
+  toast("Removed "+dupes.length+" duplicate"+(dupes.length>1?"s":""));
+};
 $("wipe").onclick=function(){
   openSheet('<h3>Erase everything?</h3><p class="empty" style="margin-bottom:16px">Every student, bundle, and lesson goes. There is no undo, so export a backup first if you want one.</p>'+
     '<button class="btn" id="yes" style="margin-bottom:9px">Yes, erase it all</button><button class="btn line" id="no">Keep my data</button>');
   $("no").onclick=closeSheet;
   $("yes").onclick=function(){
-    db={students:[],bundles:[],lessons:[],slots:[]}; saveDB(); shown=0;
+    db={students:[],bundles:[],lessons:[],slots:[],bookings:[]}; saveDB(); shown=0;
     closeSheet(); renderAll(); toast("Erased");
   };
 };
 
 /* ================= google calendar ================= */
 var GSCOPE="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
-var gTok=null, gExp=0, gClient=null, gQueue=[], gCache={t:0,items:[]};
+var gTok=null, gExp=0, gClient=null, gQueue=[], gCache={t:0,items:[]}, gSilent=false, gPushing={};
 
 function gConnected(){return !!(cfg.gcalCid && gTok && Date.now()<gExp-30000)}
 
 function gReady(cb,interactive){
   if(gTok&&Date.now()<gExp-60000){cb();return}
-  if(!cfg.gcalCid){toast("Paste your client ID first");return}
+  if(!cfg.gcalCid){if(interactive)toast("Paste your client ID first");return}
+  /* never pop a sign-in on our own initiative — only after you've connected once */
+  if(!interactive&&!cfg.gcalOk)return;
   if(!(window.google&&google.accounts&&google.accounts.oauth2)){
-    toast("Google script hasn't loaded — check your connection");return;
+    if(interactive)toast("Google script hasn't loaded — check your connection");
+    return;
   }
+  gSilent=!interactive;
   gQueue.push(cb);
   if(!gClient||gClient._cid!==cfg.gcalCid){
     gClient=google.accounts.oauth2.initTokenClient({
@@ -1484,11 +1807,14 @@ function gReady(cb,interactive){
           gExp=Date.now()+((r.expires_in||3600)*1000);
           renderGcal();
           q.forEach(function(f){try{f()}catch(e){}});
-        } else {
+        } else if(!gSilent){
           toast("Google sign-in was cancelled");
         }
       },
-      error_callback:function(){gQueue=[];toast("Google sign-in failed")}
+      error_callback:function(){
+        gQueue=[];
+        if(!gSilent)toast("Google sign-in failed");   /* silent refreshes stay quiet */
+      }
     });
     gClient._cid=cfg.gcalCid;
   }
@@ -1511,19 +1837,59 @@ function gApi(path,opts){
 /* ---- push: a logged lesson becomes an event ---- */
 function gPush(l){
   if(!cfg.gcalPush||!cfg.gcalCal||!cfg.gcalCid)return;
+  if(l.gcalEventId||gPushing[l.id])return;    /* already on the calendar */
+  if(l.fromBooking&&db.bookings.some(function(b){return b.id===l.fromBooking&&b.gcalEventId}))return;
+  gPushing[l.id]=1;
   gReady(function(){
     var t=(l.time&&/^\d{2}:\d{2}$/.test(l.time))?l.time:"12:00";
     var st=new Date(l.date+"T"+t+":00");
-    if(isNaN(st))return;
+    if(isNaN(st)){delete gPushing[l.id];return}
     var en=new Date(st.getTime()+50*60000);
     gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events",{method:"POST",body:{
       summary:sName(l.studentId)+" · Japanese lesson",
       description:"Logged in MainichiTracker · "+money(l.amount),
       start:{dateTime:st.toISOString()},
-      end:{dateTime:en.toISOString()}
+      end:{dateTime:en.toISOString()},
+      extendedProperties:{private:{mainichi:String(l.id)}}   /* our own fingerprint */
     }}).then(function(ev){
+      delete gPushing[l.id];
       if(ev&&ev.id){l.gcalEventId=ev.id;saveDB()}
-    }).catch(function(){});
+    }).catch(function(){delete gPushing[l.id]});
+  });
+}
+function gReminders(){
+  var m=num(cfg.gcalRemind);
+  if(!m)return {useDefault:false,overrides:[]};
+  return {useDefault:false,overrides:[
+    {method:"popup",minutes:m}          /* fires as a real phone notification */
+  ]};
+}
+function gPushBooking(bk){
+  if(!cfg.gcalPush||!cfg.gcalCal||!cfg.gcalCid)return;
+  if(bk.gcalEventId||gPushing[bk.id])return;
+  gPushing[bk.id]=1;
+  gReady(function(){
+    var st=new Date(bk.date+"T"+(bk.time||"12:00")+":00");
+    if(isNaN(st)){delete gPushing[bk.id];return}
+    var en=new Date(st.getTime()+50*60000);
+    gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events",{method:"POST",body:{
+      summary:sName(bk.studentId)+" · Japanese lesson",
+      description:"Booked in MainichiTracker",
+      start:{dateTime:st.toISOString()},
+      end:{dateTime:en.toISOString()},
+      extendedProperties:{private:{mainichi:String(bk.id)}},
+      reminders:gReminders()
+    }}).then(function(ev){
+      delete gPushing[bk.id];
+      if(ev&&ev.id){bk.gcalEventId=ev.id;saveDB()}
+    }).catch(function(){delete gPushing[bk.id]});
+  });
+}
+function gUnpushBooking(bk){
+  if(!bk.gcalEventId||!cfg.gcalCal||!cfg.gcalCid)return;
+  var id=bk.gcalEventId;
+  gReady(function(){
+    gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events/"+encodeURIComponent(id),{method:"DELETE"}).catch(function(){});
   });
 }
 function gUnpush(l){
@@ -1561,10 +1927,17 @@ function gMatchStudent(title){
   return best;
 }
 function gRenderPulled(items){
-  var box=$("gcalToday"), ds=iso(new Date());
+  var box=$("gcalToday"), ds=iso(new Date()), seen={};
+  var mine={};      /* events this app created, so we never offer them back */
+  db.lessons.forEach(function(l){if(l.gcalEventId)mine[l.gcalEventId]=1});
   var open=items.filter(function(ev){
     if(!ev.start||!ev.start.dateTime)return false;             /* skip all-day */
-    return !db.lessons.some(function(l){return l.date===ds&&l.gcalFrom===ev.id});
+    if(seen[ev.id])return false; seen[ev.id]=1;                /* no repeats in one list */
+    if(mine[ev.id])return false;
+    var xp=ev.extendedProperties&&ev.extendedProperties.private;
+    if(xp&&xp.mainichi)return false;                           /* we wrote this one */
+    if(db.lessons.some(function(l){return l.gcalFrom===ev.id}))return false;
+    return true;
   });
   if(!open.length){box.innerHTML="";return}
   var html='<p class="eyebrow" style="margin:16px 0 10px">From your calendar</p>';
@@ -1574,7 +1947,7 @@ function gRenderPulled(items){
     html+='<div class="tick">'+
       '<button class="cbx" data-ev="'+esc(ev.id)+'" aria-label="Log this"><svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></button>'+
       avatarHTML(s)+
-      '<div class="main"><span>'+esc(ev.summary||"Untitled")+'</span><small>'+ampm(tm)+
+      '<div class="main"><span>'+esc(ev.summary||"Untitled")+'</span><small><b class="t">'+ampm(tm)+'</b>'+
         (s?'':' · <u class="out">no matching student</u>')+'</small></div>'+
       '<div class="amt">'+(s?money(priceFor(s.id).amount):"")+'</div>'+
     '</div>';
@@ -1585,12 +1958,16 @@ function gRenderPulled(items){
       var ev=items.filter(function(x){return x.id===b.dataset.ev})[0]; if(!ev)return;
       var s=gMatchStudent(ev.summary);
       if(!s){toast("No student matches \""+(ev.summary||"")+"\"");return}
+      if(db.lessons.some(function(x){return x.gcalFrom===ev.id})){
+        toast("Already logged"); renderAll(); return;
+      }
+      b.disabled=true;
       var l=addLesson(s.id,iso(new Date()),ev.start.dateTime.slice(11,16),null);
-      if(!l){toast("Set a rate or add prepay for "+s.name);studentSheet(s.id);return}
+      if(!l){b.disabled=false;toast("Set a rate or add prepay for "+s.name);studentSheet(s.id);return}
       l.gcalFrom=ev.id; saveDB();
       fresh=iso(new Date());
-      renderAll(); burst(18);
       toast("Logged "+money(l.amount));
+      celebrate(b,l.amount,colorFor(s),renderAll);
     };
   });
 }
@@ -1602,6 +1979,7 @@ function renderGcal(){
   $("gcalConnect").textContent = on?"Reconnect":"Connect";
   $("gcalPullBtn").textContent = "Pull events into today: "+(cfg.gcalPull?"on":"off");
   $("gcalPushBtn").textContent = "Push logged lessons: "+(cfg.gcalPush?"on":"off");
+  $("gcalRemind").value = String(num(cfg.gcalRemind));
 }
 
 /* ================= confetti ================= */
@@ -1685,12 +2063,50 @@ function ctx(){
     if(C)actx=new C();
     try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
     if(actx)actx.onstatechange=function(){
-      if(actx&&actx.state==="interrupted")actx.resume().catch(function(){});
+      if(actx&&actx.state==="interrupted"){try{actx.resume()}catch(e){}}
     };
   }
   if(actx&&actx.state!=="running"){try{actx.resume()}catch(e){}}
   return actx;
 }
+
+/* Throw the whole thing away and build a fresh one. After a long spell in the
+   background iOS leaves the context in a zombie state where resume() resolves,
+   or never resolves at all, and nothing is ever audible again. */
+function rebuildCtx(){
+  try{if(actx)actx.close()}catch(e){}
+  actx=null; bufs={}; curSrc=null; curGain=null;
+  var c=ctx();
+  if(!c)return Promise.reject(new Error("no audio"));
+  if(c.state==="running")return Promise.resolve(c);
+  return Promise.resolve(c.resume()).catch(function(){}).then(function(){return actx});
+}
+
+/* Resolves with a context that is genuinely running, rebuilding if it has to.
+   resume() hanging forever is the bug that made audio stop until an app restart,
+   so it races against a timer instead of being awaited blindly. */
+function ensureCtx(){
+  var c=ctx();
+  if(!c)return Promise.reject(new Error("no audio"));
+  if(c.state==="running")return Promise.resolve(c);
+  var resumed=Promise.resolve(c.resume()).catch(function(){});
+  var timer=new Promise(function(res){setTimeout(res,320)});
+  return Promise.race([resumed,timer]).then(function(){
+    if(actx&&actx.state==="running")return actx;
+    return rebuildCtx();
+  }).then(function(cc){
+    if(cc&&cc.state==="running")return cc;
+    return rebuildCtx();
+  });
+}
+
+/* iOS only lets audio wake up inside a real user gesture, and a visibility
+   change is not one. Every tap gets a free nudge. */
+["touchstart","pointerdown","mousedown"].forEach(function(ev){
+  document.addEventListener(ev,function(){
+    if(actx&&actx.state!=="running"){try{actx.resume()}catch(e){}}
+  },{passive:true,capture:true});
+});
 function b64ToBuf(u){
   var b=atob(u.slice(u.indexOf(",")+1));
   var arr=new Uint8Array(b.length);
@@ -1721,13 +2137,16 @@ function stopAudio(){
 /* calls back with how long the shower should run, in ms */
 function playMark(name,cb){
   var list=TRACKS[name]||[];
-  if(cfg.sfx===false||!list.length){cb(FALLBACK_MS);return}
-  var c=ctx();
-  if(!c){cb(FALLBACK_MS);return}
+  var done=false;
+  function once(ms){if(!done){done=true;setCountPace(ms);cb(ms)}}
+  if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
+  /* whatever happens to the audio, the confetti still gets its cue */
+  setTimeout(function(){once(FALLBACK_MS)},2500);
   var t=list[(Math.random()*list.length)|0];
-  var ready = c.state==="running" ? Promise.resolve() :
-              Promise.resolve(c.resume()).catch(function(){});
-  ready.then(function(){return loadBuf(t.file)}).then(function(buf){
+  ensureCtx().then(function(c){
+    return loadBuf(t.file).then(function(buf){return [c,buf]});
+  }).then(function(pair){
+    var c=pair[0], buf=pair[1];
     var s=Math.max(0,t.start||0);
     var e=(t.end&&t.end>s)?Math.min(t.end,buf.duration):buf.duration;
     var dur=Math.max(0.6,e-s);
@@ -1743,20 +2162,18 @@ function playMark(name,cb){
     g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
     src.start(t0,s,dur);
     curSrc=src; curGain=g;
-    cb(dur*1000);
+    once(dur*1000);
   }).catch(function(){
     delete bufs[t.file];
-    toast("No audio: "+(t.file.slice(0,5)==="data:"?"embedded clip":t.file)+" failed");
-    cb(FALLBACK_MS);
+    once(FALLBACK_MS);
   });
 }
 
 function playKaching(){
   if(cfg.sfx===false)return;
-  var c=ctx(); if(!c)return;
   var url=KACHING[(Math.random()*KACHING.length)|0];
-  var go=function(){
-    loadBuf(url).then(function(buf){
+  ensureCtx().then(function(c){
+    return loadBuf(url).then(function(buf){
       var src=c.createBufferSource(); src.buffer=buf;
       var g=c.createGain();
       src.connect(g); g.connect(c.destination);
@@ -1765,10 +2182,8 @@ function playKaching(){
       g.gain.setValueAtTime(0.95,t0+Math.max(0.05,buf.duration-0.12));
       g.gain.exponentialRampToValueAtTime(0.0001,t0+buf.duration);
       src.start(t0);
-    }).catch(function(){});
-  };
-  if(c.state==="running")go();
-  else Promise.resolve(c.resume()).then(go,go);
+    });
+  }).catch(function(){});
 }
 
 /* ---- shuffle bag: every mark comes up once per cycle ---- */
@@ -1826,7 +2241,7 @@ function killFx(){
 }
 document.addEventListener("visibilitychange",function(){
   if(document.hidden)killFx();
-  else{sizeFx();ctx()}
+  else{sizeFx();ensureCtx().catch(function(){})}
 });
 window.addEventListener("pagehide",killFx);
 
@@ -1843,11 +2258,12 @@ function rainDrop(img,alpha){
   });
 }
 
-function burst(n){
+function burst(n,from){
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-  var btn=$("openLog"), r=btn.getBoundingClientRect();
+  var btn=$("openLog");
+  var src=from||btn, r=src.getBoundingClientRect();
   var ox=r.left+r.width/2, oy=r.top+r.height/2;
-  btn.classList.remove("kick"); void btn.offsetWidth; btn.classList.add("kick");
+  if(!from){btn.classList.remove("kick"); void btn.offsetWidth; btn.classList.add("kick")}
   n=n||20;
 
   playKaching();
