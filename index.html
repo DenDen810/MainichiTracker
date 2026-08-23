@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#0C111A">
 <link rel="apple-touch-icon" href="icon.png">
 <title>MainichiTracker</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
@@ -322,6 +323,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
         <span class="sc" id="todayScore"></span>
       </div>
       <div id="todayList"></div>
+      <div id="gcalToday"></div>
     </div>
 
     <div class="panel">
@@ -410,6 +412,18 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
       <p class="empty" style="margin:13px 0 0">A mark bursts out of the button every time you log a payment. Add an mp3 to a folder called sfx next to this file, named after the mark, and it plays with it.</p>
     </div>
     <div class="panel">
+      <p class="eyebrow">Google Calendar <em id="gcalState">not connected</em></p>
+      <div class="field"><label for="gcalCid">OAuth client ID</label><input id="gcalCid" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="....apps.googleusercontent.com"></div>
+      <button class="btn alt" id="gcalConnect">Connect</button>
+      <div id="gcalOpts" style="display:none">
+        <div class="field" style="margin-top:13px"><label for="gcalCal">Calendar</label><select id="gcalCal"></select></div>
+        <button class="btn line" id="gcalPullBtn" style="margin-bottom:9px">Pull events into today: off</button>
+        <button class="btn line" id="gcalPushBtn" style="margin-bottom:9px">Push logged lessons: off</button>
+        <button class="btn line" id="gcalOut" style="color:var(--shu)">Disconnect</button>
+      </div>
+      <p class="empty" style="margin:13px 0 0">Pull shows today's calendar events in the checklist so you can tick them off. Push writes each lesson you log back as an event. Setup instructions are in the README.</p>
+    </div>
+    <div class="panel">
       <p class="eyebrow">Backup</p>
       <button class="btn alt" id="export" style="margin-bottom:9px">Export CSV</button>
       <label class="btn line" for="import" style="display:block;text-align:center;margin-bottom:9px">Import CSV<input id="import" type="file" accept=".csv,text/csv" style="display:none"></label>
@@ -418,7 +432,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)">E</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)">F</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Danger</p>
@@ -768,6 +782,7 @@ function wireLog(){
         made+=amt;
       }
       saveDB();
+      db.lessons.slice(-qty).forEach(gPush);
       view=new Date(d+"T12:00:00"); view.setDate(1);
       fresh=d; selDay=null;
       closeSheet(); renderAll();
@@ -996,9 +1011,11 @@ function addLesson(sid,dateStr,time,slotId){
   var l={id:uid(),date:dateStr,time:time||"",studentId:sid||null,amount:num(pr.amount),
          bundleId:pr.bundle?pr.bundle.id:null,slotId:slotId||null,note:pr.bundle?"Prepay":"Direct"};
   db.lessons.push(l); saveDB();
+  gPush(l);
   return l;
 }
 function delLesson(l){
+  gUnpush(l);
   if(l.bundleId){
     var b=db.bundles.filter(function(x){return x.id===l.bundleId})[0];
     if(b&&b.used>0)b.used--;
@@ -1296,7 +1313,7 @@ function renderStats(){
   $("tBest").textContent=money(best);
 }
 
-function renderAll(){renderToday();renderHome();renderStudents();renderStats()}
+function renderAll(){renderToday();renderHome();renderStudents();renderStats();gPullToday()}
 
 /* ================= actions ================= */
 $("prev").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
@@ -1314,6 +1331,38 @@ $("addStu").onclick=function(){
   renderAll(); toast(n+" added");
 };
 
+$("gcalCid").oninput=function(){
+  cfg.gcalCid=this.value.trim(); saveSet(); gTok=null; gExp=0; renderGcal();
+};
+$("gcalConnect").onclick=function(){
+  if(!cfg.gcalCid){toast("Paste your client ID first");return}
+  gReady(function(){
+    gApi("/users/me/calendarList").then(function(j){
+      var sel=$("gcalCal"), items=(j.items||[]);
+      sel.innerHTML=items.map(function(c){
+        return '<option value="'+esc(c.id)+'">'+esc(c.summary)+(c.primary?" (main)":"")+'</option>';
+      }).join("");
+      if(!cfg.gcalCal&&items.length){cfg.gcalCal=items[0].id;saveSet()}
+      if(cfg.gcalCal)sel.value=cfg.gcalCal;
+      renderGcal();
+      toast("Connected · "+items.length+" calendars");
+    }).catch(function(){toast("Connected, but couldn't list calendars")});
+  },true);
+};
+$("gcalCal").onchange=function(){cfg.gcalCal=this.value;saveSet();gCache={t:0,items:[]};gPullToday(true)};
+$("gcalPullBtn").onclick=function(){
+  cfg.gcalPull=!cfg.gcalPull; saveSet(); renderGcal();
+  if(cfg.gcalPull)gPullToday(true); else $("gcalToday").innerHTML="";
+};
+$("gcalPushBtn").onclick=function(){cfg.gcalPush=!cfg.gcalPush;saveSet();renderGcal()};
+$("gcalOut").onclick=function(){
+  if(gTok&&window.google&&google.accounts&&google.accounts.oauth2){
+    try{google.accounts.oauth2.revoke(gTok)}catch(e){}
+  }
+  gTok=null; gExp=0; gCache={t:0,items:[]};
+  cfg.gcalPull=false; cfg.gcalPush=false; saveSet();
+  $("gcalToday").innerHTML=""; renderGcal(); toast("Disconnected");
+};
 $("testSfx").onclick=function(){
   if(cfg.sfx===false){toast("Sound is switched off");return}
   var list=TRACKS[ONLY_MARK||"aphex"]||[];
@@ -1410,6 +1459,150 @@ $("wipe").onclick=function(){
     closeSheet(); renderAll(); toast("Erased");
   };
 };
+
+/* ================= google calendar ================= */
+var GSCOPE="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
+var gTok=null, gExp=0, gClient=null, gQueue=[], gCache={t:0,items:[]};
+
+function gConnected(){return !!(cfg.gcalCid && gTok && Date.now()<gExp-30000)}
+
+function gReady(cb,interactive){
+  if(gTok&&Date.now()<gExp-60000){cb();return}
+  if(!cfg.gcalCid){toast("Paste your client ID first");return}
+  if(!(window.google&&google.accounts&&google.accounts.oauth2)){
+    toast("Google script hasn't loaded — check your connection");return;
+  }
+  gQueue.push(cb);
+  if(!gClient||gClient._cid!==cfg.gcalCid){
+    gClient=google.accounts.oauth2.initTokenClient({
+      client_id:cfg.gcalCid,
+      scope:GSCOPE,
+      callback:function(r){
+        var q=gQueue; gQueue=[];
+        if(r&&r.access_token){
+          gTok=r.access_token;
+          gExp=Date.now()+((r.expires_in||3600)*1000);
+          renderGcal();
+          q.forEach(function(f){try{f()}catch(e){}});
+        } else {
+          toast("Google sign-in was cancelled");
+        }
+      },
+      error_callback:function(){gQueue=[];toast("Google sign-in failed")}
+    });
+    gClient._cid=cfg.gcalCid;
+  }
+  gClient.requestAccessToken({prompt:interactive?"consent":""});
+}
+
+function gApi(path,opts){
+  opts=opts||{};
+  return fetch("https://www.googleapis.com/calendar/v3"+path,{
+    method:opts.method||"GET",
+    headers:{"Authorization":"Bearer "+gTok,"Content-Type":"application/json"},
+    body:opts.body?JSON.stringify(opts.body):undefined
+  }).then(function(r){
+    if(r.status===401){gTok=null;gExp=0;throw new Error("auth")}
+    if(!r.ok)throw new Error(r.status);
+    return r.status===204?{}:r.json();
+  });
+}
+
+/* ---- push: a logged lesson becomes an event ---- */
+function gPush(l){
+  if(!cfg.gcalPush||!cfg.gcalCal||!cfg.gcalCid)return;
+  gReady(function(){
+    var t=(l.time&&/^\d{2}:\d{2}$/.test(l.time))?l.time:"12:00";
+    var st=new Date(l.date+"T"+t+":00");
+    if(isNaN(st))return;
+    var en=new Date(st.getTime()+50*60000);
+    gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events",{method:"POST",body:{
+      summary:sName(l.studentId)+" · Japanese lesson",
+      description:"Logged in MainichiTracker · "+money(l.amount),
+      start:{dateTime:st.toISOString()},
+      end:{dateTime:en.toISOString()}
+    }}).then(function(ev){
+      if(ev&&ev.id){l.gcalEventId=ev.id;saveDB()}
+    }).catch(function(){});
+  });
+}
+function gUnpush(l){
+  if(!l.gcalEventId||!cfg.gcalCal||!cfg.gcalCid)return;
+  var id=l.gcalEventId;
+  gReady(function(){
+    gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events/"+encodeURIComponent(id),{method:"DELETE"}).catch(function(){});
+  });
+}
+
+/* ---- pull: today's events, matched to students by name ---- */
+function gPullToday(force){
+  var box=$("gcalToday"); if(!box)return;
+  if(!cfg.gcalPull||!cfg.gcalCal||!cfg.gcalCid){box.innerHTML="";return}
+  if(!force&&Date.now()-gCache.t<120000){gRenderPulled(gCache.items);return}
+  gReady(function(){
+    var d0=new Date(); d0.setHours(0,0,0,0);
+    var d1=new Date(); d1.setHours(23,59,59,999);
+    gApi("/calendars/"+encodeURIComponent(cfg.gcalCal)+"/events?singleEvents=true&orderBy=startTime"+
+         "&timeMin="+encodeURIComponent(d0.toISOString())+
+         "&timeMax="+encodeURIComponent(d1.toISOString()))
+      .then(function(j){
+        gCache={t:Date.now(),items:j.items||[]};
+        gRenderPulled(gCache.items);
+      }).catch(function(){box.innerHTML=''});
+  });
+}
+function gMatchStudent(title){
+  var t=(title||"").toLowerCase(), best=null;
+  db.students.forEach(function(s){
+    if(s.name&&t.indexOf(s.name.toLowerCase())>-1){
+      if(!best||s.name.length>best.name.length)best=s;
+    }
+  });
+  return best;
+}
+function gRenderPulled(items){
+  var box=$("gcalToday"), ds=iso(new Date());
+  var open=items.filter(function(ev){
+    if(!ev.start||!ev.start.dateTime)return false;             /* skip all-day */
+    return !db.lessons.some(function(l){return l.date===ds&&l.gcalFrom===ev.id});
+  });
+  if(!open.length){box.innerHTML="";return}
+  var html='<p class="eyebrow" style="margin:16px 0 10px">From your calendar</p>';
+  open.forEach(function(ev){
+    var s=gMatchStudent(ev.summary);
+    var tm=ev.start.dateTime.slice(11,16);
+    html+='<div class="tick">'+
+      '<button class="cbx" data-ev="'+esc(ev.id)+'" aria-label="Log this"><svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></button>'+
+      avatarHTML(s)+
+      '<div class="main"><span>'+esc(ev.summary||"Untitled")+'</span><small>'+ampm(tm)+
+        (s?'':' · <u class="out">no matching student</u>')+'</small></div>'+
+      '<div class="amt">'+(s?money(priceFor(s.id).amount):"")+'</div>'+
+    '</div>';
+  });
+  box.innerHTML=html;
+  Array.prototype.forEach.call(box.querySelectorAll("[data-ev]"),function(b){
+    b.onclick=function(){
+      var ev=items.filter(function(x){return x.id===b.dataset.ev})[0]; if(!ev)return;
+      var s=gMatchStudent(ev.summary);
+      if(!s){toast("No student matches \""+(ev.summary||"")+"\"");return}
+      var l=addLesson(s.id,iso(new Date()),ev.start.dateTime.slice(11,16),null);
+      if(!l){toast("Set a rate or add prepay for "+s.name);studentSheet(s.id);return}
+      l.gcalFrom=ev.id; saveDB();
+      fresh=iso(new Date());
+      renderAll(); burst(18);
+      toast("Logged "+money(l.amount));
+    };
+  });
+}
+
+function renderGcal(){
+  var on=gConnected();
+  $("gcalState").textContent = on?"connected":(cfg.gcalCid?"not signed in":"not connected");
+  $("gcalOpts").style.display = on?"block":"none";
+  $("gcalConnect").textContent = on?"Reconnect":"Connect";
+  $("gcalPullBtn").textContent = "Pull events into today: "+(cfg.gcalPull?"on":"off");
+  $("gcalPushBtn").textContent = "Push logged lessons: "+(cfg.gcalPush?"on":"off");
+}
 
 /* ================= confetti ================= */
 /* Add more marks by pushing another base64 PNG into this list. */
@@ -1737,6 +1930,8 @@ window.addEventListener("resize",reflow);
 
 /* ================= boot ================= */
 $("sfxBtn").textContent="Sound: "+(cfg.sfx===false?"off":"on");
+$("gcalCid").value=cfg.gcalCid||"";
+renderGcal();
 $("gName").value=cfg.goalName||"";
 $("gTgt").value=cfg.goalTarget||"";
 renderAll();
