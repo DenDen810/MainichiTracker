@@ -131,6 +131,7 @@ button,input,select{font-family:var(--body)}
 .tick .main small u.out{color:var(--shu)}
 .tick .main small u.late{color:var(--shu)}
 .tick .main small u.wk{color:var(--sky)}
+.tick .main small u.plan{color:#C9A227}
 .tick .amt{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;color:#4A5768}
 .tick.done .amt{color:var(--text)}
 .tick.booked .amt{color:#4A5768}
@@ -143,6 +144,30 @@ button,input,select{font-family:var(--body)}
 .slotline:last-of-type{border-bottom:0}
 .slotline .jp{font-family:var(--display);color:var(--shu);flex:0 0 20px}
 .slotline .tm{flex:1;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------- per-student jotter: plan, goals, notes ---------- */
+.jot{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.jot:last-of-type{border-bottom:0}
+.jot .bx{flex:0 0 21px;height:21px;margin-top:1px;border-radius:50%;border:2px solid var(--line);background:#111925;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s,border-color .16s}
+.jot .bx svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4);transition:opacity .16s,transform .2s cubic-bezier(.3,1.6,.5,1)}
+.jot .bx.on{background:var(--sky);border-color:var(--sky)}
+.jot .bx.on svg{opacity:1;transform:none}
+.jot .bx:active{transform:scale(.9)}
+.jot .tx{flex:1;min-width:0;line-height:1.45;word-break:break-word}
+.jot .tx em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.jot.done .tx{color:var(--muted);text-decoration:line-through}
+.jot.done .tx em{text-decoration:none}
+.jot .x{border:0;background:none;color:#4A5768;font-size:18px;cursor:pointer;padding:0 2px;line-height:1.3}
+.jot .x:active{color:var(--shu)}
+.jotadd{display:flex;gap:8px;margin-top:12px}
+.jotadd input{flex:1;min-width:0;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925}
+.jotadd input:focus{outline:2px solid var(--sky);outline-offset:1px;border-color:transparent}
+.jotadd button{flex:0 0 auto;border:0;border-radius:10px;background:var(--surf2);color:var(--text);font-size:15px;font-weight:700;padding:0 17px;cursor:pointer}
+.jotadd button:active{opacity:.85}
+.jotseg{margin-bottom:12px}
+.jotfoot{display:flex;justify-content:flex-end;margin-top:9px}
+.jotfoot button{border:0;background:none;color:var(--muted);font-size:12.5px;cursor:pointer;padding:4px 0}
+.jotfoot button:active{color:var(--shu)}
 .daygroup{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
 .daygroup:first-child{margin-top:0}
 
@@ -575,7 +600,7 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)">AG</b> · 22 Aug 2026<br>If this does not say B, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">AH</b> · 23 Aug 2026<br>If this does not say AH, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -651,6 +676,7 @@ var store=(function(){
 })();
 var DB="mjp.db.v2", SET="mjp.settings.v1", OLD="mjp.income.v1";
 
+/* students also carry plan[] / goals[] / notes[], added lazily by jots() */
 var db={students:[],bundles:[],lessons:[],slots:[],bookings:[]};
 try{var raw=JSON.parse(store.getItem(DB)); if(raw&&raw.lessons)db=raw;}catch(e){}
 if(!db.slots)db.slots=[];
@@ -716,6 +742,34 @@ function money(n){return cfg.cur+Math.round(num(n)).toLocaleString("en-US")}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function student(id){return db.students.filter(function(s){return s.id===id})[0]}
 function sName(id){var s=student(id);return s?s.name:"No student"}
+
+/* ---- per-student jotter ----------------------------------------------
+   Three short lists hung off the student record, so none of this is one
+   endless text box. plan = what to do next lesson, goals = the longer arc,
+   notes = a dated log. Each entry is {id,t,done,date}. Older students simply
+   have no lists yet, so every read goes through jots() and fills them in. */
+function jots(s,kind){
+  if(!s)return [];
+  if(!Array.isArray(s[kind]))s[kind]=[];
+  return s[kind];
+}
+function jotAdd(s,kind,text){
+  text=String(text==null?"":text).trim();
+  if(!text)return false;
+  var e={id:uid(),t:text.slice(0,240),done:false,date:iso(new Date())};
+  var list=jots(s,kind);
+  if(kind==="notes")list.unshift(e); else list.push(e);
+  return true;
+}
+function planLeft(sid){
+  var s=student(sid); if(!s)return 0;
+  return jots(s,"plan").filter(function(e){return !e.done}).length;
+}
+function dayLabel(ds){
+  var d=new Date(String(ds)+"T12:00:00");
+  if(isNaN(d.getTime()))return String(ds);
+  return d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3);
+}
 function initials(n){return (n||"?").trim().slice(0,2).toUpperCase()}
 var PALETTE=["#E0574C","#E08B4C","#D8B24A","#6FB58A","#4CA3C9","#6E7FD8","#A96FD8","#D86FA8"];
 function colorFor(s){
@@ -1172,6 +1226,14 @@ function studentSheet(id){
       '<div class="stat"><b>'+money(s.rate||0)+'</b><small>standard rate</small></div>'+
     '</div>'+
     '<div class="field"><label for="eRate">Rate per lesson</label><input id="eRate" type="number" inputmode="decimal" value="'+(s.rate||"")+'"></div>'+
+    '<p class="eyebrow" style="margin-top:18px">Lesson notes</p>'+
+    '<div class="seg jotseg" id="jotSeg">'+
+      '<button type="button" data-jot="plan" class="on">Next lesson</button>'+
+      '<button type="button" data-jot="goals">Goals</button>'+
+      '<button type="button" data-jot="notes">Notes</button>'+
+    '</div>'+
+    '<div id="jotBody"></div>'+
+    '<div class="jotadd"><input id="jotIn" type="text" autocomplete="off" placeholder="What to do next lesson"><button type="button" id="jotAdd">Add</button></div>'+
     '<p class="eyebrow" style="margin-top:18px">Repeats weekly</p>'+slotHtml+
     '<div class="two" style="margin-top:11px">'+
       '<div class="field" style="margin:0"><label for="nDow">Day</label><select id="nDow">'+
@@ -1184,6 +1246,78 @@ function studentSheet(id){
     '<button class="btn line" id="delStu" style="margin-top:18px;color:var(--shu)">Remove student</button>'
   );
   $("eRate").oninput=function(){s.rate=num(this.value);saveDB();renderToday()};
+
+  /* ---- jotter ----
+     Repaints only its own box, so adding three things in a row does not
+     rebuild the sheet, lose your scroll position or shut the keyboard. */
+  var jotKind="plan";
+  var JOTPH={plan:"What to do next lesson",goals:"A goal for this student",notes:"Something worth remembering"};
+  var JOTNIL={
+    plan:"Nothing planned. Whatever you add here shows up as a count on the Today list.",
+    goals:"No goals yet. These stay put until you tick them off.",
+    notes:"No notes yet. Each one is stamped with the day you wrote it."
+  };
+  function jotSave(){
+    saveDB();
+    if(jotKind==="plan")renderToday();
+  }
+  function paintJot(){
+    var box=$("jotBody"); if(!box)return;
+    var list=jots(s,jotKind);
+    var items=list.slice();
+    if(jotKind!=="notes")items.sort(function(a,b){return (a.done?1:0)-(b.done?1:0)});
+    box.innerHTML=items.length?items.map(function(e){
+      var bx=jotKind==="notes"?"":
+        '<button type="button" class="bx'+(e.done?" on":"")+'" data-tick="'+e.id+'" aria-label="Mark done">'+
+        '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></button>';
+      var when=jotKind==="notes"?'<em>'+esc(dayLabel(e.date))+'</em>':"";
+      return '<div class="jot'+(e.done?" done":"")+'">'+bx+
+        '<div class="tx">'+esc(e.t)+when+'</div>'+
+        '<button type="button" class="x" data-drop="'+e.id+'" aria-label="Delete">&times;</button></div>';
+    }).join(""):'<p class="empty">'+JOTNIL[jotKind]+'</p>';
+
+    if(jotKind!=="notes"&&list.filter(function(e){return e.done}).length){
+      var f=document.createElement("div");
+      f.className="jotfoot";
+      f.innerHTML='<button type="button" id="jotClear">Clear ticked</button>';
+      box.appendChild(f);
+      $("jotClear").onclick=function(){
+        s[jotKind]=list.filter(function(e){return !e.done});
+        jotSave(); paintJot(); toast("Cleared");
+      };
+    }
+    Array.prototype.forEach.call(box.querySelectorAll("[data-tick]"),function(b){
+      b.onclick=function(){
+        var e=list.filter(function(x){return x.id===b.dataset.tick})[0];
+        if(!e)return;
+        e.done=!e.done; jotSave(); paintJot();
+      };
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-drop]"),function(b){
+      b.onclick=function(){
+        s[jotKind]=list.filter(function(x){return x.id!==b.dataset.drop});
+        jotSave(); paintJot();
+      };
+    });
+  }
+  Array.prototype.forEach.call($("jotSeg").querySelectorAll("[data-jot]"),function(b){
+    b.onclick=function(){
+      jotKind=b.dataset.jot;
+      Array.prototype.forEach.call($("jotSeg").querySelectorAll("[data-jot]"),function(o){
+        o.classList.toggle("on",o===b);
+      });
+      $("jotIn").placeholder=JOTPH[jotKind];
+      paintJot();
+    };
+  });
+  function jotCommit(){
+    var box=$("jotIn");
+    if(!jotAdd(s,jotKind,box.value))return;
+    box.value=""; jotSave(); paintJot();
+  }
+  $("jotAdd").onclick=jotCommit;
+  $("jotIn").onkeydown=function(ev){if(ev.key==="Enter"){ev.preventDefault();jotCommit()}};
+  paintJot();
 
   Array.prototype.forEach.call($("sheetBody").querySelectorAll("[data-col]"),function(b){
     b.onclick=function(){s.color=b.dataset.col;saveDB();studentSheet(id);renderAll()};
@@ -1479,6 +1613,8 @@ function renderToday(){
     if(opts.time)sub.push('<b class="t">'+ampm(opts.time)+'</b>');
     if(opts.lateLabel)sub.push('<u class="late">'+opts.lateLabel+'</u>');
     if(opts.weekly)sub.push('<u class="wk">weekly</u>');
+    var pl=opts.sid?planLeft(opts.sid):0;
+    if(pl)sub.push('<u class="plan">'+pl+' planned</u>');
     if(c.lessons)sub.push('<u>'+c.lessons+' prepaid left</u>');
     else if(opts.sid)sub.push('<u class="out">no prepay</u>');
     el.innerHTML='<button class="cbx'+(opts.on?" on":"")+'" aria-label="Mark taught">'+
@@ -1487,6 +1623,11 @@ function renderToday(){
       '<div class="main"><span style="color:'+(opts.sid?colorFor(student(opts.sid)):"inherit")+'">'+esc(opts.name)+'</span><small>'+sub.join(" · ")+'</small></div>'+
       '<div class="amt">'+money(opts.amount)+'</div>';
     el.querySelector(".cbx").onclick=opts.toggle;
+    if(opts.sid){
+      var mn=el.querySelector(".main");
+      mn.style.cursor="pointer";
+      mn.onclick=function(){studentSheet(opts.sid)};
+    }
     if(opts.extra){
       var b=document.createElement("button");
       b.className="add1"; b.innerHTML="&#43;"; b.setAttribute("aria-label","Log another today");
@@ -1610,18 +1751,39 @@ function fbm(x){
 }
 function ease(x){return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
 
+/* The clip clock. playMark stamps this with the moment the current track
+   finishes; the bars crawl toward their new mark so they land on that beat.
+   A 20 second clip means 20 seconds of travel, a minute means a minute.
+   Zero, or anything in the past, means nothing is playing and the bar falls
+   back to its own short default. */
+var clipEndAt=0;
+function clipLeft(){
+  var left=clipEndAt-performance.now();
+  return left>600?left:0;
+}
+
 function makeBar(id,opt){
   opt=opt||{};
   var cv=$(id);
-  if(!cv||!cv.getContext)return {set:function(){},run:function(){},kick:function(){}};
+  if(!cv||!cv.getContext)return {set:function(){},run:function(){},retime:function(){},kick:function(){}};
   var ctx=cv.getContext("2d");
   var W=0,H=0,dpr=1,t=0,raf=null,alive=false;
   var target=0, fill=0, vel=0, level=0, surge=0, stiff=0.020;
   var col={r:224,g:87,b:76}, want={r:224,g:87,b:76};
   var seed=Math.random()*500;
 
-  /* the evolution: gather right, roll back left as a ball, grow out again */
-  var EVO=2600, evoT=-1, evoLvl=0, evoFill=0;
+  /* the evolution: gather right, roll back left as a ball, grow out again.
+     It is now the punctuation at the end of a track rather than the whole
+     event, so it runs short and sharp. */
+  var EVO=1500, evoT=-1, evoT0=0, evoLvl=0, evoFill=0;
+
+  /* the crawl. fill is driven by a clock rather than a spring whenever there
+     is somewhere to be, so it can be stretched to match a clip of any length
+     and still arrive exactly on time. Time-based, not frame-based, so the
+     bar being parked off-screen mid-journey does not stall it. */
+  var trvOn=false, trvFrom=0, trvTo=0, trvT0=0, trvMs=900;
+  var pendEvo=-1;                       /* level waiting on the far edge */
+  var TRV_MIN=420, TRV_DEF=1100;
 
   var PAL=[
     [224,87,76],[232,130,60],[216,178,74],[159,201,74],[95,201,140],
@@ -1661,7 +1823,22 @@ function makeBar(id,opt){
     if(!size())return;
     ctx.clearRect(0,0,W,H);
 
-    if(evoT<0){ vel+=(target-fill)*stiff; vel*=0.88; fill+=vel; }
+    if(evoT<0){
+      if(trvOn){
+        var e0=(performance.now()-trvT0)/trvMs;
+        if(e0>=1){
+          fill=trvTo; trvOn=false; vel=0;
+          /* it has reached the edge — now the quick sequence */
+          if(pendEvo>=0){evoLvl=pendEvo;pendEvo=-1;evoT=0;evoT0=performance.now();surge=1;evoFill=fill}
+        }else{
+          fill=trvFrom+(trvTo-trvFrom)*ease(e0);
+          /* if something is waiting at the end, it gets restless on the way */
+          if(pendEvo>=0)surge=Math.max(surge,0.15+0.5*e0*e0);
+        }
+      }else{
+        vel+=(target-fill)*stiff; vel*=0.88; fill+=vel;
+      }
+    }
     if(fill<0)fill=0; if(fill>1.04)fill=1.04;
     col.r+=(want.r-col.r)*0.05; col.g+=(want.g-col.g)*0.05; col.b+=(want.b-col.b)*0.05;
 
@@ -1686,6 +1863,8 @@ function makeBar(id,opt){
     var xaN=pad, xbN=headX, radMul=1, squash=1, ballOnly=false;
     var impact=0, spin=0;
     if(evoT>=0){
+      /* wall-clock, like the crawl, so a dropped frame does not stretch the pop */
+      evoT=performance.now()-evoT0;
       var e=evoT/EVO;
       var ballR=maxHalf*0.94;
       var midX=(pad+headX)/2;
@@ -1715,8 +1894,10 @@ function makeBar(id,opt){
         xbN=pad+ballR*2+(endX-ballR*2)*springy;
         radMul=ballR/baseR+(1-ballR/baseR)*ease(r2);
       }
-      evoT+=16;
-      if(evoT>EVO){evoT=-1;surge=0;fill=target;vel=0}
+      if(evoT>EVO){
+        evoT=-1;surge=0;fill=target;vel=0;trvOn=false;
+        if(pendEvo>=0)plan();      /* another level stacked up while it popped */
+      }
     }
 
     var wob=wild*sc;
@@ -1792,20 +1973,43 @@ function makeBar(id,opt){
     raf=requestAnimationFrame(tick);
   }
 
+  function plan(){
+    /* Where it is heading, and how long it has to get there. On a level up it
+       walks all the way out to the far edge first and keeps the evolution in
+       its pocket, so the pop lands as the track ends rather than at the start. */
+    var span=clipLeft()||TRV_DEF;
+    if(pendEvo>=0){ trvTo=1; trvMs=Math.max(TRV_MIN,span-EVO); }
+    else          { trvTo=target; trvMs=Math.max(TRV_MIN,span); }
+    trvFrom=fill; trvT0=performance.now(); trvOn=true;
+  }
+
   return {
     set:function(f,lv,bumped){
+      var was=target;
       target=Math.max(0,Math.min(1,f));
+      var moved=Math.abs(target-was)>0.0005;
       if(lv!==level){
-        if(bumped){ evoLvl=lv; evoT=0; surge=1; evoFill=fill; }
+        if(bumped)pendEvo=lv;
         else want=pal(lv);
         level=lv;
+        moved=true;
       }
+      /* a plain redraw with nothing new to say must not restart the clock */
+      if(!moved&&(trvOn||evoT>=0))return;
+      if(!moved&&Math.abs(target-fill)<0.0005)return;
+      if(evoT>=0)return;                  /* mid-pop; it lands on target itself */
+      plan();
+    },
+    /* the clip's real length only turns up once the audio has decoded, so the
+       journey gets restretched from wherever it has already got to */
+    retime:function(){
+      if(evoT>=0||(!trvOn&&pendEvo<0))return;
+      plan();
     },
     run:function(on){
       alive=!!on;
       if(alive&&!raf)raf=requestAnimationFrame(tick);
     },
-    pace:function(ms){ stiff=Math.max(0.0022,Math.min(0.035,26/Math.max(400,ms))); },
     kick:function(){surge=1}
   };
 }
@@ -2551,7 +2755,9 @@ function playMark(name,cb){
     if(done)return;
     done=true;
     setCountPace(ms);
-    try{expBar.pace(ms*0.55);heroBar.pace(ms*0.55)}catch(e){}
+    /* the bars walk to the beat of this clip, however long it turns out to be */
+    clipEndAt=performance.now()+ms;
+    try{expBar.retime();heroBar.retime()}catch(e){}
     cb(ms);
   }
   if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
