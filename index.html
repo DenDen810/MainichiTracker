@@ -26,6 +26,14 @@
   --sky:#6E9BD1;
   --display:"Shippori Mincho B1",Georgia,serif;
   --body:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --inset:#111925;      /* sunken wells: inputs, stat tiles, the segmented control */
+  --tag:#161F2C;        /* the floating month tag */
+  --dim:#4A5768;        /* quiet glyphs: little x's, unearned amounts */
+  --edge:#3A4658;       /* the sheet handle, dashed borders */
+  --good:#7FC69B;       /* a record month, an active student */
+  --gold:#C9A227;       /* planned work waiting */
+  --heroA:#1B2637;      /* the month card gradient */
+  --heroB:#131B27;
   --r:16px;
   --navh:calc(74px + env(safe-area-inset-bottom));
 }
@@ -54,8 +62,7 @@ button,input,select{font-family:var(--body)}
 
 
 /* ---------- hero ---------- */
-.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#1B2637,#131B27);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:13px}
-.hero::after{content:"毎日";position:absolute;right:-12px;bottom:-40px;font-family:var(--display);font-weight:700;font-size:112px;color:rgba(255,255,255,.035);line-height:1;pointer-events:none}
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--heroA),var(--heroB));border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:13px}
 .mnav{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative;z-index:1}
 .mnav button{background:rgba(255,255,255,.07);border:0;color:var(--text);width:27px;height:27px;border-radius:8px;font-size:15px;cursor:pointer;line-height:1}
 .mnav button:active{background:rgba(255,255,255,.16)}
@@ -65,7 +72,7 @@ button,input,select{font-family:var(--body)}
 .heroline{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
 .chip{background:rgba(255,255,255,.07);color:var(--muted);padding:3px 10px;border-radius:100px;font-size:12px;font-variant-numeric:tabular-nums}
 .chip b{color:var(--text);font-weight:500}
-.chip.up{color:#7FC69B}
+.chip.up{color:var(--good)}
 .chip.down{color:var(--shu)}
 
 /* ---------- ledger rows ---------- */
@@ -79,7 +86,7 @@ button,input,select{font-family:var(--body)}
 .row .main small{color:var(--muted);font-size:13.5px;font-variant-numeric:tabular-nums}
 .row .amt{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .row .amt.credit{color:var(--sky)}
-.row .x{border:0;background:none;color:#4A5768;font-size:18px;cursor:pointer;padding:4px 2px;line-height:1}
+.row .x{border:0;background:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px 2px;line-height:1}
 .row .x:active{color:var(--shu)}
 .tag{display:inline-block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--surf2);color:var(--muted);margin-left:6px}
 .tag.bundle{color:var(--sky)}
@@ -90,7 +97,7 @@ button,input,select{font-family:var(--body)}
 .dow i{font-style:normal}
 .dow i:first-child{color:var(--shu)}
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding-top:4px}
-.cell{position:relative;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#111925;display:flex;align-items:center;justify-content:center;font-size:12px;color:#556377;font-variant-numeric:tabular-nums;cursor:pointer;padding:0}
+.cell{position:relative;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--inset);display:flex;align-items:center;justify-content:center;font-size:12px;color:#556377;font-variant-numeric:tabular-nums;cursor:pointer;padding:0}
 .cell.blank{border:0;background:transparent;cursor:default}
 .cell.today{border-color:var(--sky)}
 .cell.sel{border-color:var(--text)}
@@ -105,7 +112,7 @@ button,input,select{font-family:var(--body)}
 .cell .mark{position:absolute;inset:1px;display:none;background:url("data:image/png;base64,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") center/contain no-repeat}
 .cell.stamped .mark{display:block}
 .cell.stamped.fresh .mark{animation:press .34s cubic-bezier(.3,1.5,.5,1)}
-.cell.booked{border-color:#3A4658;border-style:dashed}
+.cell.booked{border-color:var(--edge);border-style:dashed}
 .cell.booked .n{color:var(--sky)}
 @keyframes press{0%{transform:scale(1.9) rotate(-11deg);opacity:0}55%{transform:scale(.9) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 .cell .badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:100px;background:var(--shu);color:#fff;font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;border:2px solid var(--surf)}
@@ -117,7 +124,7 @@ button,input,select{font-family:var(--body)}
 .tick{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .tick:last-child{border-bottom:0;padding-bottom:0}
 .tick:first-child{padding-top:0}
-.cbx{flex:0 0 32px;height:32px;border-radius:50%;border:2px solid var(--line);background:#111925;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:background .18s,border-color .18s}
+.cbx{flex:0 0 32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--inset);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:background .18s,border-color .18s}
 .cbx svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4);transition:opacity .18s,transform .22s cubic-bezier(.3,1.6,.5,1)}
 .cbx.on{background:var(--shu);border-color:var(--shu)}
 .cbx.on svg{opacity:1;transform:none}
@@ -131,11 +138,11 @@ button,input,select{font-family:var(--body)}
 .tick .main small u.out{color:var(--shu)}
 .tick .main small u.late{color:var(--shu)}
 .tick .main small u.wk{color:var(--sky)}
-.tick .main small u.plan{color:#C9A227}
-.tick .amt{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;color:#4A5768}
+.tick .main small u.plan{color:var(--gold)}
+.tick .amt{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums;color:var(--dim)}
 .tick.done .amt{color:var(--text)}
-.tick.booked .amt{color:#4A5768}
-.tick .add1{border:0;background:none;color:#4A5768;font-size:19px;line-height:1;padding:4px 2px;cursor:pointer}
+.tick.booked .amt{color:var(--dim)}
+.tick .add1{border:0;background:none;color:var(--dim);font-size:19px;line-height:1;padding:4px 2px;cursor:pointer}
 .tick .add1:active{color:var(--shu)}
 .todayhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;gap:10px}
 .todayhead .dt{font-family:var(--display);font-size:16px;font-weight:700}
@@ -148,7 +155,7 @@ button,input,select{font-family:var(--body)}
 /* ---------- per-student jotter: plan, goals, notes ---------- */
 .jot{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
 .jot:last-of-type{border-bottom:0}
-.jot .bx{flex:0 0 21px;height:21px;margin-top:1px;border-radius:50%;border:2px solid var(--line);background:#111925;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s,border-color .16s}
+.jot .bx{flex:0 0 21px;height:21px;margin-top:1px;border-radius:50%;border:2px solid var(--line);background:var(--inset);padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s,border-color .16s}
 .jot .bx svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.4);transition:opacity .16s,transform .2s cubic-bezier(.3,1.6,.5,1)}
 .jot .bx.on{background:var(--sky);border-color:var(--sky)}
 .jot .bx.on svg{opacity:1;transform:none}
@@ -157,10 +164,10 @@ button,input,select{font-family:var(--body)}
 .jot .tx em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
 .jot.done .tx{color:var(--muted);text-decoration:line-through}
 .jot.done .tx em{text-decoration:none}
-.jot .x{border:0;background:none;color:#4A5768;font-size:18px;cursor:pointer;padding:0 2px;line-height:1.3}
+.jot .x{border:0;background:none;color:var(--dim);font-size:18px;cursor:pointer;padding:0 2px;line-height:1.3}
 .jot .x:active{color:var(--shu)}
 .jotadd{display:flex;gap:8px;margin-top:12px}
-.jotadd input{flex:1;min-width:0;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925}
+.jotadd input{flex:1;min-width:0;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--inset)}
 .jotadd input:focus{outline:2px solid var(--sky);outline-offset:1px;border-color:transparent}
 .jotadd button{flex:0 0 auto;border:0;border-radius:10px;background:var(--surf2);color:var(--text);font-size:15px;font-weight:700;padding:0 17px;cursor:pointer}
 .jotadd button:active{opacity:.85}
@@ -183,7 +190,7 @@ button,input,select{font-family:var(--body)}
 }
 .floatamt{
   position:fixed;z-index:80;pointer-events:none;
-  font-family:var(--display);font-weight:700;font-size:21px;color:#7FC69B;
+  font-family:var(--display);font-weight:700;font-size:21px;color:var(--good);
   text-shadow:0 2px 12px rgba(0,0,0,.7);
   animation:rise 1.05s cubic-bezier(.2,.8,.3,1) forwards;
 }
@@ -215,7 +222,7 @@ button,input,select{font-family:var(--body)}
   transform:translateY(-140%);
   opacity:0;
   will-change:transform,opacity;
-  background:#161F2C;
+  background:var(--tag);
   border:1px solid var(--line);
   /* cut corner, like a paper tag rather than another pill */
   border-radius:4px 16px 4px 16px;
@@ -248,7 +255,7 @@ button,input,select{font-family:var(--body)}
   margin-left:auto;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   color:var(--muted);white-space:nowrap;
 }
-.minibar.record .note{color:#7FC69B}
+.minibar.record .note{color:var(--good)}
 .expbar{display:block;width:100%;height:22px}
 
 
@@ -263,8 +270,7 @@ button,input,select{font-family:var(--body)}
 .emptywrap .empty{max-width:250px;margin:0 auto}
 
 /* ---------- hero ---------- */
-.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,#1B2637,#131B27);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:13px;transition:box-shadow .6s,border-color .6s}
-.hero::after{content:"毎日";position:absolute;right:-12px;bottom:-40px;font-family:var(--display);font-weight:700;font-size:112px;color:rgba(255,255,255,.035);line-height:1;pointer-events:none}
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--heroA),var(--heroB));border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:13px;transition:box-shadow .6s,border-color .6s}
 
 
 
@@ -284,13 +290,37 @@ button,input,select{font-family:var(--body)}
 .sw.on{border-color:var(--text)}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
 .stu .main{flex:1;min-width:0}
-.stu .main span{display:block;font-size:15.5px}
+.stu .main span{display:block;font-size:17px;font-weight:500;letter-spacing:-.005em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stu .main small{color:var(--muted);font-size:12px}
 .bal{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
 .bal b{display:block;font-family:var(--display);font-size:17px;color:var(--sky)}
 .bal.zero b{color:var(--muted)}
 .bal.low b{color:var(--shu)}
 .bal small{color:var(--muted);font-size:11px}
+.stu:active{background:var(--inset)}
+.stu.rest{opacity:.52}
+.stu .main small{display:flex;align-items:baseline;gap:7px;flex-wrap:nowrap;overflow:hidden;margin-top:3px}
+/* the clock is what you actually read at a glance, so it gets the size */
+.stu .clock{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;flex:0 0 auto}
+.stu .clock.night{color:var(--sky)}
+.stu .clock .moon{font-size:11px;opacity:.85;margin-right:1px}
+.stu .where{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.stu .sheets{font-size:11.5px}
+.stu .sheets{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto}
+.row.shelf{cursor:pointer}
+.row.shelf:active{background:var(--inset)}
+.row.shelf .main small{display:block;color:var(--muted);font-size:12px}
+.pill{display:inline-block;font-size:7.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;padding:1px 5px;border-radius:100px;border:1px solid var(--line);color:var(--muted);line-height:1.5;flex:0 0 auto;opacity:.9}
+.pill.active{color:var(--good);border-color:rgba(127,198,155,.42)}
+.pill.trial{color:var(--gold);border-color:rgba(201,162,39,.5)}
+.pill.paused{color:var(--sky);border-color:rgba(110,155,209,.42)}
+.pill.stopped{color:var(--dim)}
+.filters{display:flex;gap:7px;overflow-x:auto;margin:-2px 0 14px;padding-bottom:3px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters button{flex:0 0 auto;border:1px solid var(--line);background:none;color:var(--muted);font-size:12.5px;padding:6px 13px;border-radius:100px;cursor:pointer;white-space:nowrap}
+.filters button.on{background:var(--surf2);color:var(--text);border-color:transparent;font-weight:500}
+.filters button:active{opacity:.8}
+.filters button i{font-style:normal;opacity:.55;margin-left:5px;font-variant-numeric:tabular-nums}
 
 /* ---------- charts ---------- */
 .chart{width:100%;height:auto;display:block;overflow:visible}
@@ -304,19 +334,21 @@ button,input,select{font-family:var(--body)}
 .hbar:last-child{margin-bottom:0}
 .hbar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;gap:10px}
 .hbar .t b{font-weight:400;font-variant-numeric:tabular-nums;color:var(--muted)}
-.track{height:7px;background:#111925;border-radius:100px;overflow:hidden}
+.track{height:7px;background:var(--inset);border-radius:100px;overflow:hidden}
 .track i{display:block;height:100%;background:var(--sky);border-radius:100px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
 .track i.shu{background:var(--shu)}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.stat{background:#111925;border-radius:11px;padding:13px}
+.stat{background:var(--inset);border-radius:11px;padding:13px}
 .stat b{display:block;font-family:var(--display);font-size:21px;font-variant-numeric:tabular-nums;line-height:1.2}
 .stat small{color:var(--muted);font-size:11.5px}
 
 /* ---------- forms ---------- */
 .field{margin-bottom:11px}
 .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
-.field input,.field select{width:100%;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925}
+.field input,.field select{width:100%;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--inset)}
 .field input:focus,.field select:focus{outline:2px solid var(--sky);outline-offset:1px;border-color:transparent}
+@keyframes nudge{0%,100%{transform:translateX(0)}22%{transform:translateX(-5px)}62%{transform:translateX(4px)}}
+.nudge{animation:nudge .3s ease;outline:2px solid var(--shu)!important;outline-offset:1px;border-color:transparent!important}
 button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .field select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
@@ -324,16 +356,16 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .btn:active{transform:scale(.99);opacity:.9}
 .btn.alt{background:var(--surf2);color:var(--text)}
 .btn.line{background:none;border:1px solid var(--line);color:var(--muted);font-weight:400}
-.seg{display:flex;gap:6px;background:#111925;padding:4px;border-radius:11px;margin-bottom:15px}
+.seg{display:flex;gap:6px;background:var(--inset);padding:4px;border-radius:11px;margin-bottom:15px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--surf2);color:var(--text);font-weight:500}
 
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:rgba(6,9,14,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--surf);border-radius:20px 20px 0 0;border-top:1px solid var(--line);padding:8px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;transform:translateY(102%);transition:transform .3s cubic-bezier(.2,.9,.3,1);max-width:540px;margin:0 auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;background:var(--surf);border-radius:20px 20px 0 0;border-top:1px solid var(--line);padding:8px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;transform:translateY(102%);transition:transform .3s cubic-bezier(.2,.9,.3,1);max-width:540px;margin:0 auto}
 .sheet.on{transform:translateY(0)}
-.handle{width:44px;height:5px;border-radius:100px;background:#3A4658;margin:2px auto 0}
+.handle{width:44px;height:5px;border-radius:100px;background:var(--edge);margin:2px auto 0}
 .grip{padding:8px 0 14px;cursor:grab;touch-action:none}
 .sheet.dragging{transition:none}
 .sheet h3{font-family:var(--display);font-size:19px;margin:0 0 15px;font-weight:700}
@@ -356,7 +388,7 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .rotate{display:none}
 @media (orientation:landscape) and (max-height:560px){
   body{overflow:hidden;height:100dvh}
-  .wrap,.nav,.sheet,.scrim,.toast{display:none!important}
+  .wrap,.nav,.sheet,.scrim{display:none!important}
   .rotate{
     display:flex;position:fixed;inset:0;z-index:200;background:#000;
     align-items:center;justify-content:center;text-align:center;
@@ -422,20 +454,158 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .cropbtns{display:flex;gap:10px;width:min(300px,78vw)}
 .cropbtns .btn{flex:1;margin:0}
 
-.toast{
-  position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));
-  transition:transform .32s cubic-bezier(.2,.9,.3,1),opacity .22s,top .3s ease;
-  transform:translate(-50%,-220%);
-  background:var(--text);color:var(--void);
-  padding:11px 18px;border-radius:100px;font-size:14px;font-weight:500;
-  z-index:70;white-space:nowrap;cursor:pointer;touch-action:none;
-  box-shadow:0 6px 20px rgba(0,0,0,.45);
-  transition:transform .32s cubic-bezier(.2,.9,.3,1),opacity .22s;
-  max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;
+
+
+/* ================= themes =================
+   Every surface in the app already reads from the variables above, so a theme
+   is just a new set of them. Light themes also flip --shadow and the icon
+   weight so nothing looks like dark mode with the lights on. */
+body[data-theme="mainichi"]{
+  /* the website: pink header, grid paper, that orange button */
+  --void:#F2EAD8; --surf:#FDFBF4; --surf2:#F6EEDC; --line:#D9C9A8;
+  --text:#3D2B1F; --muted:#8A7862; --shu:#D98032; --sky:#7A9A5B;
+  --inset:#EFE6D0; --tag:#FDFBF4; --dim:#B0A088; --edge:#C7B392;
+  --good:#6F9B4E; --gold:#C98A2E; --heroA:#F7E3E6; --heroB:#F2D9DE;
+  --display:"Zen Maru Gothic","Zen Kaku Gothic New",-apple-system,sans-serif;
 }
-.toast.on{transform:translate(-50%,0)}
-body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
-.toast .grab{display:block;width:26px;height:3px;border-radius:100px;background:rgba(12,17,26,.25);margin:0 auto 6px}
+body[data-theme="paper"]{
+  /* daylight. plain, quiet, nothing shouting */
+  --void:#EEF1F5; --surf:#FFFFFF; --surf2:#F2F5F9; --line:#DCE3EC;
+  --text:#1E2733; --muted:#71808F; --shu:#D2564B; --sky:#3F7FD0;
+  --inset:#F4F7FA; --tag:#FFFFFF; --dim:#A7B2BF; --edge:#C6D0DB;
+  --good:#3E9A6B; --gold:#B98A17; --heroA:#FFFFFF; --heroB:#F1F5FA;
+}
+body[data-theme="sakura"]{
+  /* pastel. spring, and slightly too sweet on purpose */
+  --void:#FBF0F3; --surf:#FFFFFF; --surf2:#FAEFF3; --line:#EFD9E1;
+  --text:#4A3540; --muted:#9C8390; --shu:#E58AA6; --sky:#8FA9D8;
+  --inset:#FDF6F8; --tag:#FFFFFF; --dim:#C2AEB8; --edge:#E4CBD5;
+  --good:#8FBF9E; --gold:#D9AE62; --heroA:#F6E7F0; --heroB:#EFE3F5;
+  --display:"Zen Maru Gothic","Shippori Mincho B1",Georgia,serif;
+}
+body[data-theme="squid"]{
+  /* the game. hot pink, teal, and a lot of black */
+  --void:#0B0B0E; --surf:#16161C; --surf2:#20202A; --line:#33333F;
+  --text:#F5F2EE; --muted:#8A8697; --shu:#E8467C; --sky:#12A8A0;
+  --inset:#101016; --tag:#16161C; --dim:#565265; --edge:#3E3A4C;
+  --good:#12A8A0; --gold:#E8B54A; --heroA:#1C1421; --heroB:#101016;
+}
+body[data-theme="sonny"]{
+  /* drifting. deep water, and light coming through it */
+  --void:#0A1420; --surf:#11202F; --surf2:#172B3C; --line:#22394C;
+  --text:#E6F2F7; --muted:#7A9AAE; --shu:#F2915C; --sky:#54C7D4;
+  --inset:#0D1A26; --tag:#11202F; --dim:#456175; --edge:#2C4557;
+  --good:#6FD2A8; --gold:#E8C56B; --heroA:#14283A; --heroB:#0C1B28;
+}
+body[data-theme="blame"]{
+  /* concrete. one red light somewhere very far down */
+  --void:#0D0D0D; --surf:#151515; --surf2:#1D1D1D; --line:#2E2E2E;
+  --text:#DEDEDE; --muted:#7A7A7A; --shu:#C4291F; --sky:#9A9A9A;
+  --inset:#101010; --tag:#151515; --dim:#4A4A4A; --edge:#333333;
+  --good:#8F8F8F; --gold:#A08240; --heroA:#191919; --heroB:#0F0F0F;
+  --r:3px;
+  --display:"Zen Kaku Gothic New",-apple-system,sans-serif;
+}
+body[data-theme="matcha"]{
+  /* tea and rice paper */
+  --void:#EDEFE4; --surf:#FAFBF4; --surf2:#E9EDDC; --line:#D2D8BF;
+  --text:#2B3326; --muted:#77826A; --shu:#C2603F; --sky:#5B8C6A;
+  --inset:#F2F4EA; --tag:#FAFBF4; --dim:#A9B39A; --edge:#C3CBB0;
+  --good:#4E8C5E; --gold:#B08A2E; --heroA:#FAFBF4; --heroB:#EEF1E4;
+}
+body[data-theme="sumi"]{
+  /* ink on a cold morning */
+  --void:#101216; --surf:#181B21; --surf2:#20242C; --line:#2C313B;
+  --text:#E8E6E1; --muted:#8B8F98; --shu:#B8433A; --sky:#7F94A8;
+  --inset:#131519; --tag:#181B21; --dim:#4E545E; --edge:#343A45;
+  --good:#7FA089; --gold:#B49456; --heroA:#1C2027; --heroB:#12151A;
+}
+
+/* light themes need their own weight: softer shadows, real borders */
+body.light .navinner{box-shadow:0 6px 20px rgba(60,45,30,.14)}
+body.light .minibar .inner{box-shadow:0 6px 20px rgba(60,45,30,.14)}
+body.light .sheet{box-shadow:0 -8px 30px rgba(60,45,30,.16)}
+body.light .scrim{background:rgba(60,45,30,.34)}
+body.light .cbx{background:var(--inset)}
+body.light .av{color:#fff}
+body.light .toastless{display:none}
+
+/* the picker */
+.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.swatchbtn{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--inset);
+  border-radius:11px;padding:10px 11px;cursor:pointer;color:var(--text);font-size:13.5px;font-family:var(--body);text-align:left}
+.swatchbtn.on{border-color:var(--shu);background:var(--surf2)}
+.swatchbtn .dots{flex:0 0 auto;display:flex}
+.swatchbtn .dots i{width:13px;height:13px;border-radius:50%;display:block;margin-left:-5px;border:1.5px solid var(--surf)}
+.swatchbtn .dots i:first-child{margin-left:0}
+.swatchbtn b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- homework generator: the printable sheet ---------- */
+.paper{position:fixed;inset:0;z-index:90;background:#EEF1F5;overflow-y:auto;display:none;
+  -webkit-overflow-scrolling:touch;padding:0 0 40px}
+.paper.on{display:block}
+.paperbar{position:sticky;top:0;z-index:2;display:flex;gap:9px;align-items:center;
+  padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:#EEF1F5;border-bottom:1px solid #D7DDE5}
+.paperbar button{flex:1;border:0;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--body)}
+.paperbar .go{background:#14634F;color:#fff}
+.paperbar .off{background:#DCE2EA;color:#38414D}
+.doc{max-width:820px;margin:0 auto;padding:16px 14px;color:#22303C;
+  font-family:var(--body);font-size:15px;line-height:1.55}
+.doc .pg{background:#fff;border:1.5px solid #22303C;border-radius:16px;margin:0 0 18px;overflow:hidden;page-break-inside:avoid}
+.doc .cover{border-color:#14634F;background:linear-gradient(160deg,#F1F8F3,#FBF7E9);text-align:center;padding:26px 20px}
+.doc .cover h1{font-family:var(--display);font-size:40px;margin:0 0 6px;color:#14634F;letter-spacing:.04em}
+.doc .cover h1 em{font-style:normal;font-size:15px;letter-spacing:.22em;color:#C1352B;margin-left:10px;vertical-align:middle;font-family:var(--body);font-weight:700}
+.doc .cover .sub{color:#3C4A57;font-size:15px;margin:0 0 14px}
+.doc .cover .who{display:inline-block;background:#14634F;color:#fff;border-radius:100px;padding:9px 22px;font-weight:700;margin-bottom:14px}
+.doc .cover .call{border:1.5px dashed #3F7FD0;border-radius:12px;color:#2C63A8;font-weight:700;padding:13px;margin:0}
+.doc .hd{display:flex;align-items:center;gap:10px;padding:13px 16px;color:#fff;font-weight:700;font-size:17px}
+.doc .hd .n{flex:0 0 24px;height:24px;border-radius:50%;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;font-size:12px}
+.doc .hd .tag{margin-left:auto;font-size:11px;font-weight:700;opacity:.9;text-align:right}
+.doc .body{padding:15px 16px}
+.doc table{width:100%;border-collapse:collapse;font-size:14.5px}
+.doc th{text-align:left;font-size:12.5px;color:#2C63A8;background:#EDF4FD;padding:8px 10px;font-weight:700}
+.doc td{padding:9px 10px;border-bottom:1px solid #E6EAF0;vertical-align:top}
+.doc td.jp{font-weight:700;font-size:16px;width:34%}
+.doc td.en{color:#54606D}
+.doc .grp{color:#2C63A8;font-weight:700;font-size:14px;margin:14px 0 6px}
+.doc .grp:first-child{margin-top:0}
+.doc ol.q{margin:0;padding:0;list-style:none;counter-reset:q}
+.doc ol.q li{counter-increment:q;border:1px solid #E1E6ED;border-radius:11px;padding:12px 14px;margin-bottom:9px}
+.doc ol.q li:before{content:counter(q) ".";font-weight:700;color:#C1352B;margin-right:7px}
+.doc ol.q li .en{display:block;color:#8C97A3;font-size:13px;margin-top:5px}
+.doc .rule{border-bottom:1px dotted #A9B4C0;height:22px;margin-top:8px}
+.doc .bank{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:13px}
+.doc .bank span{border:1px solid #C9B7EE;border-radius:100px;padding:6px 14px;font-weight:700;font-size:15px}
+.doc .ex{border:1.5px dashed #3F7FD0;border-radius:12px;padding:14px;text-align:center;font-weight:700;margin-bottom:13px}
+.doc .ex small{display:block;font-weight:400;color:#8C97A3;margin-top:6px}
+.doc .note{border:1.5px solid #7C5CD6;border-radius:12px;padding:13px 15px;margin:0 0 18px;background:#fff}
+.doc .warn{background:#FDEDEA;border-radius:11px;padding:12px 14px;color:#C1352B;font-size:13.5px;margin-top:13px}
+.doc .tip{color:#8C97A3;font-size:13px;margin-top:11px}
+.doc .chk{list-style:none;margin:0;padding:0}
+.doc .chk li{display:flex;gap:11px;align-items:center;padding:10px 0;border-bottom:1px solid #E6EAF0}
+.doc .chk li:last-child{border-bottom:0}
+.doc .chk i{flex:0 0 17px;height:17px;border:2px solid #14634F;border-radius:4px}
+.doc .done{text-align:center;padding:26px 20px;border-color:#14634F;background:linear-gradient(160deg,#F1F8F3,#FBF7E9)}
+.doc .done h2{font-family:var(--display);color:#14634F;font-size:29px;margin:8px 0 2px;letter-spacing:.06em}
+.doc .done .mc{letter-spacing:.34em;font-size:11px;color:#9AA5B1;margin-bottom:14px}
+.doc .done .sig{display:inline-block;border:1.5px dashed #14634F;border-radius:100px;padding:9px 20px;color:#14634F;font-weight:700;margin-top:12px}
+.doc .foot{text-align:center;color:#B4BDC7;font-size:11px;margin:-8px 0 18px}
+.doc .redo{display:none;margin-left:auto;border:0;background:rgba(255,255,255,.3);color:#fff;
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;cursor:pointer;font-family:var(--body)}
+.paper.editing .doc .redo{display:inline-block}
+.paper.editing .doc .hd .tag{display:none}
+.paper.editing .doc .pg{outline:1px dashed #A9B4C0;outline-offset:3px}
+.paper.editing .paperbar #paperEdit{background:#14634F;color:#fff}
+.doc [contenteditable="true"]:focus{outline:2px solid #3F7FD0;outline-offset:2px;border-radius:4px}
+@media print{
+  .doc .redo{display:none!important}
+  body.printing>*{display:none!important}
+  body.printing .paper{display:block!important;position:static;overflow:visible;background:#fff;padding:0}
+  body.printing .paperbar{display:none!important}
+  .doc{max-width:none;padding:0}
+  .doc .pg{break-inside:avoid;box-shadow:none}
+}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -504,15 +674,21 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
   <section class="view" id="v-students">
     <div class="panel">
       <p class="eyebrow">Students <em id="stucount"></em></p>
+      <div class="filters" id="stuFilters"></div>
       <div id="stulist"></div>
     </div>
     <div class="panel">
       <p class="eyebrow">Add a student</p>
       <div class="two">
         <div class="field"><label for="sName">Name</label><input id="sName" type="text" placeholder="Name or initials" autocomplete="off"></div>
-        <div class="field"><label for="sRate">Rate per lesson</label><input id="sRate" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label for="sRate">Rate per hour</label><input id="sRate" type="number" inputmode="decimal" placeholder="0"></div>
+      </div>
+      <div class="seg jotseg" id="sStatus">
+        <button type="button" data-st="active" class="on">Active</button>
+        <button type="button" data-st="trial">Trial</button>
       </div>
       <button class="btn alt" id="addStu">Add student</button>
+      <div class="field" style="margin:14px 0 0"><label for="sTrial">Trial lesson rate (one hour, new students)</label><input id="sTrial" type="number" inputmode="decimal"></div>
     </div>
     <div class="panel">
       <p class="eyebrow">Outstanding prepay</p>
@@ -586,6 +762,15 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
       <p class="empty" style="margin:13px 0 0">Pull shows today's calendar events in the checklist so you can tick them off. Push writes each lesson you log back as an event. Setup instructions are in the README.</p>
     </div>
     <div class="panel">
+      <p class="eyebrow">Currency <em id="fxNote"></em></p>
+      <p class="empty" style="margin:0 0 11px">Tap USD/JPY at the top of any screen to switch. Everything is kept in dollars underneath and converted for the screen, so nothing drifts when you switch back.</p>
+      <button class="btn line" id="fxNow">Refresh the rate</button>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Theme <em id="themeNow"></em></p>
+      <div class="themes" id="themePick"></div>
+    </div>
+    <div class="panel">
       <p class="eyebrow">Effects</p>
       <button class="btn alt" id="sfxBtn" style="margin-bottom:9px">Sound: on</button>
       <button class="btn line" id="testSfx">Test sound</button>
@@ -599,8 +784,28 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
       <p class="empty" style="margin:13px 0 0">Everything lives on this device only. Export now and then so a wiped phone doesn't take the year with it.</p>
     </div>
     <div class="panel">
+      <p class="eyebrow">Homework generator <em id="aiState"></em></p>
+      <p class="empty" style="margin:0 0 13px">Open a student, tap <b style="color:var(--text)">Make this week's homework</b>, and Claude writes a sheet from their plan, goals and notes. It needs your own Anthropic API key, from console.anthropic.com. Usage is billed to you, a few cents a sheet.</p>
+      <div class="field"><label for="aiKey">API key</label><input id="aiKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="sk-ant-..."></div>
+      <div class="field"><label for="aiModel">Model</label><input id="aiModel" type="text" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <p class="empty" style="margin:-4px 0 13px">claude-sonnet-5 is the default and costs about 5c a sheet. Swap in claude-haiku-4-5 for roughly half that if the writing still reads well to you.</p>
+      <p class="empty" style="margin:0 0 13px">The key is stored on this phone only, in the same place as everything else. Anyone who unlocks the phone can read it, so use a key you can revoke.</p>
+      <p class="eyebrow" style="margin:0 0 8px">Standing notes</p>
+      <textarea id="hwRules" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="furigana on every kanji above N4&#10;no romaji anywhere&#10;keep vocabulary lists under 20 words"></textarea>
+      <p class="empty" style="margin:8px 0 0">Every correction you tick "remember" on lands here, and goes into every sheet from then on. This is the part that stops you fixing the same thing twice.</p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Bring in a spreadsheet</p>
+      <p class="empty" style="margin:0 0 13px">For a sheet that was never exported from here. In Excel, save the sheet as CSV, then pick it below — or just copy the rows and paste them in. Column order does not matter; it reads the headers.</p>
+      <label class="btn alt" for="xlsFile" style="display:block;text-align:center;margin-bottom:9px">Choose a CSV file<input id="xlsFile" type="file" accept=".csv,.tsv,text/csv,text/plain" style="display:none"></label>
+      <div class="field"><label for="xlsPaste">…or paste rows here</label><input id="xlsPaste" type="text" placeholder="Tap, then paste" autocomplete="off"></div>
+      <textarea id="xlsBig" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="Date, Student, Amount&#10;2026-08-01, Melanie, 50"></textarea>
+      <button class="btn alt" id="xlsRead" style="margin-top:11px">Read it</button>
+      <div id="xlsOut"></div>
+    </div>
+    <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">AH</b> · 23 Aug 2026<br>If this does not say AH, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">AP</b> · 23 Aug 2026<br>If this does not say AP, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -615,6 +820,8 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
 </div>
 
 <!-- ============ SHEET ============ -->
+<div class="paper" id="paper"><div class="paperbar"><button type="button" class="off" id="paperClose">Close</button><button type="button" class="off" id="paperEdit">Edit</button><button type="button" class="go" id="paperPrint">Print / Save PDF</button></div><div class="doc" id="paperDoc"></div></div>
+
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
   <div class="grip"><div class="handle"></div></div>
@@ -666,7 +873,6 @@ body.barup .toast{top:calc(96px + env(safe-area-inset-top))}
 
 <canvas id="fx"></canvas>
 
-<div class="toast" id="toast"></div>
 
 <script>
 /* ================= storage ================= */
@@ -685,6 +891,8 @@ var cfg={}; try{cfg=JSON.parse(store.getItem(SET))||{}}catch(e){}
 if(!cfg.cur)cfg.cur="$";
 if(cfg.goalName===undefined)cfg.goalName="Japan trip";
 if(cfg.goalTarget===undefined)cfg.goalTarget=0;
+if(cfg.trial===undefined)cfg.trial=20;      /* trial lesson, one hour, new students */
+if(cfg.hours===undefined)cfg.hours=1;       /* every lesson is an hour */
 
 /* migrate v1 flat rows */
 (function(){
@@ -709,7 +917,7 @@ function num(v){
 }
 function saveDB(){
   try{store.setItem(DB,JSON.stringify(db));return true}
-  catch(e){toast("Storage is full — try a smaller photo");return false}
+  catch(e){warn("Storage is full. Try a smaller photo, or export a backup and clear some old sheets.");return false}
 }
 
 /* one-time repair: anything that got saved as undefined/NaN/"" becomes a real number */
@@ -738,7 +946,52 @@ var selDay=null, fresh=null;
 
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function ym(d){return iso(d).slice(0,7)}
-function money(n){return cfg.cur+Math.round(num(n)).toLocaleString("en-US")}
+/* ---- currency ----------------------------------------------------------
+   Everything is STORED in dollars, always. Yen is a lens: amounts are
+   converted on the way to the screen and converted straight back the moment
+   you type one in, so switching back and forth can never drift the numbers.
+   The rate is fetched once a day and cached; offline it uses the last one it
+   saw, and failing that a sane default that it tells you about. */
+var FX_FALLBACK=150;
+function fxRate(){
+  var f=cfg.fx;
+  return (f&&f.rate>0)?f.rate:FX_FALLBACK;
+}
+function fxStale(){
+  var f=cfg.fx;
+  return !f||!f.rate||!f.at||(Date.now()-f.at>36*3600*1000);
+}
+function inYen(){return cfg.cur==="\u00a5"}
+function disp(n){return inYen()?num(n)*fxRate():num(n)}   /* dollars -> screen */
+function base(n){return inYen()?num(n)/fxRate():num(n)}   /* screen -> dollars */
+function money(n){
+  var v=disp(n);
+  return cfg.cur+Math.round(v).toLocaleString("en-US");
+}
+/* what to put in a number box, in whatever currency is on screen */
+function boxVal(n){
+  if(!num(n))return "";
+  var v=disp(n);
+  return inYen()?String(Math.round(v)):String(Math.round(v*100)/100);
+}
+function fxFetch(force){
+  if(!force&&!fxStale())return Promise.resolve(fxRate());
+  return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY")
+    .then(function(r){if(!r.ok)throw 0;return r.json()})
+    .then(function(j){
+      var v=j&&j.rates&&j.rates.JPY;
+      if(!(v>0))throw 0;
+      cfg.fx={rate:v,at:Date.now(),on:j.date||""};
+      saveSet();
+      return v;
+    });
+}
+function fxLabel(){
+  var f=cfg.fx;
+  if(!f||!f.rate)return "using "+FX_FALLBACK+", no rate fetched yet";
+  var days=Math.floor((Date.now()-f.at)/86400000);
+  return "$1 = \u00a5"+f.rate.toFixed(2)+(days<1?" · today":days===1?" · yesterday":" · "+days+" days old");
+}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function student(id){return db.students.filter(function(s){return s.id===id})[0]}
 function sName(id){var s=student(id);return s?s.name:"No student"}
@@ -765,6 +1018,97 @@ function planLeft(sid){
   var s=student(sid); if(!s)return 0;
   return jots(s,"plan").filter(function(e){return !e.done}).length;
 }
+/* ---- where a student stands ----
+   active  = teaching them now
+   trial   = first lesson, charged at the trial rate rather than their own
+   paused  = on a break; weekly slots stop topping themselves up
+   stopped = finished; kept for the history and the money already earned */
+var STATUS=["active","trial","paused","stopped"];
+var STATUS_LABEL={active:"Active",trial:"Trial",paused:"Paused",stopped:"Stopped"};
+function statusOf(s){
+  if(!s)return "active";
+  return STATUS.indexOf(s.status)>=0?s.status:"active";
+}
+function teaching(s){var st=statusOf(s);return st==="active"||st==="trial"}
+
+/* ---- where a student is, and what time it is there --------------------
+   Only the IANA zone is stored (s.tz). The city label and the clock are both
+   derived from it, so there is nothing to keep in sync and nothing to type. */
+var TZ_FALLBACK=[
+  "Pacific/Honolulu","America/Anchorage","America/Los_Angeles","America/Denver",
+  "America/Phoenix","America/Chicago","America/Mexico_City","America/New_York",
+  "America/Toronto","America/Bogota","America/Lima","America/Sao_Paulo",
+  "America/Argentina/Buenos_Aires","Atlantic/Reykjavik","Europe/London",
+  "Europe/Dublin","Europe/Lisbon","Europe/Madrid","Europe/Paris","Europe/Brussels",
+  "Europe/Amsterdam","Europe/Berlin","Europe/Zurich","Europe/Rome","Europe/Vienna",
+  "Europe/Prague","Europe/Warsaw","Europe/Stockholm","Europe/Oslo","Europe/Helsinki",
+  "Europe/Athens","Europe/Bucharest","Europe/Kyiv","Europe/Istanbul","Europe/Moscow",
+  "Africa/Casablanca","Africa/Lagos","Africa/Cairo","Africa/Nairobi",
+  "Africa/Johannesburg","Asia/Jerusalem","Asia/Dubai","Asia/Karachi","Asia/Kolkata",
+  "Asia/Kathmandu","Asia/Dhaka","Asia/Bangkok","Asia/Jakarta","Asia/Singapore",
+  "Asia/Kuala_Lumpur","Asia/Manila","Asia/Hong_Kong","Asia/Shanghai","Asia/Taipei",
+  "Asia/Seoul","Asia/Tokyo","Australia/Perth","Australia/Brisbane",
+  "Australia/Sydney","Australia/Melbourne","Pacific/Auckland"
+];
+function tzList(){
+  try{
+    if(Intl.supportedValuesOf){
+      var all=Intl.supportedValuesOf("timeZone");
+      if(all&&all.length>50)return all;
+    }
+  }catch(e){}
+  return TZ_FALLBACK;
+}
+function tzOk(tz){
+  if(!tz)return false;
+  try{new Intl.DateTimeFormat("en-US",{timeZone:tz});return true}catch(e){return false}
+}
+function placeOf(s){
+  var tz=s&&s.tz;
+  if(!tz)return "";
+  var bit=tz.split("/").pop();
+  return bit.replace(/_/g," ");
+}
+/* their wall clock right now */
+function clockIn(tz){
+  if(!tzOk(tz))return null;
+  try{
+    var d=new Date();
+    var parts=new Intl.DateTimeFormat("en-US",{
+      timeZone:tz,hour:"numeric",minute:"2-digit",hour12:true,weekday:"short",hourCycle:"h12"
+    }).formatToParts(d);
+    var got={};
+    parts.forEach(function(x){got[x.type]=x.value});
+    var h24=parseInt(new Intl.DateTimeFormat("en-US",{timeZone:tz,hour:"numeric",hour12:false,hourCycle:"h23"}).format(d),10);
+    return {
+      label:got.hour+":"+got.minute+(got.dayPeriod||"").toLowerCase(),
+      day:got.weekday,
+      h24:h24,
+      night:(h24<8||h24>=22)
+    };
+  }catch(e){return null}
+}
+/* how far ahead or behind they are from wherever this phone is */
+function tzGap(tz){
+  if(!tzOk(tz))return null;
+  var d=new Date();
+  function off(zone){
+    var f=new Intl.DateTimeFormat("en-US",{timeZone:zone,hour12:false,
+      year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    var p={}; f.formatToParts(d).forEach(function(x){p[x.type]=x.value});
+    return Date.UTC(p.year,p.month-1,p.day,p.hour%24,p.minute,p.second);
+  }
+  try{
+    var here=off(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    var mins=Math.round((off(tz)-here)/60000);
+    if(!mins)return null;
+    var sign=mins<0?"-":"+"; mins=Math.abs(mins);
+    var h=Math.floor(mins/60), m=mins%60;
+    return sign+h+(m?":"+String(m).padStart(2,"0"):"")+"h";
+  }catch(e){return null}
+}
+function trialRate(){var n=num(cfg.trial);return n>0?n:20}
+
 function dayLabel(ds){
   var d=new Date(String(ds)+"T12:00:00");
   if(isNaN(d.getTime()))return String(ds);
@@ -793,50 +1137,26 @@ function ampm(t){
   return h12+":"+mm+" "+s;
 }
 function nowTime(){var d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(Math.floor(d.getMinutes()/5)*5).padStart(2,"0")}
-function hideToast(){
-  var t=$("toast");
-  clearTimeout(t._x);
-  t.style.transition=""; t.style.opacity=""; t.style.transform="";
-  t.classList.remove("on");
+/* The floating pill is gone. It kept landing on things that matter — the
+   creature at the top, the log button at the bottom — and a confirmation is
+   not worth covering a control for. Ordinary confirmations now say nothing:
+   the number moved, the row ticked, the list changed, you can see it.
+   The two things a pill was actually carrying still have somewhere to go. */
+function toast(){}
+
+/* something genuinely went wrong and you need to know why */
+function warn(m){
+  if(!m)return;
+  openSheet('<h3>'+esc(m)+'</h3><button class="btn alt" id="warnOk">OK</button>');
+  var b=$("warnOk"); if(b)b.onclick=closeSheet;
 }
-function toast(m){
-  if(!m)return;                      /* never flash an empty pill */
-  var t=$("toast");
-  var bar=$("minibar");
-  if(bar&&bar.classList.contains("on")){
-    var b=bar.getBoundingClientRect().bottom;
-    if(b>0)t.style.top=(b+10)+"px";
-  } else t.style.top="";
-  t.innerHTML='<span class="grab"></span>'+esc(m);
-  t.style.transition=""; t.style.opacity=""; t.style.transform="";
-  t.classList.add("on");
-  clearTimeout(t._x);
-  t._x=setTimeout(hideToast,4500);
+/* you missed a box: point at it rather than talking about it */
+function nudge(id){
+  var el=$(id); if(!el)return;
+  el.classList.remove("nudge"); void el.offsetWidth; el.classList.add("nudge");
+  try{el.focus()}catch(e){}
+  setTimeout(function(){el.classList.remove("nudge")},1400);
 }
-(function(){
-  var t=$("toast"), y0=null, dy=0;
-  t.addEventListener("touchstart",function(e){
-    y0=e.touches[0].clientY; dy=0;
-    clearTimeout(t._x); t.style.transition="none";
-  },{passive:true});
-  t.addEventListener("touchmove",function(e){
-    if(y0===null)return;
-    dy=e.touches[0].clientY-y0;
-    if(dy>0)dy*=0.25;
-    t.style.transform="translate(-50%,"+dy.toFixed(1)+"px)";
-    t.style.opacity=String(Math.max(0.25,1+dy/90));
-  },{passive:true});
-  function release(){
-    if(y0===null)return;
-    t.style.transition="";
-    if(dy<-16){hideToast();}
-    else{t.style.transform="";t.style.opacity="";t._x=setTimeout(hideToast,4500);}
-    y0=null;
-  }
-  t.addEventListener("touchend",release);
-  t.addEventListener("touchcancel",release);
-  t.addEventListener("click",hideToast);
-})();
 
 function credits(sid){
   var left=0,val=0;
@@ -1012,20 +1332,20 @@ function wireLog(){
       var nb=sid?nextBundle(sid):null;
       if(nb){
         var unit=nb.amount/nb.lessons;
-        $("lAmt").value=unit.toFixed(2);
+        $("lAmt").value=boxVal(unit);
         $("lAmt").disabled=true;
         $("lHint").textContent="from prepay, "+c.lessons+" left";
       } else {
         $("lAmt").disabled=false;
         $("lHint").textContent="";
-        if(s&&s.rate)$("lAmt").value=s.rate;
+        if(s&&s.rate)$("lAmt").value=boxVal(s.rate);
       }
     };
     wireChips("lStu",syncHint); syncHint();
     $("lGo").onclick=function(){
       var sid=$("lStu").value, d=$("lDate").value||today;
       var qty=Math.max(1,Math.min(12,parseInt($("lQty").value)||1));
-      var manual=parseFloat($("lAmt").value)||0;
+      var manual=base(parseFloat($("lAmt").value)||0);
       var made=0, drew=0;
       for(var i=0;i<qty;i++){
         var nb=sid?nextBundle(sid):null, amt, bid=null;
@@ -1073,7 +1393,7 @@ function wireLog(){
     wireChips("bStu");
     $("bDate").value=today;
     $("bGo").onclick=function(){
-      var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=parseFloat($("bAmt").value)||0;
+      var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=base(parseFloat($("bAmt").value)||0);
       if(!sid||n<1||!amt){toast("Fill in lessons and total");return}
       db.bundles.push({id:uid(),studentId:sid,date:$("bDate").value||today,lessons:n,amount:amt,used:0});
       saveDB(); closeSheet(); renderAll();
@@ -1095,7 +1415,7 @@ $("lightbox").onclick=function(){this.classList.remove("on");$("lbImg").src=""};
 /* ---------- photo cropper: pan, pinch, slider, then confirm ---------- */
 function openCropper(file,done){
   var url=URL.createObjectURL(file), img=new Image();
-  img.onerror=function(){URL.revokeObjectURL(url);toast("Could not read that image")};
+  img.onerror=function(){URL.revokeObjectURL(url);warn("Could not read that image.")};
   img.onload=function(){
     var wrap=$("cropper"), cvs=$("cropCanvas"), g=cvs.getContext("2d"), zoom=$("cropZoom");
     var D=Math.max(200,Math.min(innerWidth-72,300));
@@ -1225,7 +1545,21 @@ function studentSheet(id){
       '<div class="stat"><b>'+mine.length+'</b><small>lessons taught</small></div>'+
       '<div class="stat"><b>'+money(s.rate||0)+'</b><small>standard rate</small></div>'+
     '</div>'+
-    '<div class="field"><label for="eRate">Rate per lesson</label><input id="eRate" type="number" inputmode="decimal" value="'+(s.rate||"")+'"></div>'+
+    '<p class="eyebrow" style="margin-top:4px">Where they are at</p>'+
+    '<div class="seg jotseg" id="stStatus">'+
+      STATUS.map(function(k){
+        return '<button type="button" data-st="'+k+'"'+(statusOf(s)===k?' class="on"':'')+'>'+STATUS_LABEL[k]+'</button>';
+      }).join("")+
+    '</div>'+
+    '<p class="empty" id="stNote" style="font-size:13px;margin:-4px 0 14px"></p>'+
+    '<div class="field"><label for="eRate">Rate per hour '+esc(cfg.cur)+'</label><input id="eRate" type="number" inputmode="decimal" value="'+boxVal(s.rate)+'"></div>'+
+    '<div class="field"><label for="eTz">Where they are <em id="tzNow" style="font-style:normal;float:right;color:var(--sky)"></em></label>'+
+      '<select id="eTz"><option value="">Not set</option>'+
+      tzList().map(function(z){
+        return '<option value="'+esc(z)+'"'+(s.tz===z?" selected":"")+'>'+esc(z.replace(/_/g," "))+'</option>';
+      }).join("")+'</select></div>'+
+    '<button class="btn alt" id="mkHw" style="margin-top:6px">Make this week\'s homework</button>'+
+    '<div id="hwShelf"></div>'+
     '<p class="eyebrow" style="margin-top:18px">Lesson notes</p>'+
     '<div class="seg jotseg" id="jotSeg">'+
       '<button type="button" data-jot="plan" class="on">Next lesson</button>'+
@@ -1245,7 +1579,41 @@ function studentSheet(id){
     '<p class="eyebrow" style="margin-top:18px">Recent lessons</p>'+hist+
     '<button class="btn line" id="delStu" style="margin-top:18px;color:var(--shu)">Remove student</button>'
   );
-  $("eRate").oninput=function(){s.rate=num(this.value);saveDB();renderToday()};
+  $("eRate").oninput=function(){s.rate=base(num(this.value));saveDB();renderToday()};
+
+  function paintTz(){
+    var ck=clockIn(s.tz), gap=tzGap(s.tz);
+    $("tzNow").textContent = ck
+      ? (ck.day+" "+ck.label+(gap?" ("+gap+")":" (same as you)"))
+      : "";
+  }
+  $("eTz").onchange=function(){
+    if(this.value)s.tz=this.value; else delete s.tz;
+    saveDB(); paintTz(); renderStudents();
+  };
+  paintTz();
+
+  /* ---- status ---- */
+  var ST_NOTE={
+    active:"Being taught now. Weekly times keep scheduling themselves.",
+    trial:"First lesson. Charged at the trial rate of "+money(trialRate())+" an hour, whatever their own rate says.",
+    paused:"On a break. Weekly times stop scheduling new lessons; anything already on the calendar stays.",
+    stopped:"Finished. Kept here for the history and the money already earned."
+  };
+  function paintStatus(){
+    $("stNote").textContent=ST_NOTE[statusOf(s)];
+    Array.prototype.forEach.call($("stStatus").querySelectorAll("[data-st]"),function(o){
+      o.classList.toggle("on",o.dataset.st===statusOf(s));
+    });
+  }
+  Array.prototype.forEach.call($("stStatus").querySelectorAll("[data-st]"),function(b){
+    b.onclick=function(){
+      s.status=b.dataset.st;
+      saveDB(); paintStatus(); renderAll();
+      toast(s.name+" · "+STATUS_LABEL[s.status]);
+    };
+  });
+  paintStatus();
 
   /* ---- jotter ----
      Repaints only its own box, so adding three things in a row does not
@@ -1300,6 +1668,40 @@ function studentSheet(id){
       };
     });
   }
+  $("mkHw").onclick=function(){hwSheet(id)};
+
+  /* every sheet ever made for them, newest first */
+  function paintShelf(){
+    var list=sheets(s), box=$("hwShelf"); if(!box)return;
+    if(!list.length){box.innerHTML="";return}
+    box.innerHTML='<p class="eyebrow" style="margin:18px 0 10px">Worksheets <em>'+
+      list.length+(list.length===1?" made":" made")+'</em></p>'+
+      list.map(function(w){
+        return '<div class="row shelf" data-open="'+w.id+'">'+
+          '<div class="d"><b>'+new Date(w.at+"T12:00:00").getDate()+'</b>'+
+            MONTHS[new Date(w.at+"T12:00:00").getMonth()].slice(0,3)+'</div>'+
+          '<div class="main"><span>'+esc(w.topic||"Homework")+'</span>'+
+            '<small>'+esc(w.level||"")+((w.spec&&w.spec.sections)?" · "+w.spec.sections.length+" sections":"")+
+            (w.html?" · edited":"")+'</small></div>'+
+          '<button type="button" class="x" data-kill="'+w.id+'">&times;</button></div>';
+      }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-open]"),function(r){
+      r.onclick=function(ev){
+        if(ev.target&&ev.target.dataset&&ev.target.dataset.kill)return;
+        var w=sheets(s).filter(function(x){return x.id===r.dataset.open})[0];
+        if(!w)return;
+        closeSheet(); hwOpen(id,w);
+      };
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-kill]"),function(b2){
+      b2.onclick=function(ev){
+        ev.stopPropagation();
+        s.sheets=sheets(s).filter(function(x){return x.id!==b2.dataset.kill});
+        saveDB(); paintShelf(); renderStudents(); toast("Sheet deleted");
+      };
+    });
+  }
+  paintShelf();
   Array.prototype.forEach.call($("jotSeg").querySelectorAll("[data-jot]"),function(b){
     b.onclick=function(){
       jotKind=b.dataset.jot;
@@ -1364,7 +1766,7 @@ function studentSheet(id){
     };
   });
   $("delStu").onclick=function(){
-    if(mine.length){toast("Delete this student's lessons first");return}
+    if(mine.length){warn("Delete this student's lessons first.");return}
     db.bundles=db.bundles.filter(function(b){return b.studentId!==id});
     db.slots=db.slots.filter(function(x){return x.studentId!==id});
     db.students=db.students.filter(function(x){return x.id!==id});
@@ -1376,6 +1778,9 @@ function priceFor(sid){
   var nb=sid?nextBundle(sid):null;
   if(nb)return {amount:nb.amount/nb.lessons,bundle:nb};
   var s=student(sid);
+  /* a trial student is charged the trial rate, not whatever is in their own
+     rate box — that one is waiting for them to sign on properly */
+  if(s&&statusOf(s)==="trial")return {amount:trialRate(),bundle:null,trial:true};
   return {amount:s&&s.rate?s.rate:0,bundle:null};
 }
 function addLesson(sid,dateStr,time,slotId){
@@ -1383,7 +1788,8 @@ function addLesson(sid,dateStr,time,slotId){
   if(!pr.bundle&&!pr.amount)return null;
   if(pr.bundle)pr.bundle.used++;
   var l={id:uid(),date:dateStr,time:time||"",studentId:sid||null,amount:num(pr.amount),
-         bundleId:pr.bundle?pr.bundle.id:null,slotId:slotId||null,note:pr.bundle?"Prepay":"Direct"};
+         bundleId:pr.bundle?pr.bundle.id:null,slotId:slotId||null,
+         note:pr.bundle?"Prepay":(pr.trial?"Trial":"Direct")};
   db.lessons.push(l); saveDB();
   gPush(l);
   return l;
@@ -1460,11 +1866,11 @@ function setTotal(v){
   if(!isFinite(shown))shown=0;
   var el=$("total"), from=shown, diff=v-from, t0=null;
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches||Math.abs(diff)<1){
-    shown=v; el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+Math.round(v).toLocaleString("en-US"); return;
+    shown=v; el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+Math.round(disp(v)).toLocaleString("en-US"); return;
   }
   function paint(x){
     x=num(x);
-    var txt=Math.round(x).toLocaleString("en-US");
+    var txt=Math.round(disp(x)).toLocaleString("en-US");
     el.innerHTML='<span class="cur">'+cfg.cur+'</span>'+txt;
     var m=$("miniTotal"); if(m)m.textContent=cfg.cur+txt;
   }
@@ -1570,6 +1976,7 @@ function renderHome(){
     $("count").textContent=list.length+" lessons, "+money(sum(list.map(function(l){return l.amount})));
   }
   $("curBtn").textContent=cfg.cur==="$"?"USD":"JPY";
+  paintFx();
 }
 
 /* A weekly slot is just a generator: it keeps eight weeks of scheduled lessons
@@ -1579,6 +1986,7 @@ function ensureSlotBookings(){
   var t0=new Date(); t0.setHours(12,0,0,0);
   var changed=false;
   db.slots.forEach(function(s){
+    if(!teaching(student(s.studentId)))return;   /* paused or stopped: stop topping up */
     for(var i=0;i<56;i++){
       var dd=new Date(t0); dd.setDate(dd.getDate()+i);
       if(dd.getDay()!==s.dow)continue;
@@ -1667,7 +2075,7 @@ function renderToday(){
       },
       extra:function(){
         var l=addLesson(bk.studentId,ds,nowTime(),null);
-        if(!l){toast("Set a rate or add prepay for "+st.name);return}
+        if(!l){warn("Set a rate or add prepay for "+st.name+" first.");return}
         fresh=ds; renderAll(); burst(18); toast("Extra lesson logged");
       },
       drop:function(){
@@ -1709,7 +2117,7 @@ function renderToday(){
 }
 
 var KANJI_MONTH=["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];
-var STEP=102;   /* so round numbers land near the far right, not back at zero */
+var STEP=101;   /* $100 lands just shy of the far right, not back at zero */
 function updateMini(){
   var bar=$("minibar"); if(!bar)return;
   var cur=earnedIn(view);
@@ -1751,39 +2159,27 @@ function fbm(x){
 }
 function ease(x){return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
 
-/* The clip clock. playMark stamps this with the moment the current track
-   finishes; the bars crawl toward their new mark so they land on that beat.
-   A 20 second clip means 20 seconds of travel, a minute means a minute.
-   Zero, or anything in the past, means nothing is playing and the bar falls
-   back to its own short default. */
-var clipEndAt=0;
-function clipLeft(){
-  var left=clipEndAt-performance.now();
-  return left>600?left:0;
-}
-
 function makeBar(id,opt){
   opt=opt||{};
   var cv=$(id);
-  if(!cv||!cv.getContext)return {set:function(){},run:function(){},retime:function(){},kick:function(){}};
+  if(!cv||!cv.getContext)return {set:function(){},run:function(){},kick:function(){}};
   var ctx=cv.getContext("2d");
   var W=0,H=0,dpr=1,t=0,raf=null,alive=false;
   var target=0, fill=0, vel=0, level=0, surge=0, stiff=0.020;
   var col={r:224,g:87,b:76}, want={r:224,g:87,b:76};
   var seed=Math.random()*500;
 
-  /* the evolution: gather right, roll back left as a ball, grow out again.
-     It is now the punctuation at the end of a track rather than the whole
-     event, so it runs short and sharp. */
-  var EVO=1500, evoT=-1, evoT0=0, evoLvl=0, evoFill=0;
+  /* the evolution: swell where it stands, gather to a ball, roll home, grow
+     out again in the new colour. It starts from wherever the creature actually
+     is, so there is no jump to the end of the bar first. */
+  var EVO=2400, evoT=-1, evoT0=0, evoLvl=0, evoFill=0;
 
-  /* the crawl. fill is driven by a clock rather than a spring whenever there
-     is somewhere to be, so it can be stretched to match a clip of any length
-     and still arrive exactly on time. Time-based, not frame-based, so the
-     bar being parked off-screen mid-journey does not stall it. */
-  var trvOn=false, trvFrom=0, trvTo=0, trvT0=0, trvMs=900;
-  var pendEvo=-1;                       /* level waiting on the far edge */
-  var TRV_MIN=420, TRV_DEF=1100;
+  /* the crawl. fill is driven by a clock rather than a spring, so it is an
+     even, unhurried glide rather than a snap that decays. Time-based, not
+     frame-based, so being parked off-screen mid-journey does not stall it. */
+  var trvOn=false, trvFrom=0, trvTo=0, trvT0=0, trvMs=2200;
+  var pendEvo=-1;                       /* a level that landed mid-pop */
+  var TRV_MS=2200;                      /* one unhurried length of the bar */
 
   var PAL=[
     [224,87,76],[232,130,60],[216,178,74],[159,201,74],[95,201,140],
@@ -1826,15 +2222,8 @@ function makeBar(id,opt){
     if(evoT<0){
       if(trvOn){
         var e0=(performance.now()-trvT0)/trvMs;
-        if(e0>=1){
-          fill=trvTo; trvOn=false; vel=0;
-          /* it has reached the edge — now the quick sequence */
-          if(pendEvo>=0){evoLvl=pendEvo;pendEvo=-1;evoT=0;evoT0=performance.now();surge=1;evoFill=fill}
-        }else{
-          fill=trvFrom+(trvTo-trvFrom)*ease(e0);
-          /* if something is waiting at the end, it gets restless on the way */
-          if(pendEvo>=0)surge=Math.max(surge,0.15+0.5*e0*e0);
-        }
+        if(e0>=1){ fill=trvTo; trvOn=false; vel=0; }
+        else fill=trvFrom+(trvTo-trvFrom)*ease(e0);
       }else{
         vel+=(target-fill)*stiff; vel*=0.88; fill+=vel;
       }
@@ -1868,25 +2257,30 @@ function makeBar(id,opt){
       var e=evoT/EVO;
       var ballR=maxHalf*0.94;
       var midX=(pad+headX)/2;
-      if(e<0.30){                                   /* both ends rush the middle */
-        var g=ease(e/0.30);
+      if(e<0.16){                                   /* it swells where it stands */
+        var w0=ease(e/0.16);
+        radMul=1+0.26*w0;
+        squash=1+0.06*w0;
+      } else if(e<0.44){                            /* both ends draw inward */
+        var g=ease((e-0.16)/0.28);
         xaN=pad+(midX-pad)*g;
         xbN=headX-(headX-midX)*g;
-        radMul=1+(ballR/baseR-1)*g;
+        radMul=1.26+(ballR/baseR-1.26)*g;
+        squash=1+0.06*(1-g);
         if(g>0.9)ballOnly=true;
-      } else if(e<0.38){                            /* they meet */
+      } else if(e<0.52){                            /* they meet */
         xaN=xbN=midX; radMul=ballR/baseR; ballOnly=true;
-        impact=1-(e-0.30)/0.08;
+        impact=1-(e-0.44)/0.08;
         squash=1+0.42*impact;
         if(want!==pal(evoLvl))want=pal(evoLvl);
-      } else if(e<0.68){                            /* the ball rolls home */
-        var m=(e-0.38)/0.30, mm=ease(m);
+      } else if(e<0.76){                            /* the ball rolls home */
+        var m=(e-0.52)/0.24, mm=ease(m);
         var cx=midX+((pad+ballR)-midX)*mm;
         xaN=xbN=cx; radMul=ballR/baseR; ballOnly=true;
         squash=1+0.3*Math.sin(m*Math.PI);
         spin=m*7.5;                                 /* it tumbles as it goes */
       } else {                                      /* springs back out */
-        var r2=(e-0.68)/0.32;
+        var r2=(e-0.76)/0.24;
         var endX=pad+Math.max(baseR*2.1, usable*target);
         /* springs out past its mark and wobbles back, rather than sliding to a stop */
         var springy=ease(r2)*(1+0.18*Math.pow(1-r2,2)*Math.sin(r2*11.5));
@@ -1896,7 +2290,7 @@ function makeBar(id,opt){
       }
       if(evoT>EVO){
         evoT=-1;surge=0;fill=target;vel=0;trvOn=false;
-        if(pendEvo>=0)plan();      /* another level stacked up while it popped */
+        if(pendEvo>=0){var q=pendEvo;pendEvo=-1;startEvo(q)}  /* one stacked up */
       }
     }
 
@@ -1974,13 +2368,16 @@ function makeBar(id,opt){
   }
 
   function plan(){
-    /* Where it is heading, and how long it has to get there. On a level up it
-       walks all the way out to the far edge first and keeps the evolution in
-       its pocket, so the pop lands as the track ends rather than at the start. */
-    var span=clipLeft()||TRV_DEF;
-    if(pendEvo>=0){ trvTo=1; trvMs=Math.max(TRV_MIN,span-EVO); }
-    else          { trvTo=target; trvMs=Math.max(TRV_MIN,span); }
-    trvFrom=fill; trvT0=performance.now(); trvOn=true;
+    /* The crawl is always the same unhurried glide, scaled to how far it has
+       to go, so a nudge is quick and a long haul still takes its time. */
+    trvFrom=fill; trvTo=target;
+    trvMs=Math.max(600,TRV_MS*Math.min(1,Math.abs(trvTo-trvFrom)+0.25));
+    trvT0=performance.now(); trvOn=true;
+  }
+  function startEvo(lv){
+    /* straight from wherever it stands — no dash to the end of the bar first */
+    evoLvl=lv; evoT=0; evoT0=performance.now();
+    evoFill=fill; surge=1; trvOn=false; vel=0;
   }
 
   return {
@@ -1989,21 +2386,18 @@ function makeBar(id,opt){
       target=Math.max(0,Math.min(1,f));
       var moved=Math.abs(target-was)>0.0005;
       if(lv!==level){
-        if(bumped)pendEvo=lv;
-        else want=pal(lv);
         level=lv;
+        if(bumped){
+          if(evoT>=0)pendEvo=lv;   /* it is already popping; queue this one */
+          else startEvo(lv);
+          return;                  /* the pop lands it on target itself */
+        }
+        want=pal(lv);
         moved=true;
       }
-      /* a plain redraw with nothing new to say must not restart the clock */
-      if(!moved&&(trvOn||evoT>=0))return;
-      if(!moved&&Math.abs(target-fill)<0.0005)return;
       if(evoT>=0)return;                  /* mid-pop; it lands on target itself */
-      plan();
-    },
-    /* the clip's real length only turns up once the audio has decoded, so the
-       journey gets restretched from wherever it has already got to */
-    retime:function(){
-      if(evoT>=0||(!trvOn&&pendEvo<0))return;
+      /* a plain redraw with nothing new to say must not restart the clock */
+      if(!moved&&(trvOn||Math.abs(target-fill)<0.0005))return;
       plan();
     },
     run:function(on){
@@ -2122,20 +2516,80 @@ function renderUpcoming(){
   });
 }
 
+var stuFilter="all";
+/* the clocks tick on their own; no need to rebuild the list for a minute hand */
+setInterval(function(){
+  if(document.hidden)return;
+  var v=$("v-students");
+  if(!v||!v.classList.contains("on"))return;
+  Array.prototype.forEach.call(v.querySelectorAll("[data-tz]"),function(el){
+    var ck=clockIn(el.dataset.tz); if(!ck)return;
+    el.innerHTML=(ck.night?'<span class="moon">\u263e</span>':"")+esc(ck.label);
+    el.classList.toggle("night",ck.night);
+  });
+},20000);
+function nextLessonFor(sid){
+  var ds=iso(new Date());
+  var up=db.bookings.filter(function(b){return b.studentId===sid&&!b.doneId&&b.date>=ds})
+    .sort(function(a,b){return (a.date+(a.time||""))<(b.date+(b.time||""))?-1:1})[0];
+  return up||null;
+}
 function renderStudents(){
   var box=$("stulist"); box.innerHTML="";
   var low=0;
+
+  /* the filter strip, with live counts so it says something even before you tap */
+  var counts={all:db.students.length};
+  STATUS.forEach(function(k){counts[k]=0});
+  db.students.forEach(function(s){counts[statusOf(s)]++});
+  var strip=$("stuFilters");
+  if(db.students.length<2){ strip.innerHTML=""; stuFilter="all"; }
+  else{
+    strip.innerHTML=["all"].concat(STATUS).filter(function(k){
+      return k==="all"||counts[k]>0;
+    }).map(function(k){
+      var lab=k==="all"?"Everyone":STATUS_LABEL[k];
+      return '<button type="button" data-f="'+k+'" class="'+(stuFilter===k?"on":"")+'">'+
+        lab+'<i>'+counts[k]+'</i></button>';
+    }).join("");
+    Array.prototype.forEach.call(strip.querySelectorAll("[data-f]"),function(b){
+      b.onclick=function(){stuFilter=b.dataset.f;renderStudents()};
+    });
+  }
+
   if(!db.students.length){
     box.innerHTML='<p class="empty">No students yet. Add one below and they show up here with their prepay balance.</p>';
   } else {
-    db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(s){
-      var c=credits(s.id);
+    /* whoever you are actually teaching floats to the top */
+    var rank={active:0,trial:1,paused:2,stopped:3};
+    var list=db.students.slice()
+      .filter(function(s){return stuFilter==="all"||statusOf(s)===stuFilter})
+      .sort(function(a,b){
+        var d=rank[statusOf(a)]-rank[statusOf(b)];
+        return d||a.name.localeCompare(b.name);
+      });
+    if(!list.length)box.innerHTML='<p class="empty">Nobody is '+STATUS_LABEL[stuFilter].toLowerCase()+' right now.</p>';
+    list.forEach(function(s){
+      var c=credits(s.id), st=statusOf(s);
       var taught=db.lessons.filter(function(l){return l.studentId===s.id}).length;
-      if(c.lessons>0&&c.lessons<=1)low++;
+      if(c.lessons>0&&c.lessons<=1&&teaching(s))low++;
       var cls=c.lessons===0?"zero":(c.lessons<=1?"low":"");
-      var el=document.createElement("div"); el.className="stu";
+      /* status, their clock, where they are. Nothing else — the rest is one
+         tap away, and this line has to stay readable at a glance. */
+      var bits=['<span class="pill '+st+'">'+STATUS_LABEL[st]+'</span>'];
+      var ck=clockIn(s.tz);
+      var nsh=sheets(s).length;
+      if(nsh)bits.push('<span class="sheets">'+nsh+'\u00b7\ud83d\udcc4</span>');
+      if(ck){
+        /* city only — the offset was eating the space the clock needed */
+        bits.push('<span class="clock'+(ck.night?" night":"")+'" data-tz="'+esc(s.tz)+'">'+
+          (ck.night?'<span class="moon">\u263e</span>':"")+esc(ck.label)+'</span>');
+        bits.push('<span class="where">'+esc(placeOf(s))+'</span>');
+      }
+      var el=document.createElement("div");
+      el.className="stu"+(teaching(s)?"":" rest");
       el.innerHTML=avatarHTML(s)+
-        '<div class="main"><span style="color:'+colorFor(s)+'">'+esc(s.name)+'</span><small>'+taught+' lessons taught'+(s.rate?" · "+money(s.rate)+"/lesson":"")+'</small></div>'+
+        '<div class="main"><span style="color:'+colorFor(s)+'">'+esc(s.name)+'</span><small>'+bits.join("")+'</small></div>'+
         '<div class="bal '+cls+'"><b>'+c.lessons+'</b><small>'+(c.lessons?money(c.value):"no credit")+'</small></div>';
       el.onclick=function(){studentSheet(s.id)};
       box.appendChild(el);
@@ -2238,24 +2692,46 @@ function renderAll(){renderToday();renderUpcoming();renderHome();renderStudents(
 /* ================= actions ================= */
 $("prev").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
 $("next").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()+1,1);selDay=null;shown=0;renderAll()};
-$("curBtn").onclick=function(){cfg.cur=cfg.cur==="$"?"¥":"$";saveSet();shown=0;renderAll()};
+$("curBtn").onclick=function(){
+  cfg.cur=cfg.cur==="$"?"\u00a5":"$"; saveSet();
+  var go=function(){shown=0;renderAll();$("sTrial").value=boxVal(trialRate());$("gTgt").value=boxVal(cfg.goalTarget);paintFx()};
+  if(inYen()&&fxStale()){
+    $("curBtn").textContent="…";
+    fxFetch().then(go).catch(function(){go();warn("Could not reach the exchange rate. Using "+(cfg.fx?"the last one it saw":FX_FALLBACK)+".")});
+  } else go();
+};
 
+var newStatus="active";
+Array.prototype.forEach.call($("sStatus").querySelectorAll("[data-st]"),function(b){
+  b.onclick=function(){
+    newStatus=b.dataset.st;
+    Array.prototype.forEach.call($("sStatus").querySelectorAll("[data-st]"),function(o){
+      o.classList.toggle("on",o===b);
+    });
+    $("sRate").placeholder = newStatus==="trial" ? boxVal(trialRate())+" (trial rate)" : "0";
+  };
+});
+$("sTrial").value=boxVal(trialRate());
+$("sTrial").oninput=function(){
+  cfg.trial=base(num(this.value)); saveSet(); renderAll();
+};
 $("addStu").onclick=function(){
   var n=$("sName").value.trim();
-  if(!n){toast("Name first");return}
+  if(!n){nudge("sName");return}
   if(db.students.some(function(s){return s.name.toLowerCase()===n.toLowerCase()})){
-    toast(n+" is already on the list"); return;
+    warn(n+" is already on the list."); return;
   }
-  db.students.push({id:uid(),name:n,rate:parseFloat($("sRate").value)||0});
+  db.students.push({id:uid(),name:n,rate:base(parseFloat($("sRate").value)||0),status:newStatus});
   saveDB(); $("sName").value=""; $("sRate").value="";
-  renderAll(); toast(n+" added");
+  renderAll();
+  toast(n+" added"+(newStatus==="trial"?" as a trial at "+money(trialRate()):""));
 };
 
 $("gcalCid").oninput=function(){
   cfg.gcalCid=this.value.trim(); saveSet(); gTok=null; gExp=0; renderGcal();
 };
 $("gcalConnect").onclick=function(){
-  if(!cfg.gcalCid){toast("Paste your client ID first");return}
+  if(!cfg.gcalCid){nudge("gcalCid");return}
   gReady(function(){
     gApi("/users/me/calendarList").then(function(j){
       var sel=$("gcalCal"), items=(j.items||[]);
@@ -2296,7 +2772,7 @@ $("testSfx").onclick=function(){
     loadBuf(f).then(function(buf){
       toast("Embedded clip, "+Math.round(buf.duration)+"s · audio "+c.state);
       playMark(ONLY_MARK||"aphex",function(){});
-    }).catch(function(){toast("Embedded clip failed to decode")});
+    }).catch(function(){warn("That clip would not decode.")});
     return;
   }
   fetch(f).then(function(r){
@@ -2316,7 +2792,7 @@ $("sfxBtn").onclick=function(){
   this.textContent="Sound: "+(cfg.sfx===false?"off":"on");
 };
 $("gName").oninput=function(){cfg.goalName=this.value;saveSet();$("goalname").textContent=this.value};
-$("gTgt").oninput=function(){cfg.goalTarget=parseFloat(this.value)||0;saveSet();renderStats()};
+$("gTgt").oninput=function(){cfg.goalTarget=base(parseFloat(this.value)||0);saveSet();renderStats()};
 
 function download(name,text,type){
   var url=URL.createObjectURL(new Blob([text],{type:type}));
@@ -2372,6 +2848,669 @@ $("import").onchange=function(e){
   };
   fr.readAsText(f); e.target.value="";
 };
+
+/* ================= homework generator =================
+   Builds a MainichiJP-styled worksheet from a student's plan, goals and notes.
+   The writing is done by Claude through your own API key; the layout, the
+   house style and the page furniture are all done here, so every sheet comes
+   out looking like the ones you already send. */
+var HW_MODEL="claude-sonnet-5";   /* $2 / $10 per million tokens */
+var SECT_COLOR={
+  vocab:"#2C7BE5", read:"#E07B39", fill:"#7C5CD6", translate:"#7C5CD6",
+  questions:"#E07B39", write:"#14634F", bonus:"#3E7D4E", howto:"#14634F",
+  match:"#3E7D4E", answers:"#38414D"
+};
+function hwEsc(x){return esc(x)}
+function hwRules(n){var o="";for(var i=0;i<(n||3);i++)o+='<div class="rule"></div>';return o}
+
+function renderDoc(spec,s){
+  var out="", pg=0, total=1;
+  function foot(){pg++;return '<p class="foot">MainichiJP · '+pg+'</p>'}
+  out+='<div class="pg cover"><h1>'+hwEsc(spec.title||"しゅくだい")+
+       '<em>'+hwEsc(spec.kicker||"HOMEWORK")+'</em></h1>'+
+       '<p class="sub">MainichiJP'+(spec.subtitle?" · "+hwEsc(spec.subtitle):"")+'</p>'+
+       '<div class="who">for '+hwEsc(s.name)+'</div>'+
+       '<p class="call">'+hwEsc(spec.call||"Read here, write all answers in your notebook!")+'</p></div>';
+  if(spec.intro)out+='<div class="note">'+hwEsc(spec.intro)+'</div>';
+  out+=foot();
+
+  (spec.sections||[]).forEach(function(sec,i){
+    out+=renderSection(sec,i)+foot();
+  });
+  out+=renderTail(spec,s);
+  return out;
+}
+
+function renderSection(sec,i){
+    var out="";
+    var col=SECT_COLOR[sec.kind]||"#2C7BE5";
+    out+='<div class="pg" data-sec="'+i+'"><div class="hd" style="background:'+col+'">'+
+      '<span class="n">'+(i+1)+'</span>'+hwEsc(sec.title||"")+
+      (sec.tag?'<span class="tag">'+hwEsc(sec.tag)+'</span>':"")+
+      '<button type="button" class="redo" data-redo="'+i+'">redo</button>'+
+      '</div><div class="body">';
+    if(sec.lead)out+='<p style="margin:0 0 13px">'+hwEsc(sec.lead)+'</p>';
+
+    if(sec.kind==="vocab"){
+      (sec.groups||[{items:sec.items||[]}]).forEach(function(g){
+        if(g.name)out+='<p class="grp">'+hwEsc(g.name)+'</p>';
+        out+='<table><tr><th>ことば</th><th>よみかた</th><th>English</th></tr>';
+        (g.items||[]).forEach(function(it){
+          out+='<tr><td class="jp">'+hwEsc(it.jp)+'</td><td class="en">'+hwEsc(it.kana||"")+
+               '</td><td class="en">'+hwEsc(it.en||"")+'</td></tr>';
+        });
+        out+='</table>';
+      });
+    } else if(sec.kind==="read"){
+      out+='<table><tr><th>ページ</th><th>What to look for</th></tr>';
+      (sec.items||[]).forEach(function(it){
+        out+='<tr><td class="jp">'+hwEsc(it.jp)+'</td><td class="en">'+hwEsc(it.en)+'</td></tr>';
+      });
+      out+='</table>';
+    } else if(sec.kind==="fill"){
+      if(sec.bank&&sec.bank.length){
+        out+='<div class="bank">'+sec.bank.map(function(w){return '<span>'+hwEsc(w)+'</span>'}).join("")+'</div>';
+      }
+      out+='<ol class="q">'+(sec.items||[]).map(function(it){
+        return '<li>'+hwEsc(it.jp)+(it.en?'<span class="en">'+hwEsc(it.en)+'</span>':"")+'</li>';
+      }).join("")+'</ol>';
+    } else if(sec.kind==="match"){
+      out+='<table><tr><th>　</th><th>　</th></tr>';
+      (sec.items||[]).forEach(function(it,k){
+        out+='<tr><td class="jp">'+(k+1)+'. '+hwEsc(it.jp)+'</td><td class="en">＿＿＿＿</td></tr>';
+      });
+      out+='</table><p class="grp">えらぶ</p><table>';
+      (sec.options||[]).forEach(function(o,k){
+        out+='<tr><td class="jp">'+String.fromCharCode(97+k)+'</td><td class="en">'+hwEsc(o)+'</td></tr>';
+      });
+      out+='</table>';
+    } else if(sec.kind==="translate"||sec.kind==="questions"){
+      out+='<ol class="q">'+(sec.items||[]).map(function(it){
+        return '<li>'+hwEsc(it.jp)+(it.en?'<span class="en">'+hwEsc(it.en)+'</span>':"")+
+               (sec.kind==="translate"?hwRules(1):"")+'</li>';
+      }).join("")+'</ol>';
+    } else if(sec.kind==="write"){
+      if(sec.example)out+='<div class="ex">'+hwEsc(sec.example)+
+        (sec.exampleNote?'<small>'+hwEsc(sec.exampleNote)+'</small>':"")+'</div>';
+      out+='<p style="margin:0 0 6px;color:#8C97A3">Your answer:</p>'+hwRules(sec.lines||5);
+    } else if(sec.kind==="bonus"){
+      out+='<ol class="q">'+(sec.items||[]).map(function(it){
+        return '<li>'+hwEsc(it.jp)+(it.en?'<span class="en">'+hwEsc(it.en)+'</span>':"")+hwRules(1)+'</li>';
+      }).join("")+'</ol>';
+    } else {
+      out+='<ol class="q">'+(sec.items||[]).map(function(it){
+        return '<li>'+hwEsc(it.jp||it)+(it.en?'<span class="en">'+hwEsc(it.en)+'</span>':"")+'</li>';
+      }).join("")+'</ol>';
+    }
+    if(sec.watch)out+='<div class="warn"><b>気をつけて · watch out</b><br>'+hwEsc(sec.watch)+'</div>';
+    if(sec.tip)out+='<p class="tip">'+hwEsc(sec.tip)+'</p>';
+    out+='</div></div>';
+    return out;
+}
+
+function renderTail(spec,s){
+  var out='<div class="pg done"><div class="mc" style="color:#C1352B;letter-spacing:0;font-size:15px">★ ★ ★</div>'+
+    '<h2>ミッション・<br>コンプリート！</h2><p class="mc">MISSION COMPLETE</p>'+
+    '<p style="margin:0 0 8px"><b>おつかれさまでした、'+hwEsc(s.name)+'！</b> '+
+    hwEsc(spec.outro||"Bring your notebook and any questions to our next lesson.")+'</p>'+
+    '<p style="color:#9AA5B1;font-size:13.5px;margin:0">Stuck on something? Circle it and move on.<br>'+
+    'Stuck is where the learning happens. がんばって！</p>'+
+    '<div class="sig">まいにち、すこしずつ。 · MainichiJP</div></div>';
+  if(spec.checklist&&spec.checklist.length){
+    out+='<div class="pg"><div class="body"><p class="grp" style="color:#14634F">チェックリスト · before the lesson</p>'+
+      '<ul class="chk">'+spec.checklist.map(function(c){
+        return '<li><i></i><span>'+hwEsc(c)+'</span></li>';
+      }).join("")+'</ul></div></div>';
+  }
+  return out;
+}
+
+function showPaper(html){
+  $("paperDoc").innerHTML=html;
+  $("paper").classList.add("on");
+  $("paper").scrollTop=0;
+}
+$("paperClose").onclick=function(){
+  if($("paper").classList.contains("editing")){
+    $("paper").classList.remove("editing");
+    $("paperDoc").contentEditable="false";
+    $("paperEdit").textContent="Edit";
+    hwSnapshot(true);
+  }
+  $("paper").classList.remove("on");
+};
+$("paperPrint").onclick=function(){
+  document.body.classList.add("printing");
+  setTimeout(function(){
+    try{window.print()}catch(e){}
+    setTimeout(function(){document.body.classList.remove("printing")},400);
+  },60);
+};
+
+/* ---- the sheet you can actually fix ----------------------------------
+   A generated sheet is a draft, not a delivery. It is kept per student so
+   you can reopen it, every word in it is editable by hand for nothing, and
+   a single section can be redone on its own when the writing is wrong,
+   which costs a fraction of another whole sheet. */
+var hwCur=null;                      /* {sid, id, spec, topic, level} */
+var HW_KEEP=12;                      /* sheets kept per student */
+
+function sheets(s){
+  if(!s)return [];
+  if(!Array.isArray(s.sheets))s.sheets=[];
+  return s.sheets;
+}
+function hwOpen(sid,rec){
+  var s=student(sid); if(!s)return;
+  hwCur={sid:sid,id:rec.id,spec:rec.spec,topic:rec.topic,level:rec.level};
+  /* an untouched sheet is redrawn from its spec; only hand-edited pages
+     carry their own html, which keeps the saved pile small */
+  showPaper(rec.html||renderDoc(rec.spec,s));
+  wireRedo();
+}
+function paperEditing(){return $("paper").classList.contains("editing")}
+function hwSnapshot(edited){
+  if(!hwCur)return;
+  var s=student(hwCur.sid); if(!s)return;
+  var list=sheets(s);
+  var rec=list.filter(function(x){return x.id===hwCur.id})[0];
+  if(!rec){rec={id:hwCur.id};list.unshift(rec)}
+  rec.spec=hwCur.spec; rec.topic=hwCur.topic; rec.level=hwCur.level;
+  rec.at=rec.at||iso(new Date());
+  if(edited)rec.html=$("paperDoc").innerHTML.slice(0,300000);
+  s.sheets=list.slice(0,HW_KEEP);
+  if(!saveDB()){
+    /* out of room: drop the heavy saved pages, oldest first, and retry */
+    for(var i=s.sheets.length-1;i>=0&&!saveDB();i--)delete s.sheets[i].html;
+    if(!saveDB()){s.sheets=s.sheets.slice(0,3);saveDB();warn("Storage was full, so older sheets were trimmed.")}
+  }
+}
+function wireRedo(){
+  Array.prototype.forEach.call($("paperDoc").querySelectorAll("[data-redo]"),function(b){
+    b.onclick=function(ev){ev.stopPropagation();redoSheet(parseInt(b.dataset.redo,10))};
+  });
+}
+$("paperEdit").onclick=function(){
+  var on=!paperEditing();
+  $("paper").classList.toggle("editing",on);
+  $("paperDoc").contentEditable=on?"true":"false";
+  $("paperEdit").textContent=on?"Done":"Edit";
+  if(!on){hwSnapshot(true);toast("Saved")}
+};
+
+/* ---- redo one section ---- */
+function redoSheet(i){
+  if(!hwCur)return;
+  var sec=(hwCur.spec.sections||[])[i]; if(!sec)return;
+  openSheet(
+    '<h3>Redo this section</h3>'+
+    '<p class="empty" style="margin:-6px 0 14px">'+esc(sec.title||"")+'. Everything else on the sheet stays exactly as it is.</p>'+
+    '<div class="field"><label for="rdWhat">What is wrong with it?</label>'+
+      '<input id="rdWhat" type="text" placeholder="too hard · wrong kanji · make it about food"></div>'+
+    '<label class="btn line" style="display:flex;align-items:center;gap:10px;justify-content:flex-start;margin-bottom:11px">'+
+      '<input type="checkbox" id="rdKeep" checked style="width:20px;height:20px"> Remember this for future sheets</label>'+
+    '<button class="btn" id="rdGo">Redo it</button>'+
+    '<p class="empty" id="rdMsg" style="margin:13px 0 0">One section costs about a penny, not another whole sheet.</p>'
+  );
+  $("rdGo").onclick=function(){
+    var what=$("rdWhat").value.trim();
+    if(!what){nudge("rdWhat");return}
+    var b=$("rdGo"); b.disabled=true; b.textContent="Redoing…";
+    if($("rdKeep").checked)hwRemember(what);
+    hwRedoSection(student(hwCur.sid),hwCur,i,what,function(newSec){
+      hwCur.spec.sections[i]=newSec;
+      var node=$("paperDoc").querySelector('[data-sec="'+i+'"]');
+      if(node){
+        var tmp=document.createElement("div");
+        tmp.innerHTML=renderSection(newSec,i);
+        node.parentNode.replaceChild(tmp.firstChild,node);
+      }
+      wireRedo(); hwSnapshot(true);
+      closeSheet(); toast("Section redone");
+    },function(err){
+      b.disabled=false; b.textContent="Redo it";
+      $("rdMsg").style.color="var(--shu)"; $("rdMsg").textContent=err;
+    });
+  };
+}
+/* corrections you make once should not need making again */
+function hwRemember(line){
+  line=String(line||"").trim();
+  if(!line)return;
+  var have=(cfg.hwRules||"").split("\n").map(function(x){return x.trim().toLowerCase()});
+  if(have.indexOf(line.toLowerCase())>-1)return;
+  cfg.hwRules=((cfg.hwRules||"")+"\n"+line).trim().split("\n").slice(-14).join("\n");
+  saveSet();
+  if($("hwRules"))$("hwRules").value=cfg.hwRules;
+}
+
+function hwRedoSection(s,cur,i,what,done,fail){
+  var key=(cfg.aiKey||"").trim();
+  if(!key){fail("Add your API key on the Data tab first");return}
+  var slim={title:cur.spec.title,subtitle:cur.spec.subtitle,
+    sections:(cur.spec.sections||[]).map(function(x){return {kind:x.kind,title:x.title}})};
+  var prompt=[
+    "You wrote a Japanese homework sheet for "+s.name+" ("+cur.level+"), topic: "+cur.topic+".",
+    "Here is the shape of the whole sheet so the redone part still fits:",
+    JSON.stringify(slim),
+    "",
+    "Section "+(i+1)+" needs redoing. Here it is now:",
+    JSON.stringify(cur.spec.sections[i]),
+    "",
+    "The teacher says: "+what,
+    (cfg.hwRules||"").trim()?"\nStanding notes from the teacher:\n"+cfg.hwRules.trim():"",
+    "",
+    "Rewrite ONLY that one section. Keep the same 'kind'. Reply with JSON ONLY,",
+    "no markdown and no backticks: a single section object of the same shape."
+  ].filter(Boolean).join("\n");
+  fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":key,
+      "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:cfg.aiModel||HW_MODEL,max_tokens:2500,
+      messages:[{role:"user",content:prompt}]})
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    return r.json();
+  }).then(function(j){
+    var txt=(j.content||[]).filter(function(b){return b.type==="text"})
+      .map(function(b){return b.text}).join("").replace(/```json/g,"").replace(/```/g,"").trim();
+    var a=txt.indexOf("{"), z=txt.lastIndexOf("}");
+    if(a<0||z<a)throw new Error("No JSON came back");
+    var sec=JSON.parse(txt.slice(a,z+1));
+    if(!sec.kind)sec.kind=cur.spec.sections[i].kind;
+    done(sec);
+  }).catch(function(e){fail(String(e.message||e))});
+}
+
+/* ---- the prompt ---- */
+function hwPrompt(s,opts){
+  var plan=jots(s,"plan").filter(function(e){return !e.done}).map(function(e){return e.t});
+  var goals=jots(s,"goals").filter(function(e){return !e.done}).map(function(e){return e.t});
+  var notes=jots(s,"notes").slice(0,6).map(function(e){return e.t});
+  return [
+    "You are writing a Japanese homework sheet for a one-to-one student of MainichiJP.",
+    "",
+    "STUDENT: "+s.name,
+    "LEVEL: "+opts.level,
+    "THIS WEEK'S TOPIC: "+opts.topic,
+    plan.length?"PLANNED FOR NEXT LESSON:\n- "+plan.join("\n- "):"",
+    goals.length?"THEIR GOALS:\n- "+goals.join("\n- "):"",
+    notes.length?"MY NOTES ON THEM:\n- "+notes.join("\n- "):"",
+    "",
+    "House style, follow it closely:",
+    "- Warm, plain, a little funny. Never stiff or corporate.",
+    "- Japanese first, a short English gloss underneath where it helps.",
+    "- Every instruction says exactly what to do. No vague 'practice this'.",
+    "- Answers go in their notebook, so questions need no answer space unless it is a writing task.",
+    "- Section titles are Japanese with an English half, like 'よみかた · Kanji Readings'.",
+    "- End notes are encouraging and specific, never generic praise.",
+    "",
+    "Reply with JSON ONLY. No markdown, no backticks, no preamble. Shape:",
+    '{"title":"しゅくだい","kicker":"HOMEWORK","subtitle":"short line naming the topic",',
+    '"call":"one line telling them what to do with this sheet",',
+    '"intro":"2-4 sentences from the teacher, greeting them by name",',
+    '"sections":[{"kind":"vocab|read|fill|match|translate|questions|write|bonus",',
+    '"title":"ことば · Vocabulary","tag":"short right-hand label","lead":"optional intro line",',
+    '"groups":[{"name":"group name","items":[{"jp":"漢字","kana":"かな","en":"English"}]}],',
+    '"bank":["word","word"],"options":["a option","b option"],',
+    '"items":[{"jp":"Japanese line","en":"English gloss or hint"}],',
+    '"example":"a model answer","exampleNote":"note under it","lines":5,',
+    '"watch":"a trap to avoid","tip":"a small aside"}],',
+    '"checklist":["thing to tick","thing to tick"],',
+    '"outro":"one or two sentences to finish on"}',
+    "",
+    (cfg.hwRules||"").trim()?"STANDING NOTES FROM ME — these are corrections I have had to make before, so get them right first time:\n"+cfg.hwRules.trim()+"\n":"",
+    "Rules: use 'groups' only for kind=vocab. Use 'bank' only for kind=fill.",
+    "Use 'options' only for kind=match. Use 'example'/'lines' only for kind=write.",
+    "Everything else uses 'items'. Include "+opts.count+" sections.",
+    "Make it "+opts.level+" appropriate and about "+opts.topic+"."
+  ].filter(Boolean).join("\n");
+}
+
+function hwGenerate(s,opts,done,fail){
+  var key=(cfg.aiKey||"").trim();
+  if(!key){fail("Add your API key on the Data tab first");return}
+  fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key":key,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body:JSON.stringify({
+      model:cfg.aiModel||HW_MODEL,
+      max_tokens:8000,
+      messages:[{role:"user",content:hwPrompt(s,opts)}]
+    })
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    return r.json();
+  }).then(function(j){
+    var txt=(j.content||[]).filter(function(b){return b.type==="text"})
+      .map(function(b){return b.text}).join("");
+    txt=txt.replace(/```json/g,"").replace(/```/g,"").trim();
+    var a=txt.indexOf("{"), z=txt.lastIndexOf("}");
+    if(a<0||z<a)throw new Error("No JSON came back");
+    done(JSON.parse(txt.slice(a,z+1)));
+  }).catch(function(e){fail(String(e.message||e))});
+}
+
+function hwSheet(id){
+  var s=student(id); if(!s)return;
+  var plan=jots(s,"plan").filter(function(e){return !e.done}).map(function(e){return e.t});
+  openSheet(
+    '<h3>Homework for '+esc(s.name)+'</h3>'+
+    '<div class="field"><label for="hwTopic">This week</label>'+
+      '<input id="hwTopic" type="text" placeholder="days and dates, て-form, The Climber p.5-9" value="'+esc(plan[0]||"")+'"></div>'+
+    (plan.length>1?'<p class="empty" style="margin:-4px 0 12px">Also on the plan: '+esc(plan.slice(1).join(" · "))+'. It reads all of it.</p>':"")+
+    '<div class="two">'+
+      '<div class="field" style="margin:0"><label for="hwLevel">Level</label><select id="hwLevel">'+
+        ["absolute beginner","beginner","upper beginner","intermediate","upper intermediate","advanced"]
+          .map(function(l){return '<option'+(l===(s.level||"beginner")?" selected":"")+'>'+l+'</option>'}).join("")+
+      '</select></div>'+
+      '<div class="field" style="margin:0"><label for="hwCount">Sections</label><select id="hwCount">'+
+        [2,3,4,5,6].map(function(n){return '<option'+(n===4?" selected":"")+'>'+n+'</option>'}).join("")+
+      '</select></div>'+
+    '</div>'+
+    '<button class="btn" id="hwGo" style="margin-top:13px">Write it</button>'+
+    '<p class="empty" id="hwMsg" style="margin:13px 0 0">It takes about half a minute. Anything you want changed afterwards you can type over by hand for nothing, or send one section back to be redone.</p>'
+  );
+  $("hwGo").onclick=function(){
+    var topic=$("hwTopic").value.trim();
+    if(!topic){nudge("hwTopic");return}
+    var lvl=$("hwLevel").value;
+    s.level=lvl; saveDB();
+    var b=$("hwGo");
+    b.disabled=true; b.textContent="Writing…";
+    $("hwMsg").textContent="Claude is working on it. Keep this open.";
+    hwGenerate(s,{topic:topic,level:lvl,count:$("hwCount").value},function(spec){
+      b.disabled=false; b.textContent="Write it";
+      closeSheet();
+      hwOpen(id,{id:uid(),spec:spec,topic:topic,level:lvl,at:iso(new Date())});
+      hwSnapshot(false);
+      renderStudents();
+    },function(err){
+      b.disabled=false; b.textContent="Write it";
+      $("hwMsg").style.color="var(--shu)";
+      $("hwMsg").textContent=err;
+    });
+  };
+}
+
+/* ================= bringing an old spreadsheet in =================
+   Reads a CSV or TSV that was never exported from here. Nothing about the
+   column order is assumed: it finds the header row, matches each column by
+   name, shows what it found, and only writes once you say go. */
+function splitRows(text){
+  var out=[], row=[], cell="", q=false, i=0, ch;
+  text=String(text).replace(/\r\n?/g,"\n");
+  var tabs=(text.split("\t").length-1) > (text.split(",").length-1);
+  var sep=tabs?"\t":",";
+  for(;i<text.length;i++){
+    ch=text[i];
+    if(q){
+      if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++} else q=false }
+      else cell+=ch;
+    } else if(ch==='"'){ q=true }
+    else if(ch===sep){ row.push(cell); cell="" }
+    else if(ch==="\n"){ row.push(cell); out.push(row); row=[]; cell="" }
+    else cell+=ch;
+  }
+  row.push(cell); out.push(row);
+  return out.filter(function(r){return r.some(function(c){return String(c).trim()})});
+}
+/* Header names are matched loosely, because nobody names a column exactly
+   "date". "Lesson Date", "date_paid" and "日付" all have to land in the same
+   place. Order matters: whichever field is listed first claims the column,
+   so "timezone" goes to tz rather than time, and "lesson date" goes to date
+   rather than lessons. */
+var COLS=[
+  ["date",   ["date","day","when","日付"]],
+  ["tz",     ["timezone","tz","location","country","city","place","where"]],
+  ["time",   ["time","start","時間"]],
+  ["student",["student","name","who","pupil","client","生徒","名前"]],
+  ["amount", ["amount","paid","price","rate","fee","income","total","earned","revenue","cost","金額","料金"]],
+  ["lessons",["lesson","qty","quantity","count","session","回数"]],
+  ["kind",   ["kind","type","category","種類"]],
+  ["note",   ["note","memo","comment","description","メモ"]],
+  ["status", ["status","state"]]
+];
+function normHead(c){
+  return String(c==null?"":c).toLowerCase().replace(/[\s_\-.()#:/]/g,"");
+}
+function sniffHeader(rows){
+  /* the header is the first row that names at least a date or a student */
+  for(var r=0;r<Math.min(rows.length,8);r++){
+    var map={}, hits=0, taken={};
+    rows[r].forEach(function(cell,i){
+      var c=normHead(cell);
+      if(!c)return;
+      for(var f=0;f<COLS.length;f++){
+        var key=COLS[f][0];
+        if(map[key]!==undefined||taken[i])continue;
+        var words=COLS[f][1];
+        for(var w=0;w<words.length;w++){
+          if(c.indexOf(words[w])>-1){map[key]=i;taken[i]=1;hits++;return}
+        }
+      }
+    });
+    if(hits>=2&&(map.date!==undefined||map.student!==undefined))return {row:r,map:map};
+  }
+  return null;
+}
+function readDate(v){
+  v=String(v==null?"":v).trim();
+  if(!v)return null;
+  var m=v.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m)return m[1]+"-"+String(m[2]).padStart(2,"0")+"-"+String(m[3]).padStart(2,"0");
+  m=v.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);      /* US style */
+  if(m){
+    var y=m[3].length===2?("20"+m[3]):m[3];
+    return y+"-"+String(m[1]).padStart(2,"0")+"-"+String(m[2]).padStart(2,"0");
+  }
+  var d=new Date(v);
+  if(!isNaN(d.getTime())&&d.getFullYear()>1990&&d.getFullYear()<2100)return iso(d);
+  return null;
+}
+function readMoney(v){
+  var n=parseFloat(String(v==null?"":v).replace(/[^0-9.\-]/g,""));
+  return isFinite(n)?n:0;
+}
+function readTime(v){
+  var m=String(v==null?"":v).match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+  if(!m)return "";
+  var h=parseInt(m[1],10), ap=(m[3]||"").toLowerCase();
+  if(ap==="pm"&&h<12)h+=12;
+  if(ap==="am"&&h===12)h=0;
+  return String(h).padStart(2,"0")+":"+m[2];
+}
+
+var xlsPlan=null;
+function xlsScan(text){
+  var rows=splitRows(text);
+  var head=sniffHeader(rows);
+  var box=$("xlsOut");
+  if(!head){
+    box.innerHTML='<p class="empty" style="margin:13px 0 0;color:var(--shu)">No header row found. It needs a line naming the columns — something like <b>Date, Student, Amount</b> — above the data.</p>';
+    xlsPlan=null; return;
+  }
+  var m=head.map, plan={lessons:[],bundles:[],students:{},skipped:0,dupes:0};
+  var known={};
+  db.students.forEach(function(x){known[x.name.toLowerCase()]=x});
+
+  for(var r=head.row+1;r<rows.length;r++){
+    var row=rows[r];
+    var dt=m.date!==undefined?readDate(row[m.date]):null;
+    var who=m.student!==undefined?String(row[m.student]||"").trim():"";
+    var amt=m.amount!==undefined?readMoney(row[m.amount]):0;
+    if(!dt||(!who&&!amt)){plan.skipped++;continue}
+    if(who){
+      var key=who.toLowerCase();
+      if(!known[key]&&!plan.students[key]){
+        plan.students[key]={
+          name:who,
+          rate:amt||0,
+          tz:(m.tz!==undefined&&tzOk(String(row[m.tz]).trim()))?String(row[m.tz]).trim():null,
+          status:(m.status!==undefined&&STATUS.indexOf(String(row[m.status]).trim().toLowerCase())>=0)
+            ?String(row[m.status]).trim().toLowerCase():"active"
+        };
+      }
+    }
+    var kind=m.kind!==undefined?String(row[m.kind]||"").toLowerCase():"";
+    var n=m.lessons!==undefined?parseInt(row[m.lessons],10):0;
+    if(kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1){
+      plan.bundles.push({date:dt,who:who,lessons:n>0?n:1,amount:amt});
+    } else {
+      if(!amt){plan.skipped++;continue}
+      var t=m.time!==undefined?readTime(row[m.time]):"";
+      var already=db.lessons.some(function(l){
+        return l.date===dt&&Math.abs(num(l.amount)-amt)<0.01&&
+          (sName(l.studentId)||"").toLowerCase()===who.toLowerCase();
+      });
+      if(already){plan.dupes++;continue}
+      plan.lessons.push({date:dt,time:t,who:who,amount:amt,
+        note:m.note!==undefined?String(row[m.note]||"").slice(0,60):""});
+    }
+  }
+  xlsPlan=plan;
+
+  var newNames=Object.keys(plan.students).map(function(k){return plan.students[k].name});
+  var total=sum(plan.lessons.map(function(l){return l.amount}));
+  var found=Object.keys(m).filter(function(k){return m[k]!==undefined});
+  box.innerHTML=
+    '<p class="eyebrow" style="margin:18px 0 10px">What it found</p>'+
+    '<div class="stats" style="margin-bottom:12px">'+
+      '<div class="stat"><b>'+plan.lessons.length+'</b><small>lessons</small></div>'+
+      '<div class="stat"><b>'+money(total)+'</b><small>income</small></div>'+
+      '<div class="stat"><b>'+newNames.length+'</b><small>new students</small></div>'+
+      '<div class="stat"><b>'+plan.bundles.length+'</b><small>prepay</small></div>'+
+    '</div>'+
+    '<p class="empty" style="margin:0 0 6px">Columns read: '+esc(found.join(", "))+'.</p>'+
+    (newNames.length?'<p class="empty" style="margin:0 0 6px">New: '+esc(newNames.slice(0,8).join(", "))+(newNames.length>8?" and "+(newNames.length-8)+" more":"")+'.</p>':"")+
+    (plan.dupes?'<p class="empty" style="margin:0 0 6px">'+plan.dupes+' already here, so they will be left alone.</p>':"")+
+    (plan.skipped?'<p class="empty" style="margin:0 0 6px">'+plan.skipped+' rows had no usable date or amount and were passed over.</p>':"")+
+    (plan.lessons.length||plan.bundles.length||newNames.length
+      ? '<button class="btn" id="xlsGo" style="margin-top:11px">Bring it in</button>'
+      : '<p class="empty" style="margin-top:11px;color:var(--shu)">Nothing new to add.</p>');
+
+  if($("xlsGo"))$("xlsGo").onclick=xlsCommit;
+}
+function xlsCommit(){
+  if(!xlsPlan)return;
+  var p=xlsPlan, made=0;
+  function find(name){
+    if(!name)return null;
+    var s=db.students.filter(function(x){return x.name.toLowerCase()===name.toLowerCase()})[0];
+    return s?s.id:null;
+  }
+  Object.keys(p.students).forEach(function(k){
+    var d=p.students[k];
+    var st={id:uid(),name:d.name,rate:d.rate||0,status:d.status};
+    if(d.tz)st.tz=d.tz;
+    db.students.push(st);
+  });
+  p.bundles.forEach(function(b){
+    db.bundles.push({id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,used:0});
+    made++;
+  });
+  p.lessons.forEach(function(l){
+    db.lessons.push({id:uid(),date:l.date,time:l.time,studentId:find(l.who),
+      amount:l.amount,bundleId:null,slotId:null,note:l.note||"Imported"});
+    made++;
+  });
+  if(!saveDB()){warn("Storage is full. Export a backup, then clear some old sheets.");return}
+  xlsPlan=null; $("xlsOut").innerHTML=""; $("xlsBig").value=""; 
+  shown=0; renderAll();
+  toast("Brought in "+made+" rows");
+}
+/* ---------- currency ---------- */
+function paintFx(){
+  var e=$("fxNote"); if(e)e.textContent=inYen()?fxLabel():"showing dollars";
+}
+$("fxNow").onclick=function(){
+  var b=$("fxNow"); b.disabled=true; b.textContent="Checking…";
+  fxFetch(true).then(function(){
+    b.disabled=false; b.textContent="Refresh the rate";
+    paintFx(); shown=0; renderAll();
+  }).catch(function(){
+    b.disabled=false; b.textContent="Refresh the rate";
+    warn("Could not reach the exchange rate just now.");
+  });
+};
+paintFx();
+/* quietly top the rate up when the app opens in yen */
+if(inYen()&&fxStale())fxFetch().then(function(){paintFx();shown=0;renderAll()}).catch(function(){});
+
+/* ---------- themes ---------- */
+var THEMES=[
+  {id:"",         name:"Midnight",  light:false, dots:["#0C111A","#E0574C","#6E9BD1"]},
+  {id:"mainichi", name:"MainichiJP",light:true,  dots:["#F2EAD8","#D98032","#F7E3E6"]},
+  {id:"paper",    name:"Daylight",  light:true,  dots:["#EEF1F5","#D2564B","#3F7FD0"]},
+  {id:"sakura",   name:"Sakura",    light:true,  dots:["#FBF0F3","#E58AA6","#8FA9D8"]},
+  {id:"matcha",   name:"Matcha",    light:true,  dots:["#EDEFE4","#C2603F","#5B8C6A"]},
+  {id:"sumi",     name:"Sumi",      light:false, dots:["#101216","#B8433A","#7F94A8"]},
+  {id:"squid",    name:"The Game",  light:false, dots:["#0B0B0E","#E8467C","#12A8A0"]},
+  {id:"sonny",    name:"Drift",     light:false, dots:["#0A1420","#F2915C","#54C7D4"]},
+  {id:"blame",    name:"Concrete",  light:false, dots:["#0D0D0D","#C4291F","#9A9A9A"]}
+];
+function themeOf(id){return THEMES.filter(function(t){return t.id===(id||"")})[0]||THEMES[0]}
+function applyTheme(id){
+  var t=themeOf(id);
+  if(t.id)document.body.setAttribute("data-theme",t.id);
+  else document.body.removeAttribute("data-theme");
+  document.body.classList.toggle("light",!!t.light);
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m)m.setAttribute("content",t.dots[0]);
+  if($("themeNow"))$("themeNow").textContent=t.name;
+  /* the creature and the confetti are drawn, not styled: force a repaint */
+  try{shown=0;renderAll()}catch(e){}
+}
+function paintThemes(){
+  var box=$("themePick"); if(!box)return;
+  box.innerHTML=THEMES.map(function(t){
+    return '<button type="button" class="swatchbtn'+((cfg.theme||"")===t.id?" on":"")+'" data-theme="'+t.id+'">'+
+      '<span class="dots">'+t.dots.map(function(c){return '<i style="background:'+c+'"></i>'}).join("")+'</span>'+
+      '<b>'+t.name+'</b></button>';
+  }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("[data-theme]"),function(b){
+    b.onclick=function(){
+      cfg.theme=b.dataset.theme; saveSet();
+      applyTheme(cfg.theme); paintThemes();
+    };
+  });
+}
+applyTheme(cfg.theme);
+paintThemes();
+
+$("aiKey").value=cfg.aiKey||"";
+$("aiModel").value=cfg.aiModel||HW_MODEL;
+function paintAi(){$("aiState").textContent=(cfg.aiKey||"").trim()?"ready":"no key yet"}
+$("aiKey").oninput=function(){cfg.aiKey=this.value.trim();saveSet();paintAi()};
+$("aiModel").oninput=function(){cfg.aiModel=this.value.trim()||HW_MODEL;saveSet()};
+$("hwRules").value=cfg.hwRules||"";
+$("hwRules").oninput=function(){cfg.hwRules=this.value.slice(0,1200);saveSet()};
+paintAi();
+
+$("xlsRead").onclick=function(){
+  var t=$("xlsBig").value||$("xlsPaste").value;
+  if(!String(t).trim()){nudge("xlsBig");return}
+  xlsScan(t);
+};
+$("xlsPaste").onpaste=function(){
+  var el=this;
+  setTimeout(function(){
+    if(el.value){$("xlsBig").value=el.value;el.value="";xlsScan($("xlsBig").value)}
+  },40);
+};
+$("xlsFile").onchange=function(e){
+  var f=e.target.files[0]; if(!f)return;
+  var fr=new FileReader();
+  fr.onload=function(){$("xlsBig").value=String(fr.result).slice(0,400000);xlsScan($("xlsBig").value)};
+  fr.readAsText(f); e.target.value="";
+};
+
 $("dedupe").onclick=function(){
   var seen={}, dupes=[];
   db.lessons.slice().sort(function(a,b){return (a.id>b.id)?1:-1}).forEach(function(l){
@@ -2400,7 +3539,7 @@ function gConnected(){return !!(cfg.gcalCid && gTok && Date.now()<gExp-30000)}
 
 function gReady(cb,interactive){
   if(gTok&&Date.now()<gExp-60000){cb();return}
-  if(!cfg.gcalCid){if(interactive)toast("Paste your client ID first");return}
+  if(!cfg.gcalCid){if(interactive)nudge("gcalCid");return}
   /* never pop a sign-in on our own initiative — only after you've connected once */
   if(!interactive&&!cfg.gcalOk)return;
   if(!(window.google&&google.accounts&&google.accounts.oauth2)){
@@ -2426,7 +3565,7 @@ function gReady(cb,interactive){
       },
       error_callback:function(){
         gQueue=[];
-        if(!gSilent)toast("Google sign-in failed");   /* silent refreshes stay quiet */
+        if(!gSilent)warn("Google sign-in failed.");   /* silent refreshes stay quiet */
       }
     });
     gClient._cid=cfg.gcalCid;
@@ -2755,9 +3894,6 @@ function playMark(name,cb){
     if(done)return;
     done=true;
     setCountPace(ms);
-    /* the bars walk to the beat of this clip, however long it turns out to be */
-    clipEndAt=performance.now()+ms;
-    try{expBar.retime();heroBar.retime()}catch(e){}
     cb(ms);
   }
   if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
@@ -2988,7 +4124,7 @@ $("sfxBtn").textContent="Sound: "+(cfg.sfx===false?"off":"on");
 $("gcalCid").value=cfg.gcalCid||"";
 renderGcal();
 $("gName").value=cfg.goalName||"";
-$("gTgt").value=cfg.goalTarget||"";
+$("gTgt").value=boxVal(cfg.goalTarget);
 renderAll();
 </script>
 </body>
