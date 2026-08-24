@@ -351,9 +351,20 @@ button,input,select{font-family:var(--body)}
 .pieMid small{color:var(--muted);font-size:11px;margin-top:3px}
 .hbar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .rankrow{display:flex;align-items:center;gap:15px}
-.rankmark{flex:0 0 74px;text-align:center;background:var(--inset);border-radius:var(--r);padding:11px 4px}
-.rankmark b{display:block;font-family:var(--display);font-size:25px;line-height:1.1;color:var(--shu)}
-.rankmark small{display:block;font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+.rankmark{flex:0 0 82px;text-align:center;background:var(--inset);border-radius:var(--r);
+  padding:12px 4px 10px;border:1px solid var(--line);position:relative;overflow:hidden}
+/* a faint wash of the tier colour behind the symbol */
+.rankmark:before{content:"";position:absolute;inset:0;opacity:.13;background:currentColor;pointer-events:none}
+.rankmark b{display:block;font-size:30px;line-height:1;position:relative;
+  text-shadow:0 0 14px currentColor}
+.rankmark small{display:block;font-size:9.5px;color:var(--muted);margin-top:6px;
+  letter-spacing:.09em;text-transform:uppercase;font-weight:700;position:relative;white-space:nowrap}
+/* the whole ladder, so you can see what is coming */
+.ladder{display:flex;gap:5px;margin-top:12px;flex-wrap:nowrap;overflow:hidden}
+.ladder i{flex:1 1 0;min-width:0;height:4px;border-radius:100px;background:var(--line);
+  transition:background .3s}
+.ladder i.hit{background:currentColor}
+.ladder i.now{height:6px;margin-top:-1px}
 .rankbar{flex:1;min-width:0}
 .ach{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
 .ach:last-child{border-bottom:0}
@@ -1135,6 +1146,60 @@ body.light .toastless{display:none}
 
   <!-- ============ STATS ============ -->
   <section class="view" id="v-stats">
+    <div class="seg" id="dataSwitch" style="margin-bottom:13px">
+      <button type="button" data-pane="main" class="on">Teaching</button>
+      <button type="button" data-pane="site">Website</button>
+    </div>
+
+    <!-- ---- the website, folded in behind the switch ---- -->
+    <div id="paneSite" style="display:none">
+      <div class="hero">
+        <div class="mnav"><span class="lab" id="siteLab">mainichijp.co</span></div>
+        <div class="total" id="siteTotal" style="cursor:default"><span class="cur">○</span>0</div>
+        <div class="heroline" id="siteLine"></div>
+      </div>
+      <div class="panel" id="siteSetup">
+        <p class="eyebrow">Connect it</p>
+        <p class="empty" style="margin:0 0 13px">Plausible and Umami both hand out a read-only key you can call straight from the browser, so this needs no server of your own. Google Analytics cannot do this without one, which is the main reason to move off it.</p>
+        <div class="seg" id="siteKind">
+          <button type="button" data-k="plausible">Plausible</button>
+          <button type="button" data-k="umami">Umami</button>
+          <button type="button" data-k="off">Off</button>
+        </div>
+        <div class="field" style="margin-top:13px"><label for="siteHost">API host</label><input id="siteHost" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://plausible.io"></div>
+        <div class="field"><label for="siteId">Site</label><input id="siteId" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="mainichijp.co"></div>
+        <div class="field"><label for="siteKey">API key</label><input id="siteKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="read-only key"></div>
+        <button class="btn" id="siteGo">Pull the numbers</button>
+        <p class="empty" style="margin:12px 0 0">Use a read-only key. It sits on this phone in the same place as everything else, so use one you can revoke.</p>
+      </div>
+      <div class="panel" id="siteChartPanel" style="display:none">
+        <p class="eyebrow">Visitors <em id="siteRange"></em></p>
+        <svg class="chart" id="chSite" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="siteMarks"></div>
+      </div>
+      <div class="panel" id="siteConvPanel" style="display:none">
+        <p class="eyebrow">Clicks to lessons</p>
+        <div class="stats">
+          <div class="stat"><b id="convClicks">0</b><small>booking clicks</small></div>
+          <div class="stat"><b id="convLessons">0</b><small>lessons logged</small></div>
+          <div class="stat"><b id="convRate">0%</b><small>turned into teaching</small></div>
+          <div class="stat"><b id="convWorth">$0</b><small>per click</small></div>
+        </div>
+        <p class="empty" style="margin:12px 0 0">The only website number that means anything: of the people who tapped through to book, how many ended up in a lesson you actually logged.</p>
+      </div>
+      <div class="panel">
+        <p class="eyebrow">Post markers</p>
+        <p class="empty" style="margin:0 0 11px">Add the day you posted and it draws a line on the chart, so you can see which post moved anything.</p>
+        <div class="two">
+          <div class="field" style="margin:0"><label for="pmDate">Date</label><input id="pmDate" type="date"></div>
+          <div class="field" style="margin:0"><label for="pmWhat">What it was</label><input id="pmWhat" type="text" placeholder="reel: keigo mistakes" autocomplete="off"></div>
+        </div>
+        <button class="btn alt" id="pmAdd" style="margin-top:11px">Add marker</button>
+        <div id="pmList" style="margin-top:13px"></div>
+      </div>
+    </div>
+
+    <div id="paneMain">
     <div class="panel">
       <p class="eyebrow">Earned by month</p>
       <svg class="chart" id="chMonths" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
@@ -1160,12 +1225,13 @@ body.light .toastless{display:none}
     <div class="panel" id="seasonPanel">
       <p class="eyebrow">Season <em id="seasonNote"></em></p>
       <div class="rankrow">
-        <div class="rankmark"><b id="rankJP"></b><small id="rankEN"></small></div>
+        <div class="rankmark" id="rankMark"><b id="rankJP"></b><small id="rankEN"></small></div>
         <div class="rankbar">
           <div class="hbar" style="margin:0">
             <div class="t"><span id="rankNow"></span><b id="rankNext"></b></div>
             <div class="track"><i class="shu" id="rankBar" style="width:0%"></i></div>
           </div>
+          <div class="ladder" id="ladder"></div>
           <p class="empty" id="seasonFoot" style="margin:9px 0 0"></p>
         </div>
       </div>
@@ -1210,55 +1276,9 @@ body.light .toastless{display:none}
         <div class="stat"><b id="tBest">$0</b><small>best month</small></div>
       </div>
     </div>
+    </div><!-- /paneMain -->
   </section>
 
-  <!-- ============ WEBSITE ============ -->
-  <section class="view" id="v-site">
-    <div class="hero">
-      <div class="mnav"><span class="lab" id="siteLab">mainichijp.co</span></div>
-      <div class="total" id="siteTotal" style="cursor:default"><span class="cur">○</span>0</div>
-      <div class="heroline" id="siteLine"></div>
-    </div>
-    <div class="panel" id="siteSetup">
-      <p class="eyebrow">Connect it</p>
-      <p class="empty" style="margin:0 0 13px">Plausible and Umami both hand out a read-only key you can call straight from the browser, so this needs no server of your own. Google Analytics cannot do this without one, which is the main reason to move off it.</p>
-      <div class="seg" id="siteKind">
-        <button type="button" data-k="plausible">Plausible</button>
-        <button type="button" data-k="umami">Umami</button>
-        <button type="button" data-k="off">Off</button>
-      </div>
-      <div class="field" style="margin-top:13px"><label for="siteHost">API host</label><input id="siteHost" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://plausible.io"></div>
-      <div class="field"><label for="siteId">Site</label><input id="siteId" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="mainichijp.co"></div>
-      <div class="field"><label for="siteKey">API key</label><input id="siteKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="read-only key"></div>
-      <button class="btn" id="siteGo">Pull the numbers</button>
-      <p class="empty" style="margin:12px 0 0">Use a read-only key. It sits on this phone in the same place as everything else, so use one you can revoke.</p>
-    </div>
-    <div class="panel" id="siteChartPanel" style="display:none">
-      <p class="eyebrow">Visitors <em id="siteRange"></em></p>
-      <svg class="chart" id="chSite" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
-      <div id="siteMarks"></div>
-    </div>
-    <div class="panel" id="siteConvPanel" style="display:none">
-      <p class="eyebrow">Clicks to lessons</p>
-      <div class="stats">
-        <div class="stat"><b id="convClicks">0</b><small>booking clicks</small></div>
-        <div class="stat"><b id="convLessons">0</b><small>lessons logged</small></div>
-        <div class="stat"><b id="convRate">0%</b><small>turned into teaching</small></div>
-        <div class="stat"><b id="convWorth">$0</b><small>per click</small></div>
-      </div>
-      <p class="empty" style="margin:12px 0 0">The only website number that means anything: of the people who tapped through to book, how many ended up in a lesson you actually logged.</p>
-    </div>
-    <div class="panel">
-      <p class="eyebrow">Post markers</p>
-      <p class="empty" style="margin:0 0 11px">Add the day you posted and it draws a line on the chart, so you can see which post moved anything.</p>
-      <div class="two">
-        <div class="field" style="margin:0"><label for="pmDate">Date</label><input id="pmDate" type="date"></div>
-        <div class="field" style="margin:0"><label for="pmWhat">What it was</label><input id="pmWhat" type="text" placeholder="reel: keigo mistakes" autocomplete="off"></div>
-      </div>
-      <button class="btn alt" id="pmAdd" style="margin-top:11px">Add marker</button>
-      <div id="pmList" style="margin-top:13px"></div>
-    </div>
-  </section>
 
   <!-- ============ DATA ============ -->
   <section class="view" id="v-data">
@@ -1353,7 +1373,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BB</b> · 24 Aug 2026<br>If this does not say BB, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BE</b> · 24 Aug 2026<br>If this does not say BE, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -1388,9 +1408,6 @@ body.light .toastless{display:none}
     </button>
     <button class="tab plus" id="openLog" aria-label="Log">
       <svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg>
-    </button>
-    <button class="tab" data-v="site" aria-label="Website">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2"/><path d="M12 3.4c2.4 2.6 3.6 5.4 3.6 8.6s-1.2 6-3.6 8.6c-2.4-2.6-3.6-5.4-3.6-8.6S9.6 6 12 3.4z"/></svg>
     </button>
     <button class="tab" data-v="stats" aria-label="Stats">
       <svg viewBox="0 0 24 24"><path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M22 20H2"/></svg>
@@ -1801,7 +1818,7 @@ Array.prototype.forEach.call(tabs,function(t){
   t.onclick=function(){
     Array.prototype.forEach.call(tabs,function(x){x.classList.remove("on")});
     t.classList.add("on");
-    ["home","students","site","stats","data"].forEach(function(v){$("v-"+v).classList.toggle("on",v===t.dataset.v)});
+    ["home","students","stats","data"].forEach(function(v){$("v-"+v).classList.toggle("on",v===t.dataset.v)});
     window.scrollTo(0,0);
     renderAll();
   };
@@ -3780,16 +3797,22 @@ function seasonRange(i){
   var b=new Date(a); b.setDate(b.getDate()+SEASON_DAYS-1);
   return {from:iso(a),to:iso(b)};
 }
+/* Ten tiers, cardboard up to grandmaster. The numbers are lessons taught
+   inside one twelve week season, so grandmaster is about twelve a week for
+   the whole run: hard, but not a fantasy. Each tier carries its own mark and
+   colour, and the colour is used for the symbol and the progress bar so the
+   panel changes character as you climb rather than just changing a word. */
 var RANKS=[
-  {n:"\u7121\u7d1a",  en:"Unranked", at:0},
-  {n:"\u4e94\u7d1a",  en:"5th kyu",  at:5},
-  {n:"\u56db\u7d1a",  en:"4th kyu",  at:15},
-  {n:"\u4e09\u7d1a",  en:"3rd kyu",  at:30},
-  {n:"\u4e8c\u7d1a",  en:"2nd kyu",  at:50},
-  {n:"\u4e00\u7d1a",  en:"1st kyu",  at:75},
-  {n:"\u521d\u6bb5",  en:"1st dan",  at:110},
-  {n:"\u4e8c\u6bb5",  en:"2nd dan",  at:150},
-  {n:"\u4e09\u6bb5",  en:"3rd dan",  at:200}
+  {en:"Cardboard",   sym:"\u25ad", col:"#A98C6B", at:0},
+  {en:"Wood",        sym:"\u25a4", col:"#8B5E3C", at:3},
+  {en:"Stone",       sym:"\u2b22", col:"#8E9299", at:8},
+  {en:"Bronze",      sym:"\u25c6", col:"#C1783C", at:15},
+  {en:"Silver",      sym:"\u2726", col:"#C9D1DA", at:25},
+  {en:"Gold",        sym:"\u2605", col:"#E8B34A", at:40},
+  {en:"Diamond",     sym:"\u2727", col:"#6FD3E8", at:60},
+  {en:"Platinum",    sym:"\u2756", col:"#9FE3D0", at:85},
+  {en:"Master",      sym:"\u2739", col:"#C07BE8", at:115},
+  {en:"Grandmaster", sym:"\u2735", col:"#FF5C6E", at:150}
 ];
 function rankFor(n){
   var r=RANKS[0];
@@ -3876,8 +3899,9 @@ function ACHIEVEMENTS(){
     {id:"early",  n:"Before dawn",    d:"Ten lessons before 8am.",           have:earlies>=10,          of:10,  at:earlies},
     {id:"late",   n:"After hours",    d:"Ten lessons at 9pm or later.",      have:lates>=10,            of:10,  at:lates},
     {id:"year",   n:"A whole year",   d:"Twelve months with a lesson in.",   have:Object.keys(mons).length>=12, of:12, at:Object.keys(mons).length},
-    {id:"kyu",    n:"Ranked",         d:"Reach 1st kyu in a season.",        have:seas.lessons>=75,     of:75,  at:seas.lessons},
-    {id:"dan",    n:"Dan grade",      d:"Reach 1st dan in a season.",        have:seas.lessons>=110,    of:110, at:seas.lessons},
+    {id:"gold",   n:"Gold",           d:"Reach Gold in a season.",           have:seas.lessons>=40,     of:40,  at:seas.lessons},
+    {id:"plat",   n:"Platinum",       d:"Reach Platinum in a season.",       have:seas.lessons>=85,     of:85,  at:seas.lessons},
+    {id:"gmaster",n:"Grandmaster",    d:"Reach Grandmaster in a season.",    have:seas.lessons>=150,    of:150, at:seas.lessons},
     {id:"sheets", n:"Prolific",       d:"Twenty homework sheets made.",
      have:db.students.reduce(function(a,x){return a+sheets(x).length},0)>=20, of:20,
      at:db.students.reduce(function(a,x){return a+sheets(x).length},0)}
@@ -3920,11 +3944,22 @@ function renderStats(){
   /* ---- season ---- */
   var se=seasonStats(seasonIndex(iso(new Date())));
   $("seasonNote").textContent="week "+Math.min(12,Math.ceil(se.elapsed/7))+" of 12";
-  $("rankJP").textContent=se.rank.n;
+  $("rankJP").textContent=se.rank.sym;
   $("rankEN").textContent=se.rank.en;
+  /* everything in the panel takes the tier's colour, via currentColor */
+  $("rankMark").style.color=se.rank.col;
+  $("rankBar").style.background=se.rank.col;
   $("rankNow").textContent=se.lessons+" lesson"+(se.lessons===1?"":"s");
-  $("rankNext").textContent=se.next?(se.next.at-se.lessons)+" to "+se.next.en:"top rank";
-  $("rankBar").style.width=(se.next?Math.min(100,se.lessons/se.next.at*100):100)+"%";
+  $("rankNext").textContent=se.next?(se.next.at-se.lessons)+" to "+se.next.en:"top of the ladder";
+  /* the bar fills the gap between where this tier started and the next one,
+     so it resets at every promotion instead of creeping to 100 once */
+  var lo=se.rank.at, hi=se.next?se.next.at:se.rank.at;
+  $("rankBar").style.width=(se.next?Math.min(100,Math.max(2,(se.lessons-lo)/Math.max(1,hi-lo)*100)):100)+"%";
+  $("ladder").style.color=se.rank.col;
+  $("ladder").innerHTML=RANKS.map(function(r,i){
+    var hit=se.lessons>=r.at, now=r.en===se.rank.en;
+    return '<i class="'+(hit?"hit":"")+(now?" now":"")+'" title="'+esc(r.en)+'"></i>';
+  }).join("");
   $("seasonFoot").textContent=se.left>0
     ? se.left+" day"+(se.left===1?"":"s")+" left, "+money(se.earned)+" so far. It resets after that, rank and all."
     : "This season is done. A fresh one starts tomorrow.";
@@ -5160,6 +5195,21 @@ function siteFetch(done,fail){
     done(series);
   }).catch(function(e){fail(String(e.message||e))});
 }
+/* Tracker or website, one at a time. The choice sticks, so if you were last
+   looking at the site it opens there. */
+function dataPane(which){
+  if(!$("paneMain"))return;
+  cfg.dataPane=which; saveSet();
+  $("paneMain").style.display=which==="site"?"none":"";
+  $("paneSite").style.display=which==="site"?"":"none";
+  Array.prototype.forEach.call($("dataSwitch").querySelectorAll("[data-pane]"),function(b){
+    b.classList.toggle("on",b.dataset.pane===which);
+  });
+  window.scrollTo(0,0);
+  /* only the pane you are looking at does any work: the site pane is the only
+     thing that reaches for your analytics key, so it stays asleep otherwise */
+  if(which==="site")renderSite(); else renderStats();
+}
 function renderSite(){
   if(!$("siteTotal"))return;
   var c=siteCfg();
@@ -5249,6 +5299,10 @@ function siteChart(series){
   $("siteId").oninput=function(){cfg.siteId=this.value.trim();saveSet()};
   $("siteKey").oninput=function(){cfg.siteKey=this.value.trim();saveSet()};
   $("siteGo").onclick=function(){renderSite()};
+  Array.prototype.forEach.call($("dataSwitch").querySelectorAll("[data-pane]"),function(b){
+    b.onclick=function(){dataPane(b.dataset.pane)};
+  });
+  dataPane(cfg.dataPane==="site"?"site":"main");
   $("pmDate").value=iso(new Date());
   $("pmAdd").onclick=function(){
     var d=$("pmDate").value, w=($("pmWhat").value||"").trim();
