@@ -14,6 +14,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- The faces the themes reach for. All display:swap, so a slow connection
+     shows the system font first rather than nothing, and none of them are
+     needed for the app to work. -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Archivo+Black&family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@500;700;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Bebas+Neue&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+<!-- The number on the home screen gets its own face in every theme. This is
+     the only place most of these are used, which is why they are one weight
+     each. All display:swap, so nothing here can hold up a cold start. -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Fredoka:wght@500;600;700&family=Righteous&family=DM+Serif+Display&family=Lora:wght@600;700&family=Syne:wght@700;800&family=Chakra+Petch:wght@600;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=Bungee&family=Cinzel:wght@700;900&family=Unbounded:wght@600;800&family=Instrument+Serif&family=Dela+Gothic+One&family=Reggae+One&family=Rampart+One&family=Yuji+Syuku&family=Libre+Baskerville:wght@700&family=Major+Mono+Display&display=swap" rel="stylesheet">
 <style>
 :root{
   --void:#0C111A;
@@ -564,14 +572,19 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
    Comes down from the top, holds, goes back up. A light sweeps across the
    seal once on the way in. It never blocks anything: pointer events are off
    and it sits above the sheet so it still reads while one is open. */
-.pop{position:fixed;left:12px;right:12px;top:0;z-index:120;pointer-events:none;
+.pop{position:fixed;left:12px;right:12px;top:0;z-index:120;pointer-events:none;cursor:pointer;
   display:flex;align-items:center;gap:13px;
   background:var(--surf2);border:1px solid var(--line);border-radius:16px;
   padding:12px 15px 12px 12px;
   box-shadow:0 14px 40px rgba(0,0,0,.45);
   transform:translateY(-160%);opacity:0;
   transition:transform .52s cubic-bezier(.2,1.2,.3,1),opacity .3s}
-.pop.on{transform:translateY(calc(env(safe-area-inset-top,0px) + 12px));opacity:1}
+.pop.on{transform:translateY(calc(env(safe-area-inset-top,0px) + 12px));opacity:1;pointer-events:auto}
+.pop.on:active{transform:translateY(calc(env(safe-area-inset-top,0px) + 12px)) scale(.985)}
+/* a small chevron, so it reads as something you can go into */
+.pop .popgo{flex:0 0 auto;width:8px;height:8px;margin-right:2px;
+  border-right:2px solid var(--muted);border-top:2px solid var(--muted);
+  transform:rotate(45deg);opacity:.7}
 .pop .popseal{flex:0 0 46px;width:46px;height:46px;border-radius:50%;
   background:var(--inset);border:1.5px solid var(--shu);color:var(--shu);
   display:flex;align-items:center;justify-content:center;font-size:22px;
@@ -662,7 +675,6 @@ body[data-theme="aero"] .tab.plus{border-radius:100px;
 body[data-theme="vapor"] .tab.plus{border-radius:5px;transform:rotate(45deg) scale(.86)}
 body[data-theme="vapor"] .tab.plus svg{transform:rotate(-45deg)}
 /* brutalist: a hard square that casts a hard shadow */
-body[data-theme="brutalist"] .tab.plus{border-radius:0;border:2px solid #111;box-shadow:3px 3px 0 #111}
 /* concrete: a bolt head */
 body[data-theme="blame"] .tab.plus{border-radius:0;
   clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
@@ -1024,6 +1036,373 @@ body[data-theme="climber"] .navinner{border-radius:3px;border:1px solid var(--li
 body[data-theme="climber"] .tab{border-radius:2px}
 body[data-theme="climber"] .sheet{border-radius:3px;border-top:3px solid var(--shu)}
 /* ---------- seasonal drops ---------- */
+
+
+/* ================= brutalism, properly =================
+   It was a palette with square corners. Brutalism is not square corners, it
+   is raw material left visible, structure you can read from outside, no
+   ornament, and type that is far too big for the box it is in. So: exposed
+   concrete, black hairlines that never soften, hard offset shadows instead
+   of blur, every label shouted in caps, and the grid showing through. */
+body[data-theme="brutalist"]{
+  --r:0px;
+}
+body[data-theme="brutalist"]{
+  /* board-formed concrete: the timber lines the pour was cast against */
+  background-image:
+    repeating-linear-gradient(180deg,rgba(0,0,0,.055) 0 1px,transparent 1px 26px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.028) 0 1px,transparent 1px 96px);
+  background-attachment:fixed;
+}
+/* everything is a slab: black edge, hard shadow, nothing rounded, no blur */
+body[data-theme="brutalist"] .panel,
+body[data-theme="brutalist"] .hero,
+body[data-theme="brutalist"] .stat,
+body[data-theme="brutalist"] .sheet,
+body[data-theme="brutalist"] .modal .modalbar,
+body[data-theme="brutalist"] .navinner,
+body[data-theme="brutalist"] .toast,
+body[data-theme="brutalist"] .pop{
+  border-radius:0!important;
+  border:2px solid var(--text);
+  box-shadow:5px 5px 0 var(--text);
+}
+body[data-theme="brutalist"] .panel{margin-bottom:22px}
+/* the section label sits ON the edge of the slab, like a stencil on a wall */
+body[data-theme="brutalist"] .panel{position:relative;padding-top:22px}
+body[data-theme="brutalist"] .eyebrow{
+  font-family:"Archivo Black",Impact,sans-serif;
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  background:var(--text);color:var(--void);
+  display:inline-block;padding:4px 9px 3px;margin:0 0 13px -9px;
+}
+body[data-theme="brutalist"] .eyebrow em{color:var(--void);opacity:.7}
+/* the number is the building */
+body[data-theme="brutalist"] .hero{padding:26px 18px 22px}
+body[data-theme="brutalist"] .total{
+  font-family:"Anton",Impact,sans-serif;font-weight:400;
+  font-size:clamp(56px,20vw,92px);letter-spacing:-.045em;line-height:.86;
+  text-transform:uppercase;
+}
+body[data-theme="brutalist"] .total .cur{opacity:1;color:var(--shu)}
+body[data-theme="brutalist"] .mnav .lab{
+  font-family:"Archivo Black",Impact,sans-serif;letter-spacing:.2em;font-size:11px}
+body[data-theme="brutalist"] .mnav button{border:2px solid var(--text);border-radius:0;background:none}
+/* buttons are pressed, not tapped: the shadow collapses under your thumb */
+body[data-theme="brutalist"] .btn{
+  border-radius:0;border:2px solid var(--text);box-shadow:4px 4px 0 var(--text);
+  font-family:"Archivo Black",Impact,sans-serif;text-transform:uppercase;
+  letter-spacing:.1em;font-size:13px;
+  transition:transform .06s linear,box-shadow .06s linear;
+}
+body[data-theme="brutalist"] .btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--text)}
+body[data-theme="brutalist"] .btn.alt,
+body[data-theme="brutalist"] .btn.line{color:var(--text);background:var(--surf2)}
+body[data-theme="brutalist"] .chip,
+body[data-theme="brutalist"] .pill,
+body[data-theme="brutalist"] .seg,
+body[data-theme="brutalist"] .seg button,
+body[data-theme="brutalist"] .filters button,
+body[data-theme="brutalist"] .field input,
+body[data-theme="brutalist"] .field select,
+body[data-theme="brutalist"] textarea,
+body[data-theme="brutalist"] .av,
+body[data-theme="brutalist"] .tcard,
+body[data-theme="brutalist"] .sw{border-radius:0!important}
+body[data-theme="brutalist"] .field input,
+body[data-theme="brutalist"] .field select,
+body[data-theme="brutalist"] textarea{
+  border:2px solid var(--text);border-left:6px solid var(--shu);box-shadow:none}
+body[data-theme="brutalist"] .field input:focus,
+body[data-theme="brutalist"] .field select:focus,
+body[data-theme="brutalist"] textarea:focus{box-shadow:3px 3px 0 var(--text)}
+body[data-theme="brutalist"] .field label{
+  text-transform:uppercase;letter-spacing:.14em;font-size:10px;font-weight:700}
+body[data-theme="brutalist"] .seg button.on{
+  background:var(--text);color:var(--void);box-shadow:none;font-weight:700}
+body[data-theme="brutalist"] .pill{border:2px solid currentColor;font-weight:800}
+body[data-theme="brutalist"] .stu{border-bottom:2px solid var(--text)}
+body[data-theme="brutalist"] .stu .main>span{
+  font-family:"Archivo Black",Impact,sans-serif;letter-spacing:-.02em}
+body[data-theme="brutalist"] .track{border-radius:0;border:2px solid var(--text);height:12px;background:none}
+body[data-theme="brutalist"] .track i{border-radius:0}
+body[data-theme="brutalist"] .tab.plus{border-radius:0;border:2px solid var(--text);box-shadow:4px 4px 0 var(--text)}
+body[data-theme="brutalist"] .tab.plus:active{transform:translate(4px,4px);box-shadow:none}
+
+/* ================= aero, properly =================
+   It was a blue palette with one gloss gradient. Frutiger Aero is water,
+   light through glass, a highlight on every surface, and a soft glow around
+   anything important. Nothing is flat and nothing is square. */
+body[data-theme="aero"]{
+  --r:18px;
+}
+/* sky above, water below, and it does not move when you scroll */
+body[data-theme="aero"]{
+  background-image:
+    radial-gradient(120% 70% at 50% -10%,rgba(255,255,255,.95),rgba(255,255,255,0) 60%),
+    radial-gradient(90% 55% at 12% 8%,rgba(146,222,247,.55),rgba(146,222,247,0) 62%),
+    radial-gradient(80% 50% at 88% 4%,rgba(143,216,194,.45),rgba(143,216,194,0) 60%),
+    linear-gradient(180deg,#CDEBF9 0%,#E8F7FD 42%,#D8F0E6 100%);
+  background-attachment:fixed;
+}
+body[data-theme="aero"] .panel,
+body[data-theme="aero"] .hero,
+body[data-theme="aero"] .stat,
+body[data-theme="aero"] .sheet,
+body[data-theme="aero"] .toast,
+body[data-theme="aero"] .pop{
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.85);
+  background-color:rgba(255,255,255,.58);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.42) 46%,rgba(178,226,244,.34));
+  -webkit-backdrop-filter:blur(9px) saturate(1.5);backdrop-filter:blur(9px) saturate(1.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),
+             inset 0 -14px 22px -14px rgba(28,155,209,.28),
+             0 8px 22px rgba(28,155,209,.20);
+}
+/* the highlight across the top of the glass */
+body[data-theme="aero"] .hero{position:relative;overflow:hidden}
+body[data-theme="aero"] .hero:before{
+  content:"";position:absolute;left:-20%;right:-20%;top:-72%;height:110%;
+  border-radius:50%;pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,0));
+  opacity:.85;
+}
+body[data-theme="aero"] .total{
+  text-shadow:0 1px 0 rgba(255,255,255,.95),0 3px 12px rgba(28,155,209,.32);
+}
+body[data-theme="aero"] .total .cur{color:var(--sky);opacity:1}
+/* buttons are lozenges of glass with a bead of light on top */
+body[data-theme="aero"] .btn{
+  border-radius:100px;border:1px solid rgba(255,255,255,.9);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.06) 50%,rgba(0,0,0,.05));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 12px rgba(28,155,209,.28);
+  text-shadow:0 1px 0 rgba(255,255,255,.45);
+}
+body[data-theme="aero"] .btn:active{
+  box-shadow:inset 0 2px 6px rgba(28,155,209,.35);transform:scale(.985)}
+body[data-theme="aero"] .btn.alt,body[data-theme="aero"] .btn.line{
+  background-color:rgba(255,255,255,.62);color:var(--text)}
+body[data-theme="aero"] .chip,
+body[data-theme="aero"] .pill,
+body[data-theme="aero"] .filters button{
+  border-radius:100px;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,.1));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+body[data-theme="aero"] .seg{border-radius:100px;background:rgba(255,255,255,.5)}
+body[data-theme="aero"] .seg button{border-radius:100px}
+body[data-theme="aero"] .seg button.on{
+  background-image:linear-gradient(180deg,#fff,rgba(255,255,255,.5));
+  box-shadow:0 2px 7px rgba(28,155,209,.3),inset 0 -2px 0 var(--shu)}
+body[data-theme="aero"] .field input,
+body[data-theme="aero"] .field select,
+body[data-theme="aero"] textarea{
+  border-radius:14px;background:rgba(255,255,255,.72);
+  border:1px solid rgba(255,255,255,.9);border-left:3px solid var(--sky);
+  box-shadow:inset 0 2px 5px rgba(28,155,209,.16)}
+body[data-theme="aero"] .av{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 2px 6px rgba(28,155,209,.25)}
+body[data-theme="aero"] .track{background:rgba(28,155,209,.14);box-shadow:inset 0 1px 3px rgba(28,155,209,.28)}
+body[data-theme="aero"] .track i{
+  background-image:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,0))}
+body[data-theme="aero"] .navinner{
+  border-radius:100px;border:1px solid rgba(255,255,255,.9);
+  background-color:rgba(255,255,255,.66);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.95),rgba(214,238,248,.55));
+  -webkit-backdrop-filter:blur(11px) saturate(1.5);backdrop-filter:blur(11px) saturate(1.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 8px 22px rgba(28,155,209,.24)}
+body[data-theme="aero"] .tab.plus{
+  border-radius:100px;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,0) 52%,rgba(0,0,0,.08));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 14px rgba(242,140,40,.45)}
+body[data-theme="aero"] .stu{border-bottom:1px solid rgba(255,255,255,.8)}
+
+/* ================= the number, per theme =================
+   The total on the home screen is the thing you look at most, so it gets its
+   own face everywhere rather than the same serif in forty different colours.
+   Family, weight, spacing and size are all set together: two themes sharing a
+   family still do not look alike, because nothing else about the setting
+   matches. Fallbacks are always the app's own faces, so a font that never
+   arrives changes nothing but the shape. */
+.total{font-feature-settings:"tnum" 1}
+
+body[data-theme=""] .total,body:not([data-theme]) .total{
+  font-family:"Shippori Mincho B1",Georgia,serif;font-weight:700;letter-spacing:-.01em}
+
+body[data-theme="mainichi"] .total{
+  font-family:"Lora",Georgia,serif;font-weight:700;letter-spacing:-.028em}
+body[data-theme="paper"] .total{
+  font-family:"Libre Baskerville",Georgia,serif;font-weight:700;letter-spacing:-.04em}
+body[data-theme="sakura"] .total{
+  font-family:"Fredoka","Zen Maru Gothic",sans-serif;font-weight:600;letter-spacing:-.02em}
+body[data-theme="matcha"] .total{
+  font-family:"Yuji Syuku","Shippori Mincho B1",serif;font-weight:400;letter-spacing:.01em}
+body[data-theme="sumi"] .total{
+  font-family:"Kaisei Decol","Shippori Mincho B1",serif;font-weight:700;letter-spacing:-.012em}
+body[data-theme="onepiece"] .total{
+  font-family:"Reggae One","Zen Kaku Gothic New",sans-serif;font-weight:400;letter-spacing:-.01em;
+  font-size:clamp(38px,11.5vw,52px)}
+body[data-theme="squid"] .total{
+  font-family:"Chakra Petch",sans-serif;font-weight:700;letter-spacing:-.01em}
+body[data-theme="sonny"] .total{
+  font-family:"Syne",sans-serif;font-weight:800;letter-spacing:-.045em}
+body[data-theme="term"] .total{
+  font-family:"Major Mono Display","IBM Plex Mono",monospace;font-weight:400;letter-spacing:-.02em;
+  font-size:clamp(34px,10.5vw,48px)}
+body[data-theme="chaos"] .total{
+  font-family:"Rampart One","Archivo Black",sans-serif;font-weight:400;letter-spacing:.006em;
+  font-size:clamp(38px,11.5vw,52px)}
+body[data-theme="blame"] .total{
+  font-family:"Space Mono",monospace;font-weight:700;letter-spacing:-.05em}
+body[data-theme="tower"] .total{
+  font-family:"Unbounded","Archivo Black",sans-serif;font-weight:800;letter-spacing:-.06em}
+body[data-theme="climber"] .total{
+  font-family:"Playfair Display",Georgia,serif;font-weight:900;letter-spacing:-.028em}
+body[data-theme="kinkaku"] .total{
+  font-family:"Cinzel",Georgia,serif;font-weight:900;letter-spacing:.006em;
+  font-size:clamp(36px,11vw,50px)}
+body[data-theme="hanabi"] .total{
+  font-family:"Orbitron",sans-serif;font-weight:900;letter-spacing:-.028em;
+  font-size:clamp(34px,10.5vw,48px)}
+body[data-theme="kohaku"] .total{
+  font-family:"DM Serif Display",Georgia,serif;font-weight:400;letter-spacing:-.018em}
+body[data-theme="shinkansen"] .total{
+  font-family:"Rajdhani",sans-serif;font-weight:700;letter-spacing:-.006em;
+  font-size:clamp(46px,15vw,68px)}
+body[data-theme="karesansui"] .total{
+  font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.006em;
+  font-size:clamp(46px,15vw,68px)}
+body[data-theme="kabukicho"] .total{
+  font-family:"Bungee",Impact,sans-serif;font-weight:400;letter-spacing:-.006em;
+  font-size:clamp(34px,10.5vw,48px)}
+body[data-theme="genmaicha"] .total{
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:700;letter-spacing:-.03em}
+
+/* the drops */
+body[data-theme="hanami"] .total{
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:500;letter-spacing:-.006em}
+body[data-theme="tamago"] .total{
+  font-family:"Fredoka",sans-serif;font-weight:700;letter-spacing:-.035em}
+body[data-theme="kogane"] .total{
+  font-family:"Cinzel",Georgia,serif;font-weight:700;letter-spacing:.02em;
+  font-size:clamp(36px,11vw,50px)}
+body[data-theme="tanabata"] .total{
+  font-family:"Orbitron",sans-serif;font-weight:700;letter-spacing:.006em;
+  font-size:clamp(34px,10.5vw,48px)}
+body[data-theme="natsu"] .total{
+  font-family:"Dela Gothic One","Zen Kaku Gothic New",sans-serif;font-weight:400;letter-spacing:-.035em;
+  font-size:clamp(38px,11.5vw,52px)}
+body[data-theme="obon"] .total{
+  font-family:"Shippori Mincho B1",Georgia,serif;font-weight:500;letter-spacing:.03em}
+body[data-theme="kouyou"] .total{
+  font-family:"Kaisei Decol",serif;font-weight:400;letter-spacing:-.02em}
+body[data-theme="obake"] .total{
+  font-family:"Bungee",Impact,sans-serif;font-weight:400;letter-spacing:.02em;
+  font-size:clamp(32px,10vw,46px)}
+body[data-theme="seiya"] .total{
+  font-family:"Cinzel",Georgia,serif;font-weight:900;letter-spacing:-.01em;
+  font-size:clamp(38px,11.5vw,52px)}
+body[data-theme="yuki"] .total{
+  font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:.006em;
+  font-size:clamp(48px,15.5vw,70px)}
+body[data-theme="hatsu"] .total{
+  font-family:"DM Serif Display",Georgia,serif;font-weight:400;letter-spacing:.016em}
+body[data-theme="choco"] .total{
+  font-family:"Righteous",sans-serif;font-weight:400;letter-spacing:-.02em}
+body[data-theme="vapor"] .total{
+  font-family:"Bebas Neue",Impact,sans-serif;font-weight:400;letter-spacing:.05em}
+body[data-theme="aero"] .total{
+  font-family:"Fredoka","Nunito",sans-serif;font-weight:700;letter-spacing:-.03em}
+/* brutalist sets its own, far larger, in the brutalism block above */
+
+/* ================= typography per theme =================
+   A theme that only repaints is a palette. Changing the letterforms is what
+   makes it feel like somewhere else. Two variables do all of it: --body for
+   running text and --display for the big numbers and headings, so a theme
+   sets two lines and every screen follows.
+
+   Nothing here is load-bearing. If a face never arrives the fallbacks are
+   the ones the app already shipped with. */
+
+/* frutiger aero: soft, round, optimistic, 2007 */
+body[data-theme="aero"]{
+  --body:"Nunito",-apple-system,"Segoe UI",sans-serif;
+  --display:"Nunito",-apple-system,sans-serif;
+  letter-spacing:.004em;
+}
+body[data-theme="aero"] .total{font-weight:800;letter-spacing:-.03em}
+body[data-theme="aero"] .eyebrow{font-weight:800;letter-spacing:.14em}
+
+/* the same roundness, softer still, for the two friendliest themes */
+body[data-theme="sakura"],body[data-theme="hanami"],body[data-theme="tamago"]{
+  --body:"Zen Maru Gothic","Zen Kaku Gothic New",-apple-system,sans-serif;
+  --display:"Zen Maru Gothic","Zen Kaku Gothic New",sans-serif;
+}
+body[data-theme="sakura"] .total,body[data-theme="hanami"] .total,
+body[data-theme="tamago"] .total{font-weight:700;letter-spacing:-.02em}
+
+/* brutalist: one weight, and it is heavy */
+body[data-theme="brutalist"]{
+  --display:"Archivo Black",Impact,sans-serif;
+  --body:"Oswald","Zen Kaku Gothic New",sans-serif;
+}
+/* the number and the labels are set in the brutalism block above */
+
+/* terminals get a terminal face, and everything lines up because it is fixed
+   width, which is rather the point */
+body[data-theme="term"]{
+  --body:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --display:"IBM Plex Mono",ui-monospace,monospace;
+}
+body[data-theme="term"] .total{letter-spacing:-.02em;font-weight:600}
+body[data-theme="blame"],body[data-theme="tower"]{
+  --body:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --display:"Space Mono",ui-monospace,monospace;
+}
+body[data-theme="tower"] .total{font-weight:700;letter-spacing:-.06em}
+body[data-theme="blame"] .eyebrow{letter-spacing:.3em}
+
+/* the climber and the gold pavilion want something with a serif on it */
+body[data-theme="climber"],body[data-theme="karesansui"]{
+  --display:"Playfair Display","Shippori Mincho B1",Georgia,serif;
+}
+body[data-theme="climber"] .total{font-weight:900;letter-spacing:-.025em}
+body[data-theme="kinkaku"],body[data-theme="kohaku"],body[data-theme="sumi"]{
+  --display:"Kaisei Decol","Shippori Mincho B1",Georgia,serif;
+}
+
+/* vapor and kabukicho: tall, condensed, all caps signage */
+body[data-theme="vapor"],body[data-theme="kabukicho"]{
+  --display:"Bebas Neue",Impact,sans-serif;
+}
+body[data-theme="vapor"] .total,body[data-theme="kabukicho"] .total{
+  letter-spacing:.02em;font-size:clamp(48px,16vw,74px);font-weight:400}
+body[data-theme="vapor"] .eyebrow,body[data-theme="kabukicho"] .eyebrow{
+  font-family:var(--display);font-size:13px;letter-spacing:.24em;font-weight:400}
+
+/* the winter drops read cold and thin; the festival ones read loud */
+body[data-theme="yuki"],body[data-theme="hatsu"]{
+  --display:"Playfair Display","Shippori Mincho B1",Georgia,serif;
+}
+body[data-theme="natsu"],body[data-theme="obake"],body[data-theme="tanabata"]{
+  --display:"Bebas Neue",Impact,sans-serif;
+}
+body[data-theme="natsu"] .total,body[data-theme="obake"] .total,
+body[data-theme="tanabata"] .total{letter-spacing:.02em;font-weight:400;
+  font-size:clamp(46px,15vw,70px)}
+
+/* shinkansen: technical, tight, nothing decorative */
+body[data-theme="shinkansen"]{
+  --display:"Archivo Black",Impact,sans-serif;
+}
+body[data-theme="shinkansen"] .total{letter-spacing:-.045em}
+body[data-theme="shinkansen"] .eyebrow{letter-spacing:.2em;font-weight:800}
+
+/* chaos: mismatched on purpose */
+body[data-theme="chaos"]{
+  --display:"Archivo Black",Impact,sans-serif;
+  --body:"Space Mono",ui-monospace,monospace;
+}
+
 body[data-theme="hanami"]{
   --void:#F7EFF2; --surf:#FFFAFB; --surf2:#EFE2E8; --line:#E8CFD8;
   --text:#3A2A31; --muted:#8A7480; --shu:#E86B94; --sky:#7FA86B;
@@ -1179,13 +1558,7 @@ body[data-theme="aero"]{
   --inset:#EAF7FD; --tag:#F4FBFE; --dim:#8FBBD1; --edge:#9CCFE6;
   --good:#5FBF60; --gold:#F0B429; --heroA:#BFE8F7; --heroB:#8FD8C2;
 }
-body[data-theme="aero"] .hero,
-body[data-theme="aero"] .panel{
-  background-image:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.35) 48%,rgba(190,230,245,.28));
-  box-shadow:inset 0 1px 0 #fff,0 6px 18px rgba(28,155,209,.18);
-}
-body[data-theme="aero"] .btn{background-image:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 52%)}
-body[data-theme="aero"] .navinner{background-image:linear-gradient(180deg,rgba(255,255,255,.85),rgba(214,238,248,.7))}
+/* the glass, the gloss and the glow are all further down, in the aero block */
 
 body[data-theme="vapor"]{
   /* sun setting into a grid, forever */
@@ -1386,11 +1759,6 @@ body.light .toastless{display:none}
       <div id="gcalToday"></div>
     </div>
 
-    <div class="panel" id="quietPanel" style="display:none">
-      <p class="eyebrow">Gone quiet <em id="quietNote"></em></p>
-      <div id="quietList"></div>
-    </div>
-
     <div class="panel" id="upcomingPanel" style="display:none">
       <p class="eyebrow">Coming up <em id="upcomingNote"></em></p>
       <p class="empty" style="margin:-6px 0 12px">Scheduled lessons are not income yet. Tick one off after you teach it and that is when it gets paid.</p>
@@ -1402,6 +1770,11 @@ body.light .toastless{display:none}
       <div class="dow"><i>日</i><i>月</i><i>火</i><i>水</i><i>木</i><i>金</i><i>土</i></div>
       <div class="grid" id="grid"></div>
       <div class="cardfoot"><span id="footlab">Days taught</span><b id="daycount">0</b></div>
+    </div>
+
+    <div class="panel" id="quietPanel" style="display:none">
+      <p class="eyebrow">Gone quiet <em id="quietNote"></em></p>
+      <div id="quietList"></div>
     </div>
 
     <div class="panel">
@@ -1680,7 +2053,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BN</b> · 24 Aug 2026<br>If this does not say BN, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BR</b> · 24 Aug 2026<br>If this does not say BR, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -1732,6 +2105,7 @@ body.light .toastless{display:none}
     <b id="popName"></b>
     <em id="popWhat"></em>
   </div>
+  <span class="popgo" aria-hidden="true"></span>
 </div>
 
 <!-- ============ SHEET ============ -->
@@ -2182,6 +2556,11 @@ function earnedIn(d){return sum(monthLessons(d).map(function(l){return l.amount}
 
 /* ================= tabs ================= */
 var tabs=document.querySelectorAll(".tab[data-v]");
+/* switching views from code, so a notification can send you somewhere */
+function showView(v){
+  var t=document.querySelector('.tab[data-v="'+v+'"]');
+  if(t&&t.onclick)t.onclick();
+}
 Array.prototype.forEach.call(tabs,function(t){
   t.onclick=function(){
     Array.prototype.forEach.call(tabs,function(x){x.classList.remove("on")});
@@ -4895,7 +5274,7 @@ function renderStats(){
    crossing on the same day do not talk over each other. Nothing here blocks
    anything: if it fails it simply does not happen. */
 var CEREMONY_ON=true;
-var POP_Q=[], POP_LIVE=false;
+var POP_Q=[], POP_LIVE=false, POP_T=null;
 /* one banner at a time, each held long enough to actually read */
 function popShow(o){
   POP_Q.push(o);
@@ -4914,12 +5293,34 @@ function popNext(){
   seal.style.borderColor=o.col||"var(--shu)";
   seal.style.color=o.col||"var(--shu)";
   $("popKind").style.color=o.col||"var(--shu)";
+  /* tapping it takes you to the thing it is telling you about */
+  el.onclick=function(){
+    clearTimeout(POP_T);
+    el.classList.remove("on");
+    POP_Q.length=0; POP_LIVE=false;
+    if(o.go==="theme"){
+      showView("data");
+      setTimeout(function(){
+        themeFilter="ready"; paintThemes();
+        var card=document.querySelector('#themePick [data-theme="'+o.tid+'"]');
+        if(card&&card.scrollIntoView)card.scrollIntoView({block:"center"});
+      },160);
+    } else if(o.go==="student"&&o.sid){
+      studentSheet(o.sid);
+    } else {
+      showView("stats");
+      setTimeout(openAchWin,160);
+    }
+    buzz(10);
+  };
   el.classList.remove("on");
   /* force a reflow so the shine restarts on a repeat */
   void el.offsetWidth;
   el.classList.add("on");
-  try{burst(20)}catch(e){}
-  setTimeout(function(){
+  /* the confetti is per banner; the sound is not, or three unlocks in a row
+     would talk over each other even with the guard above */
+  try{burst(20,null,o.quiet)}catch(e){}
+  POP_T=setTimeout(function(){
     el.classList.remove("on");
     setTimeout(popNext,420);
   },3400);
@@ -4930,20 +5331,21 @@ function ceremony(){
   try{
     checkDrops().forEach(function(t){
       found.push({kind:"Seasonal drop kept",name:t.name,what:"Yours for good, every year from now.",
-        sym:"\u2744",col:t.c[4]});
+        sym:"\u2744",col:t.c[4],go:"theme",tid:t.id});
     });
     checkBadges().forEach(function(a){
-      found.push({kind:"Achievement unlocked",name:a.n,what:a.d,sym:"\u2726"});
+      found.push({kind:"Achievement unlocked",name:a.n,what:a.d,sym:"\u2726",go:"ach"});
       /* a theme that was waiting on this one gets its own banner */
       THEMES.forEach(function(t){
         if(t.lock===a.id)found.push({kind:"Theme unlocked",name:t.name,what:t.blurb,
-          sym:PLUS_MARK[t.id]?"\u25c6":"\u25c6",col:t.c[4]});
+          sym:"\u25c6",col:t.c[4],go:"theme",tid:t.id});
       });
     });
     db.students.forEach(function(st){
       newMilestones(st).forEach(function(m){
         st.marks.push(m.k);
-        found.push({kind:"Milestone",name:st.name,what:m.t,sym:"\u25cf",col:colorFor(st)});
+        found.push({kind:"Milestone",name:st.name,what:m.t,sym:"\u25cf",col:colorFor(st),
+          go:"student",sid:st.id});
       });
     });
   }catch(e){return}
@@ -4952,11 +5354,14 @@ function ceremony(){
   /* Importing years of a spreadsheet can trip a dozen of these in one go.
      Show the first few properly, then one banner for the rest, rather than
      holding you hostage for forty seconds. */
+  /* the first banner carries the sound; every one after it comes up silent,
+     so a run of unlocks is one chime and not a pile */
+  found.forEach(function(o,i){o.quiet=i>0});
   if(found.length>4){
     var head=found.slice(0,3), rest=found.length-3;
     head.forEach(popShow);
     popShow({kind:"And the rest",name:"+"+rest+" more unlocked",
-      what:"All of them are on the stats page.",sym:"\u2726"});
+      what:"Tap to see all of them.",sym:"\u2726",quiet:true,go:"ach"});
   } else found.forEach(popShow);
 }
 function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();gPullToday();ceremony()}
@@ -7009,6 +7414,14 @@ function loadBuf(url){
   });
   return bufs[url];
 }
+/* ---- the audio bus ----
+   Every sound in the app goes through here. There is exactly one slot, and
+   claiming it stops whatever was in it. Two players used to run side by side
+   with no idea the other existed, which is what you were hearing. */
+function busClaim(){
+  try{stopAudio()}catch(e){}
+  try{if(typeof actx!=="undefined"&&actx)stopKaching(actx)}catch(e){}
+}
 function stopAudio(){
   if(!curSrc)return;
   try{
@@ -7021,6 +7434,7 @@ function stopAudio(){
   curSrc=null; curGain=null;
 }
 /* calls back with how long the shower should run, in ms */
+var MARK_TOKEN=0;
 function playMark(name,cb){
   var list=TRACKS[name]||[];
   var done=false;
@@ -7034,10 +7448,14 @@ function playMark(name,cb){
   /* whatever happens to the audio, the confetti still gets its cue */
   setTimeout(function(){once(FALLBACK_MS)},2500);
   var t=list[(Math.random()*list.length)|0];
+  var mine=++MARK_TOKEN;
   ensureCtx().then(function(c){
+    if(mine!==MARK_TOKEN)return null;        /* a newer mark already claimed it */
     return loadBuf(t.file).then(function(buf){return [c,buf]});
   }).then(function(pair){
+    if(!pair||mine!==MARK_TOKEN)return;
     var c=pair[0], buf=pair[1];
+    busClaim();                              /* nothing else may still be running */
     var s=Math.max(0,t.start||0);
     var e=(t.end&&t.end>s)?Math.min(t.end,buf.duration):buf.duration;
     var dur=Math.max(0.6,e-s);
@@ -7060,19 +7478,51 @@ function playMark(name,cb){
   });
 }
 
+/* ---- one sound at a time, always ----
+   Anything that can fire in a burst (three achievements unlocking together,
+   a bundle import, two taps in quick succession) used to start a second clip
+   over the top of the first. Nothing in this app is ever meant to be heard
+   as a chord. So: exactly one live source. A new sound fades the old one out
+   over 60ms and takes its place, and requests inside a short window of each
+   other are dropped outright rather than queued, because a queue would just
+   move the pile-up later. */
+var SFX_LIVE=null, SFX_GAIN=null, SFX_AT=0, SFX_TOKEN=0;
+var SFX_MIN_GAP=0.22;              /* seconds between two clips, hard floor */
+function stopKaching(c,when){
+  if(!SFX_LIVE)return;
+  var src=SFX_LIVE, g=SFX_GAIN;
+  SFX_LIVE=null; SFX_GAIN=null;
+  try{
+    var t=when||c.currentTime;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setValueAtTime(Math.max(0.0001,g.gain.value),t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.06);
+    src.stop(t+0.08);
+  }catch(e){}
+}
 function playKaching(){
   if(cfg.sfx===false)return;
   var url=KACHING[(Math.random()*KACHING.length)|0];
+  var mine=++SFX_TOKEN;
   ensureCtx().then(function(c){
+    /* two calls landing in the same instant: the later one wins, the earlier
+       never reaches start() */
+    if(mine!==SFX_TOKEN)return null;
+    if(c.currentTime-SFX_AT<SFX_MIN_GAP&&SFX_LIVE)return null;
     return loadBuf(url).then(function(buf){
+      if(mine!==SFX_TOKEN)return;
+      var t0=c.currentTime+0.01;
+      stopKaching(c,t0);                     /* whatever is playing, out */
+      try{stopAudio()}catch(e){}             /* including the other player */
       var src=c.createBufferSource(); src.buffer=buf;
       var g=c.createGain();
       src.connect(g); g.connect(c.destination);
-      var t0=c.currentTime+0.01;
       g.gain.setValueAtTime(0.95,t0);
       g.gain.setValueAtTime(0.95,t0+Math.max(0.05,buf.duration-0.12));
       g.gain.exponentialRampToValueAtTime(0.0001,t0+buf.duration);
       src.start(t0);
+      SFX_LIVE=src; SFX_GAIN=g; SFX_AT=t0;
+      src.onended=function(){if(SFX_LIVE===src){SFX_LIVE=null;SFX_GAIN=null}};
     });
   }).catch(function(){});
 }
@@ -7149,7 +7599,7 @@ function rainDrop(img,alpha){
   });
 }
 
-function burst(n,from){
+function burst(n,from,quiet){
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var btn=$("openLog");
   var src=from||btn, r=src.getBoundingClientRect();
@@ -7157,10 +7607,15 @@ function burst(n,from){
   if(!from){btn.classList.remove("kick"); void btn.offsetWidth; btn.classList.add("kick")}
   n=n||20;
 
-  playKaching();
+  /* The mark brings its own track. When it does, that IS the sound, and the
+     till noise would only be a second thing playing at the same time. */
+  var pick0=null;
+  try{pick0=drawMark()}catch(e){}
+  var hasTrack=!!(pick0&&TRACKS[pick0._name]&&TRACKS[pick0._name].length);
+  if(!quiet&&!hasTrack)playKaching();
 
   /* one mark per tap, drawn fresh each time */
-  var pick=drawMark();
+  var pick=pick0||drawMark();
   var k=pick._scale;
 
   /* fountain out of the + button, right now */
@@ -7179,13 +7634,15 @@ function burst(n,from){
   }
 
   /* and a shower that runs as long as the track does */
-  stopAudio();
-  playMark(pick._name,function(ms){
+  busClaim();
+  var shower0=function(ms){
     var now=performance.now();
     shower={img:pick, t0:now, until:now+ms, dens:0.16+Math.min(n,48)/300};
     acc=0;
     startLoop();
-  });
+  };
+  /* a silent burst still gets its confetti, it just does not claim the bus */
+  if(quiet)shower0(FALLBACK_MS); else playMark(pick._name,shower0);
 
   startLoop();
 }
