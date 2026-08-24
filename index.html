@@ -70,6 +70,8 @@ button,input,select{font-family:var(--body)}
 .total{font-family:var(--display);font-weight:700;font-size:clamp(40px,12.5vw,56px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;position:relative;z-index:1}
 .total .cur{font-size:.62em;vertical-align:.24em;margin-right:.06em;color:var(--muted);opacity:.85}
 .heroline{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
+.total{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.total:active{opacity:.72}
 .chip{background:rgba(255,255,255,.07);color:var(--muted);padding:3px 10px;border-radius:100px;font-size:12px;font-variant-numeric:tabular-nums}
 .chip b{color:var(--text);font-weight:500}
 .chip.up{color:var(--good)}
@@ -285,13 +287,13 @@ button,input,select{font-family:var(--body)}
 .avrow .who b{display:block;font-family:var(--display);font-size:19px;font-weight:700}
 .avrow .who button{background:none;border:0;color:var(--sky);font-size:13px;padding:4px 0;cursor:pointer}
 .avrow .who button+button{margin-left:14px;color:var(--muted)}
-.swatches{display:flex;gap:9px;flex-wrap:wrap;margin:2px 0 4px}
-.sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
-.sw.on{border-color:var(--text)}
+.swatches{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 6px}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
+.sw.on{border-color:var(--text);transform:scale(1.12)}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
 .stu .main{flex:1;min-width:0}
-.stu .main span{display:block;font-size:22px;font-weight:600;letter-spacing:-.016em;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stu .main small{color:var(--muted);font-size:12px}
+.stu .main>span{display:block;font-size:25px;font-weight:700;letter-spacing:-.02em;line-height:1.12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stu .main small{color:var(--muted);font-size:9px}
 .bal{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
 .bal b{display:block;font-family:var(--display);font-size:17px;color:var(--sky)}
 .bal.zero b{color:var(--muted)}
@@ -301,7 +303,7 @@ button,input,select{font-family:var(--body)}
 .stu.rest{opacity:.52}
 /* Three columns, each with one job: who they are, where they stand, what
    time it is for them. Nothing shares a line with anything it isn't about. */
-.stu .main small{display:flex;align-items:center;justify-content:flex-start;gap:7px;flex-wrap:nowrap;overflow:hidden;margin-top:4px;padding:0}
+.stu .main small{display:flex;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:nowrap;overflow:hidden;min-width:0;margin-top:5px;padding:0;line-height:1.35}
 .stu .when{flex:0 0 auto;text-align:right;line-height:1.15}
 .stu .when .clock{display:flex;align-items:center;justify-content:flex-end;gap:4px;
   font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
@@ -310,8 +312,12 @@ button,input,select{font-family:var(--body)}
 .stu .when .sky{font-size:12px;line-height:1;opacity:.9}
 .stu .when .where{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;
   max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stu .sheets{font-size:11px;color:var(--muted);white-space:nowrap}
-.stu .sheets{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto}
+.stu .sheets{font-size:9px;color:var(--muted);white-space:nowrap}
+.stu .pre{font-size:10.5px;font-weight:600;letter-spacing:.01em;line-height:1.15;color:var(--sky);white-space:nowrap;
+  flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.stu .pre.low{color:var(--shu)}
+.stu .sheets{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;
+  flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .row.shelf{cursor:pointer}
 .row.shelf:active{background:var(--inset)}
 .row.shelf .main small{display:block;color:var(--muted);font-size:12px}
@@ -319,9 +325,9 @@ button,input,select{font-family:var(--body)}
    the type, so it stays a label instead of turning into a button. */
 /* Capsule at its original thickness. Sized against the name: about half its
    height, so it reads as a label sitting under a heading. */
-.pill{display:inline-block;font-size:11px;letter-spacing:.04em;
-  font-weight:600;padding:2px 9px;border-radius:100px;border:1px solid currentColor;
-  color:var(--muted);line-height:1.4;flex:0 0 auto}
+.pill{display:inline-block;font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  font-weight:700;padding:1px 6px;border-radius:100px;border:1px solid currentColor;
+  color:var(--muted);line-height:1.4;flex:0 0 auto;white-space:nowrap}
 .pill.active{color:var(--good)}
 .pill.stopped{opacity:.6}
 .pill.trial{color:var(--gold)}
@@ -344,6 +350,25 @@ button,input,select{font-family:var(--body)}
 .pieMid b{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums;line-height:1}
 .pieMid small{color:var(--muted);font-size:11px;margin-top:3px}
 .hbar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.rankrow{display:flex;align-items:center;gap:15px}
+.rankmark{flex:0 0 74px;text-align:center;background:var(--inset);border-radius:var(--r);padding:11px 4px}
+.rankmark b{display:block;font-family:var(--display);font-size:25px;line-height:1.1;color:var(--shu)}
+.rankmark small{display:block;font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+.rankbar{flex:1;min-width:0}
+.ach{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ach:last-child{border-bottom:0}
+.ach .seal{flex:0 0 30px;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--dim)}
+.ach.got .seal{border-color:var(--shu);color:var(--shu);background:rgba(224,87,76,.1)}
+.ach .body{flex:1;min-width:0}
+.ach .body b{display:block;font-size:14.5px;font-weight:600;line-height:1.2}
+.ach.got .body b{color:var(--text)}
+.ach:not(.got) .body b{color:var(--muted)}
+.ach .body small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+.ach .prog{flex:0 0 auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ach.got .prog{color:var(--shu)}
+.tcard.locked{opacity:.42}
+.tcard .tlock{display:block;font-size:9.5px;color:var(--muted);margin-top:2px;letter-spacing:.03em}
 .streak{display:flex;align-items:baseline;gap:11px}
 .streak b{font-family:var(--display);font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
 .streak span{color:var(--muted);font-size:13.5px;line-height:1.35}
@@ -427,9 +452,59 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .tab.on{background:var(--surf2);color:var(--text)}
 .tab .nb{position:absolute;top:2px;right:4px;min-width:17px;height:17px;padding:0 4px;border-radius:100px;background:var(--shu);color:#fff;font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;line-height:1;border:2px solid var(--surf)}
 .tab.has .nb{display:flex}
-.tab.plus{background:var(--shu);color:#fff;width:50px;height:44px}
+.tab.plus{background:var(--shu);color:#fff;width:50px;height:44px;border-radius:14px;
+  transition:border-radius .3s,transform .3s,clip-path .3s}
 .tab.plus:active{opacity:.88}
-.tab.plus svg{stroke-width:2.4}
+.tab.plus svg{stroke-width:2.4;transition:transform .3s}
+
+/* ---------- one button per world ----------
+   The + is the thing you press most, so it may as well be the piece of each
+   theme you notice first. Shape comes from here, the mark inside it comes
+   from PLUS_MARK in the script. Nothing here changes where it sits or how
+   big the tap target is, only what it looks like. */
+body[data-theme="mainichi"] .tab.plus{border-radius:12px;box-shadow:0 0 0 2px var(--void),0 0 0 3.5px var(--shu)}
+body[data-theme="paper"] .tab.plus{border-radius:15px}
+/* sakura: a petal, one corner left sharp */
+body[data-theme="sakura"] .tab.plus{border-radius:50% 22% 50% 22%}
+/* matcha: a leaf */
+body[data-theme="matcha"] .tab.plus{border-radius:2px 20px 2px 20px}
+/* sumi: a brushed circle */
+body[data-theme="sumi"] .tab.plus{border-radius:50%;width:46px}
+/* grand line: a porthole with a brass rim */
+body[data-theme="onepiece"] .tab.plus{border-radius:50%;width:46px;box-shadow:0 0 0 2.5px var(--gold)}
+/* the game: their circle, drawn as one */
+body[data-theme="squid"] .tab.plus{border-radius:50%;width:46px;box-shadow:0 0 0 2px var(--sky)}
+/* drift: a soft lozenge, the shape of something underwater */
+body[data-theme="sonny"] .tab.plus{border-radius:50%/38%}
+/* frutiger: a glass pill with a highlight across the top */
+body[data-theme="aero"] .tab.plus{border-radius:100px;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 54%)}
+/* vapor: a diamond, and the mark stays upright inside it */
+body[data-theme="vapor"] .tab.plus{border-radius:5px;transform:rotate(45deg) scale(.86)}
+body[data-theme="vapor"] .tab.plus svg{transform:rotate(-45deg)}
+/* brutalist: a hard square that casts a hard shadow */
+body[data-theme="brutalist"] .tab.plus{border-radius:0;border:2px solid #111;box-shadow:3px 3px 0 #111}
+/* concrete: a bolt head */
+body[data-theme="blame"] .tab.plus{border-radius:0;
+  clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+/* phosphor: a terminal block, square and outlined */
+body[data-theme="term"] .tab.plus{border-radius:0;background:none;color:var(--shu);box-shadow:inset 0 0 0 2px var(--shu)}
+/* chaos: a blob that will not sit still */
+body[data-theme="chaos"] .tab.plus{border-radius:62% 38% 54% 46%/48% 62% 38% 52%;animation:blobRoll 7s ease-in-out infinite}
+@keyframes blobRoll{
+  0%,100%{border-radius:62% 38% 54% 46%/48% 62% 38% 52%}
+  33%{border-radius:38% 62% 42% 58%/62% 40% 60% 38%}
+  66%{border-radius:52% 48% 62% 38%/38% 56% 44% 62%}
+}
+/* tower: a plate with a cut corner, bolted on */
+body[data-theme="tower"] .tab.plus{border-radius:0;color:#0A0A0B;
+  clip-path:polygon(0 0,100% 0,100% 64%,78% 100%,0 100%)}
+/* the climber: a carabiner */
+body[data-theme="climber"] .tab.plus{border-radius:100px;width:46px;box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.55)}
+@media (prefers-reduced-motion:reduce){
+  body[data-theme="chaos"] .tab.plus{animation:none}
+  .tab.plus,.tab.plus svg{transition:none}
+}
 
 /* ---------- portrait only ---------- */
 .rotate{display:none}
@@ -477,6 +552,9 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .chip-s.on .av{box-shadow:0 0 0 2px var(--text)}
 .chip-s b{font-size:11px;font-weight:500;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.55}
 .chip-s.on b{opacity:1}
+/* the one the ordering is confident about */
+.chip-s.lead .av{box-shadow:0 0 0 2px var(--sky)}
+.chip-s.on.lead .av{box-shadow:0 0 0 2px var(--text)}
 
 /* ---------- photo cropper ---------- */
 .cropper{
@@ -593,6 +671,210 @@ body[data-theme="brutalist"] .btn{border:2px solid #111;box-shadow:3px 3px 0 #11
 body[data-theme="brutalist"] .eyebrow{letter-spacing:.3em}
 body[data-theme="brutalist"] .pill{border-radius:0;border-width:1px}
 
+/* ---------------- TOWER ----------------
+   Poured concrete, a megastructure with no visible top, one acid-yellow
+   warning light and a drowned blue coming through from somewhere. Blame!'s
+   scale, Sonny Boy's drift, the Aphex logo's yellow, Punpun's flat blankness,
+   and a brutalist's refusal to round a corner. Unlike the other themes this
+   one does not just repaint: it takes the cards apart, squares everything
+   off, numbers the sections and rules the page like a drawing. */
+body[data-theme="tower"]{
+  --void:#0A0A0B; --surf:#101012; --surf2:#17171A; --line:#2B2B30;
+  --text:#E8E8E4; --muted:#77777F; --shu:#E9FF3D; --sky:#4B6FA8;
+  --inset:#0D0D0F; --tag:#101012; --dim:#3E3E45; --edge:#35353C;
+  --good:#8FA37A; --gold:#E9FF3D; --heroA:#121216; --heroB:#08080A;
+  --r:0px;
+  --display:"Zen Kaku Gothic New",-apple-system,sans-serif;
+}
+/* structure: a faint floor grid, so the page reads as a level in a building */
+body[data-theme="tower"]{
+  background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 1px,transparent 1px 64px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 64px);
+  background-attachment:fixed;
+}
+body[data-theme="tower"] .wrap{position:relative}
+/* the shaft: one hairline running the whole height, off to the left */
+body[data-theme="tower"] .wrap:before{
+  content:"";position:fixed;left:9px;top:0;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,var(--line) 12%,var(--line) 88%,transparent);
+  pointer-events:none;z-index:0;
+}
+body[data-theme="tower"] .masthead{border-bottom:2px solid var(--text);margin-bottom:14px}
+body[data-theme="tower"] .brand .kanji{letter-spacing:.34em;font-size:18px}
+body[data-theme="tower"] .brand .name{text-transform:uppercase;letter-spacing:.22em;font-size:10px}
+/* panels stop being cards and become ruled sections */
+body[data-theme="tower"] .panel{
+  background:none;border:0;border-top:1px solid var(--line);
+  padding:15px 0 18px;margin-bottom:0;position:relative;
+}
+body[data-theme="tower"] .panel:before{
+  content:"";position:absolute;top:-1px;left:0;width:34px;height:3px;background:var(--shu);
+}
+body[data-theme="tower"] .eyebrow{
+  letter-spacing:.42em;font-size:9.5px;font-weight:800;opacity:1;color:var(--muted);
+}
+body[data-theme="tower"] .eyebrow:before{content:"\25a0  ";color:var(--shu)}
+/* the number, treated like a readout on a wall */
+body[data-theme="tower"] .hero{
+  background:var(--heroB);border:1px solid var(--line);padding:22px 18px 20px;
+  box-shadow:inset 0 0 0 1px rgba(233,255,61,.06);
+}
+body[data-theme="tower"] .hero:after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:linear-gradient(90deg,var(--shu),transparent 62%);
+}
+body[data-theme="tower"] .total{
+  font-size:clamp(46px,15vw,68px);letter-spacing:-.05em;font-weight:800;
+}
+body[data-theme="tower"] .total .cur{color:var(--shu);opacity:1}
+body[data-theme="tower"] .mnav .lab{letter-spacing:.34em;font-size:10px;color:var(--shu)}
+body[data-theme="tower"] .mnav button{border:1px solid var(--line);border-radius:0}
+body[data-theme="tower"] .chip{
+  background:none;border:1px solid var(--line);border-radius:0;
+  text-transform:uppercase;letter-spacing:.1em;font-size:10px;
+}
+body[data-theme="tower"] .btn{
+  border-radius:0;border:1px solid var(--shu);background:none;color:var(--shu);
+  text-transform:uppercase;letter-spacing:.2em;font-size:12px;font-weight:800;
+}
+body[data-theme="tower"] .btn:active{background:var(--shu);color:#0A0A0B}
+body[data-theme="tower"] .btn.alt,
+body[data-theme="tower"] .btn.line{border-color:var(--line);color:var(--text)}
+body[data-theme="tower"] .stat{background:none;border:1px solid var(--line);border-radius:0}
+body[data-theme="tower"] .seg,
+body[data-theme="tower"] .seg button{border-radius:0}
+body[data-theme="tower"] .seg button.on{background:var(--shu);color:#0A0A0B;font-weight:800}
+body[data-theme="tower"] .filters button{border-radius:0;text-transform:uppercase;letter-spacing:.12em;font-size:11px}
+body[data-theme="tower"] .pill{
+  border-radius:0;border:0;padding:0;color:var(--muted);letter-spacing:.16em;
+}
+body[data-theme="tower"] .pill:before{content:"["}
+body[data-theme="tower"] .pill:after{content:"]"}
+body[data-theme="tower"] .pill.active{color:var(--shu)}
+/* students become an index rather than a list of cards */
+body[data-theme="tower"] .stu{border-bottom:1px solid var(--line);padding:14px 0 14px 10px;position:relative}
+body[data-theme="tower"] .stu:before{
+  content:"";position:absolute;left:0;top:14px;bottom:14px;width:2px;background:var(--line);
+}
+body[data-theme="tower"] .stu:not(.rest):before{background:var(--shu)}
+body[data-theme="tower"] .stu .main>span{letter-spacing:-.03em;font-weight:800}
+body[data-theme="tower"] .av{border-radius:0}
+body[data-theme="tower"] .sw{border-radius:0}
+body[data-theme="tower"] .navinner{
+  border-radius:0;border:1px solid var(--line);border-top:2px solid var(--shu);
+  box-shadow:none;padding:5px;
+}
+body[data-theme="tower"] .tab{border-radius:0}
+body[data-theme="tower"] .sheet{border-radius:0;border:1px solid var(--line);border-top:3px solid var(--shu)}
+body[data-theme="tower"] input,
+body[data-theme="tower"] select,
+body[data-theme="tower"] textarea{border-radius:0}
+/* drift: the whole page sits under a very slow moving haze */
+@keyframes towerDrift{from{transform:translateY(0)}to{transform:translateY(64px)}}
+body[data-theme="tower"] .wrap:after{
+  content:"";position:fixed;inset:-64px 0 0 0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,rgba(75,111,168,.05) 0 1px,transparent 1px 5px);
+  animation:towerDrift 9s linear infinite;
+}
+@media (prefers-reduced-motion:reduce){
+  body[data-theme="tower"] .wrap:after{animation:none}
+}
+
+/* ---------------- CLIMBER ----------------
+   Granite, snow glare and chalk. Cold paper white, four greys of rock, and
+   one length of orange rope running down the page. Everything is vertical:
+   sections hang off the rope rather than sitting in boxes. */
+body[data-theme="climber"]{
+  --void:#E6E7E5; --surf:#F7F8F6; --surf2:#DDDEDA; --line:#B9BCB6;
+  --text:#1B1D1C; --muted:#6E736D; --shu:#D2622A; --sky:#4A6B7C;
+  --inset:#EDEEEB; --tag:#F7F8F6; --dim:#9BA098; --edge:#A8ADA4;
+  --good:#4F7A55; --gold:#B07A2A; --heroA:#FBFCFA; --heroB:#E4E6E2;
+  --r:2px;
+  --display:"Shippori Mincho B1",Georgia,serif;
+}
+/* the rock face: soft diagonal strata behind everything */
+body[data-theme="climber"]{
+  background-image:
+    linear-gradient(118deg,rgba(0,0,0,.05) 0 2px,transparent 2px 27px),
+    linear-gradient(96deg,rgba(0,0,0,.028) 0 1px,transparent 1px 13px);
+  background-attachment:fixed;
+}
+body[data-theme="climber"] .masthead{border-bottom:1px solid var(--text)}
+body[data-theme="climber"] .brand .kanji{letter-spacing:.14em}
+body[data-theme="climber"] .brand .name{letter-spacing:.16em;font-size:10.5px;text-transform:uppercase}
+/* the rope: every section is tied to the same line down the left */
+body[data-theme="climber"] .panel{
+  border:0;border-left:2px solid var(--shu);border-radius:0;
+  background:linear-gradient(90deg,rgba(210,98,42,.05),transparent 34%),var(--surf);
+  padding:16px 16px 17px 17px;margin-bottom:13px;position:relative;
+}
+body[data-theme="climber"] .panel:before{
+  content:"";position:absolute;left:-6px;top:20px;width:10px;height:10px;
+  border:2px solid var(--shu);background:var(--surf);border-radius:50%;
+}
+body[data-theme="climber"] .eyebrow{letter-spacing:.26em;font-size:10px;color:var(--muted)}
+body[data-theme="climber"] .hero{
+  border:1px solid var(--line);border-top:3px solid var(--text);
+  background:linear-gradient(178deg,var(--heroA),var(--heroB));
+}
+/* altitude: a snowline across the top of the number */
+body[data-theme="climber"] .hero:before{
+  content:"";position:absolute;left:0;right:0;top:0;height:38%;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),transparent);
+  pointer-events:none;
+}
+body[data-theme="climber"] .total{
+  font-weight:700;letter-spacing:-.02em;font-size:clamp(42px,13.5vw,60px);
+}
+body[data-theme="climber"] .total .cur{color:var(--shu);opacity:1}
+body[data-theme="climber"] .mnav .lab{letter-spacing:.3em;color:var(--text);opacity:.66}
+body[data-theme="climber"] .chip{background:rgba(0,0,0,.05);border:1px solid var(--line);border-radius:0}
+body[data-theme="climber"] .btn{border-radius:2px;letter-spacing:.06em}
+body[data-theme="climber"] .stat{background:var(--inset);border:1px solid var(--line);border-radius:2px}
+body[data-theme="climber"] .pill{border-radius:0;letter-spacing:.12em}
+body[data-theme="climber"] .stu{padding:13px 0 13px 13px;position:relative;border-bottom:1px dashed var(--line)}
+/* each student is a pitch on the route, clipped to the same rope */
+body[data-theme="climber"] .stu:before{
+  content:"";position:absolute;left:2px;top:50%;width:7px;height:7px;margin-top:-3.5px;
+  border:1.5px solid var(--shu);border-radius:50%;background:var(--surf);
+}
+body[data-theme="climber"] .stu.rest:before{border-color:var(--dim)}
+body[data-theme="climber"] .stu .main>span{font-family:var(--display);font-weight:700}
+body[data-theme="climber"] .navinner{border-radius:3px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(27,29,28,.14)}
+body[data-theme="climber"] .tab{border-radius:2px}
+body[data-theme="climber"] .sheet{border-radius:3px;border-top:3px solid var(--shu)}
+body[data-theme="kinkaku"]{
+  /* gold leaf on black lacquer, and nothing else allowed to shout */
+  --void:#12100C; --surf:#1C1813; --surf2:#26201A; --line:#3A3020;
+  --text:#F3E7C8; --muted:#8C7B4A; --shu:#D9A83A; --sky:#8C7B4A;
+  --inset:#161309; --tag:#1C1813; --dim:#5A4E30; --edge:#463A26;
+  --good:#A8B06A; --gold:#D9A83A; --heroA:#231D14; --heroB:#100E0A;
+  --display:"Shippori Mincho B1",Georgia,serif;
+}
+body[data-theme="kinkaku"] .hero{box-shadow:inset 0 0 0 1px rgba(217,168,58,.22)}
+body[data-theme="kinkaku"] .total{text-shadow:0 1px 0 rgba(217,168,58,.35)}
+body[data-theme="hanabi"]{
+  /* the dark between fireworks */
+  --void:#0B0D1A; --surf:#141830; --surf2:#1D2340; --line:#2A3055;
+  --text:#EDEBFF; --muted:#8288B8; --shu:#FF5C8A; --sky:#5FD0E8;
+  --inset:#0E1024; --tag:#141830; --dim:#4A5080; --edge:#353C68;
+  --good:#7FE0B0; --gold:#FFD166; --heroA:#1A1F42; --heroB:#0C0F22;
+}
+body[data-theme="hanabi"] .hero:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 78% 22%,rgba(255,92,138,.18),transparent 42%),
+             radial-gradient(circle at 22% 78%,rgba(95,208,232,.14),transparent 44%);
+}
+body[data-theme="kohaku"]{
+  /* amber and rice paper */
+  --void:#F5EDDE; --surf:#FFFAF0; --surf2:#EFE4CE; --line:#DFCFAF;
+  --text:#3A2E1E; --muted:#8A7A5E; --shu:#C4741E; --sky:#6B7F4A;
+  --inset:#F8F2E4; --tag:#FFFAF0; --dim:#B5A585; --edge:#D2C0A0;
+  --good:#6B8F4A; --gold:#B8891F; --heroA:#FFFAF0; --heroB:#F2E8D6;
+  --display:"Shippori Mincho B1",Georgia,serif;
+}
+
 body[data-theme="aero"]{
   /* frutiger aero: glass, sky, and a great deal of gloss */
   --void:#D6EEF8; --surf:#F4FBFE; --surf2:#DFF2FB; --line:#A9D6EA;
@@ -649,7 +931,7 @@ body[data-theme="chaos"] .hero{transform:rotate(-.4deg)}
 body[data-theme="chaos"] .panel,body[data-theme="chaos"] .hero{border:2px solid var(--line)}
 body[data-theme="chaos"] .total{text-shadow:2px 0 var(--shu),-2px 0 var(--sky)}
 body[data-theme="chaos"] .eyebrow{transform:skewX(-9deg)}
-body[data-theme="chaos"] .stu:nth-child(3n) .main span{transform:rotate(-1.2deg);display:inline-block}
+body[data-theme="chaos"] .stu:nth-child(3n) .main>span{transform:rotate(-1.2deg);display:inline-block}
 @media (prefers-reduced-motion:reduce){
   body[data-theme="chaos"] #v-home,
   body[data-theme="chaos"] #v-students,
@@ -875,6 +1157,35 @@ body.light .toastless{display:none}
       <div class="pieWrap"><canvas id="pieStu" width="320" height="320"></canvas><div class="pieMid"><b id="pieTot"></b><small id="pieSub"></small></div></div>
       <div id="topStu"></div>
     </div>
+    <div class="panel" id="seasonPanel">
+      <p class="eyebrow">Season <em id="seasonNote"></em></p>
+      <div class="rankrow">
+        <div class="rankmark"><b id="rankJP"></b><small id="rankEN"></small></div>
+        <div class="rankbar">
+          <div class="hbar" style="margin:0">
+            <div class="t"><span id="rankNow"></span><b id="rankNext"></b></div>
+            <div class="track"><i class="shu" id="rankBar" style="width:0%"></i></div>
+          </div>
+          <p class="empty" id="seasonFoot" style="margin:9px 0 0"></p>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Owed in lessons</p>
+      <div class="stats">
+        <div class="stat"><b id="liabN">0</b><small>lessons prepaid</small></div>
+        <div class="stat"><b id="liabV">$0</b><small>not earned yet</small></div>
+      </div>
+      <p class="empty" id="liabFoot" style="margin:12px 0 0"></p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Personal bests</p>
+      <div class="stats" id="bestGrid"></div>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Achievements <em id="achNote"></em></p>
+      <div id="achList"></div>
+    </div>
     <div class="panel">
       <p class="eyebrow">Streak <em id="streakNote"></em></p>
       <div class="streak"><b id="streakNow">0</b><span id="streakSub"></span></div>
@@ -898,6 +1209,54 @@ body.light .toastless{display:none}
         <div class="stat"><b id="tAvg">$0</b><small>avg per lesson</small></div>
         <div class="stat"><b id="tBest">$0</b><small>best month</small></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ============ WEBSITE ============ -->
+  <section class="view" id="v-site">
+    <div class="hero">
+      <div class="mnav"><span class="lab" id="siteLab">mainichijp.co</span></div>
+      <div class="total" id="siteTotal" style="cursor:default"><span class="cur">○</span>0</div>
+      <div class="heroline" id="siteLine"></div>
+    </div>
+    <div class="panel" id="siteSetup">
+      <p class="eyebrow">Connect it</p>
+      <p class="empty" style="margin:0 0 13px">Plausible and Umami both hand out a read-only key you can call straight from the browser, so this needs no server of your own. Google Analytics cannot do this without one, which is the main reason to move off it.</p>
+      <div class="seg" id="siteKind">
+        <button type="button" data-k="plausible">Plausible</button>
+        <button type="button" data-k="umami">Umami</button>
+        <button type="button" data-k="off">Off</button>
+      </div>
+      <div class="field" style="margin-top:13px"><label for="siteHost">API host</label><input id="siteHost" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://plausible.io"></div>
+      <div class="field"><label for="siteId">Site</label><input id="siteId" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="mainichijp.co"></div>
+      <div class="field"><label for="siteKey">API key</label><input id="siteKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="read-only key"></div>
+      <button class="btn" id="siteGo">Pull the numbers</button>
+      <p class="empty" style="margin:12px 0 0">Use a read-only key. It sits on this phone in the same place as everything else, so use one you can revoke.</p>
+    </div>
+    <div class="panel" id="siteChartPanel" style="display:none">
+      <p class="eyebrow">Visitors <em id="siteRange"></em></p>
+      <svg class="chart" id="chSite" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="siteMarks"></div>
+    </div>
+    <div class="panel" id="siteConvPanel" style="display:none">
+      <p class="eyebrow">Clicks to lessons</p>
+      <div class="stats">
+        <div class="stat"><b id="convClicks">0</b><small>booking clicks</small></div>
+        <div class="stat"><b id="convLessons">0</b><small>lessons logged</small></div>
+        <div class="stat"><b id="convRate">0%</b><small>turned into teaching</small></div>
+        <div class="stat"><b id="convWorth">$0</b><small>per click</small></div>
+      </div>
+      <p class="empty" style="margin:12px 0 0">The only website number that means anything: of the people who tapped through to book, how many ended up in a lesson you actually logged.</p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Post markers</p>
+      <p class="empty" style="margin:0 0 11px">Add the day you posted and it draws a line on the chart, so you can see which post moved anything.</p>
+      <div class="two">
+        <div class="field" style="margin:0"><label for="pmDate">Date</label><input id="pmDate" type="date"></div>
+        <div class="field" style="margin:0"><label for="pmWhat">What it was</label><input id="pmWhat" type="text" placeholder="reel: keigo mistakes" autocomplete="off"></div>
+      </div>
+      <button class="btn alt" id="pmAdd" style="margin-top:11px">Add marker</button>
+      <div id="pmList" style="margin-top:13px"></div>
     </div>
   </section>
 
@@ -949,6 +1308,18 @@ body.light .toastless{display:none}
       <button class="btn alt" id="export" style="margin-bottom:9px">Export CSV</button>
       <label class="btn line" for="import" style="display:block;text-align:center;margin-bottom:9px">Import CSV<input id="import" type="file" accept=".csv,text/csv" style="display:none"></label>
       <button class="btn line" id="exportJson">Export full backup (JSON)</button>
+      <p class="eyebrow" style="margin:18px 0 9px">Tax year</p>
+      <div class="two">
+        <div class="field" style="margin:0"><label for="taxYear">Year</label><input id="taxYear" type="number" inputmode="numeric" placeholder="2026"></div>
+        <div class="field" style="margin:0"><label for="taxStart">Year starts</label><select id="taxStart">
+          <option value="01-01">1 January</option>
+          <option value="04-01">1 April</option>
+          <option value="07-01">1 July</option>
+          <option value="10-01">1 October</option>
+        </select></div>
+      </div>
+      <button class="btn line" id="taxGo" style="margin-top:11px">Export that tax year</button>
+      <p class="empty" style="margin:11px 0 0">Lessons taught in the year, with prepay you took in listed separately underneath. Those two are different money and your accountant will want them apart.</p>
       <p class="empty" style="margin:13px 0 0">Everything lives on this device only. Export now and then so a wiped phone doesn't take the year with it.</p>
     </div>
     <div class="panel">
@@ -962,6 +1333,15 @@ body.light .toastless{display:none}
       <textarea id="hwRules" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="furigana on every kanji above N4&#10;no romaji anywhere&#10;keep vocabulary lists under 20 words"></textarea>
       <p class="empty" style="margin:8px 0 0">Every correction you tick "remember" on lands here, and goes into every sheet from then on. This is the part that stops you fixing the same thing twice.</p>
     </div>
+    <div class="panel" id="digestPanel">
+      <p class="eyebrow">Weekly digest</p>
+      <p class="empty" style="margin:0 0 13px">Reads this week's teaching and every student's jotter, and tells you who is drifting and who is ready to be pushed. It sees names, notes and dates. It does not see money.</p>
+      <button class="btn alt" id="digestGo">Look over the week</button>
+      <div id="digestOut"></div>
+      <p class="eyebrow" style="margin:18px 0 8px">How you write</p>
+      <textarea id="voiceNote" rows="3" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="short, warm, a bit dry&#10;never salesy&#10;sign off with just my name"></textarea>
+      <p class="empty" style="margin:8px 0 0">Used whenever it drafts a message for you, so the nudges sound like you rather than like a business.</p>
+    </div>
     <div class="panel">
       <p class="eyebrow">Bring in a spreadsheet</p>
       <p class="empty" style="margin:0 0 13px">For a sheet that was never exported from here. In Excel, save the sheet as CSV, then pick it below — or just copy the rows and paste them in. Column order does not matter; it reads the headers.</p>
@@ -973,7 +1353,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">AV</b> · 23 Aug 2026<br>If this does not say AV, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BB</b> · 24 Aug 2026<br>If this does not say BB, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -1008,6 +1388,9 @@ body.light .toastless{display:none}
     </button>
     <button class="tab plus" id="openLog" aria-label="Log">
       <svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg>
+    </button>
+    <button class="tab" data-v="site" aria-label="Website">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2"/><path d="M12 3.4c2.4 2.6 3.6 5.4 3.6 8.6s-1.2 6-3.6 8.6c-2.4-2.6-3.6-5.4-3.6-8.6S9.6 6 12 3.4z"/></svg>
     </button>
     <button class="tab" data-v="stats" aria-label="Stats">
       <svg viewBox="0 0 24 24"><path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-6"/><path d="M22 20H2"/></svg>
@@ -1142,16 +1525,49 @@ function boxVal(n){
   var v=disp(n);
   return inYen()?String(Math.round(v)):String(Math.round(v*100)/100);
 }
+/* Three places to ask, tried in order, each given eight seconds before it is
+   counted as a miss. Whatever went wrong is kept in FX_LAST_ERR so the toast
+   can say WHY rather than just "could not reach". */
+var FX_LAST_ERR="";
+function fxTry(url,pick){
+  var ctl=(typeof AbortController!=="undefined")?new AbortController():null;
+  var timer=null;
+  var opts={cache:"no-store"};
+  if(ctl){opts.signal=ctl.signal;timer=setTimeout(function(){ctl.abort()},8000)}
+  var done=function(){if(timer)clearTimeout(timer)};
+  return fetch(url,opts)
+    .then(function(r){
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return r.json();
+    })
+    .then(function(j){
+      var o=pick(j);
+      if(!o||!(o.rate>0))throw new Error("no rate in reply");
+      done();
+      return o;
+    },function(e){
+      done();
+      FX_LAST_ERR=(e&&e.name==="AbortError")?"timed out":((e&&e.message)||String(e));
+      throw e;
+    });
+}
 function fxFetch(force){
   if(!force&&!fxStale())return Promise.resolve(fxRate());
-  return fetch("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY")
-    .then(function(r){if(!r.ok)throw 0;return r.json()})
-    .then(function(j){
-      var v=j&&j.rates&&j.rates.JPY;
-      if(!(v>0))throw 0;
-      cfg.fx={rate:v,at:Date.now(),on:j.date||""};
+  FX_LAST_ERR="";
+  return fxTry("https://api.frankfurter.dev/v1/latest?base=USD&symbols=JPY",
+      function(j){return (j&&j.rates)?{rate:j.rates.JPY,on:j.date||""}:null})
+    .catch(function(){
+      return fxTry("https://api.frankfurter.dev/v2/rate/USD/JPY",
+        function(j){return j?{rate:j.rate,on:j.date||""}:null});
+    })
+    .catch(function(){
+      return fxTry("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json",
+        function(j){return (j&&j.usd)?{rate:j.usd.jpy,on:j.date||""}:null});
+    })
+    .then(function(o){
+      cfg.fx={rate:o.rate,at:Date.now(),on:o.on||""};
       saveSet();
-      return v;
+      return o.rate;
     });
 }
 function fxLabel(){
@@ -1298,12 +1714,22 @@ function dayLabel(ds){
   return d.getDate()+" "+MONTHS[d.getMonth()].slice(0,3);
 }
 function initials(n){return (n||"?").trim().slice(0,2).toUpperCase()}
-var PALETTE=["#E0574C","#E08B4C","#D8B24A","#6FB58A","#4CA3C9","#6E7FD8","#A96FD8","#D86FA8"];
+/* AUTO is the old eight, and it stays the old eight: it is what unassigned
+   students are hashed against, so nobody's colour moves when the picker grows.
+   PALETTE is what the picker offers, and it can grow as much as it likes. */
+var PALETTE_AUTO=["#E0574C","#E08B4C","#D8B24A","#6FB58A","#4CA3C9","#6E7FD8","#A96FD8","#D86FA8"];
+var PALETTE=[
+  "#E0574C","#F0705F","#C63F35","#E08B4C","#F2A65A","#C96A24",
+  "#D8B24A","#EBCB6B","#B4923A","#8FBF5A","#6FB58A","#4E9E74",
+  "#3FBFA8","#4CA3C9","#5FC8E8","#3A7FA8","#6E7FD8","#8E9BF0",
+  "#4F5FBF","#A96FD8","#C08FEE","#8A4FC0","#D86FA8","#F08DBE",
+  "#B84F84","#C98F6F","#9AA5B1","#6E7B8B"
+];
 function colorFor(s){
   if(s&&s.color)return s.color;
   var n=(s&&s.name)||"", k=0;
   for(var i=0;i<n.length;i++)k=(k*31+n.charCodeAt(i))>>>0;
-  return PALETTE[k%PALETTE.length];       /* stable colour derived from the name */
+  return PALETTE_AUTO[k%PALETTE_AUTO.length];   /* stable colour derived from the name */
 }
 function avatarHTML(s,extra){
   extra=extra||"";
@@ -1375,7 +1801,7 @@ Array.prototype.forEach.call(tabs,function(t){
   t.onclick=function(){
     Array.prototype.forEach.call(tabs,function(x){x.classList.remove("on")});
     t.classList.add("on");
-    ["home","students","stats","data"].forEach(function(v){$("v-"+v).classList.toggle("on",v===t.dataset.v)});
+    ["home","students","site","stats","data"].forEach(function(v){$("v-"+v).classList.toggle("on",v===t.dataset.v)});
     window.scrollTo(0,0);
     renderAll();
   };
@@ -1425,17 +1851,106 @@ $("scrim").onclick=closeSheet;
 var logMode="book";   /* the + opens on Book ahead */
 $("openLog").onclick=function(){logMode="book";logSheet()};
 
-function studentChips(inputId,includeNone){
-  var out='<div class="chips">';
-  db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(s){
-    out+='<button type="button" class="chip-s" data-pick="'+inputId+'" data-sid="'+s.id+'">'+
+/* ---------- who is probably in this slot ----------
+   Alphabetical order is useless at the moment you are logging: at 4pm on a
+   Tuesday there are usually only one or two people it could possibly be. So
+   the rail is ordered by how well each student fits the date and time on the
+   form, and re-orders itself the moment you change either one.
+
+   Three sources, in descending order of how much they mean:
+     a weekly repeat slot   - they literally have this time booked
+     something on the books - it was put in the diary for this hour
+     lessons already taught - the pattern, decayed so this term outweighs last
+
+   Everything is scored 0..1 on how close the clock is, then weighted, and
+   landing on the same weekday roughly doubles it. Alphabetical remains the
+   tie-break, so with no history at all nothing has changed. */
+function tmin(t){
+  var m=/^(\d{1,2}):(\d{2})/.exec(String(t||""));
+  return m?(parseInt(m[1],10)*60+parseInt(m[2],10)):null;
+}
+function dowOf(ds){
+  var d=new Date(String(ds)+"T12:00:00");
+  return isNaN(d.getTime())?null:d.getDay();
+}
+/* 1 at the same minute, nothing at three hours out, and it wraps at midnight
+   so 23:30 and 00:30 count as an hour apart rather than most of a day */
+function nearScore(a,b){
+  if(a===null||b===null)return 0;
+  var d=Math.abs(a-b); d=Math.min(d,1440-d);
+  if(d<=15)return 1;
+  if(d>=180)return 0;
+  return 1-(d-15)/165;
+}
+function rankStudents(ds,t){
+  var want=tmin(t), dw=dowOf(ds), now=Date.now(), sc={};
+  db.students.forEach(function(s){sc[s.id]=0});
+
+  db.slots.forEach(function(sl){
+    if(sc[sl.studentId]===undefined)return;
+    sc[sl.studentId]+=nearScore(tmin(sl.time),want)*(sl.dow===dw?6:2.2);
+  });
+  db.bookings.forEach(function(b){
+    if(sc[b.studentId]===undefined)return;
+    sc[b.studentId]+=nearScore(tmin(b.time),want)*(dowOf(b.date)===dw?3:1.2);
+  });
+  db.lessons.forEach(function(l){
+    if(sc[l.studentId]===undefined)return;
+    var n=nearScore(tmin(l.time),want);
+    if(!n)return;
+    var age=(now-Date.parse(String(l.date)+"T12:00:00"))/86400000;
+    if(!isFinite(age))return;
+    var w=Math.exp(-Math.max(0,age)/120);        /* about a twelve week half-life */
+    sc[l.studentId]+=n*w*(dowOf(l.date)===dw?2.4:1);
+  });
+  /* and a thumb on the scale for whoever you are actually teaching */
+  db.students.forEach(function(s){
+    var st=statusOf(s);
+    if(st==="active")sc[s.id]+=0.35;
+    else if(st==="trial")sc[s.id]+=0.25;
+    else if(st==="stopped")sc[s.id]-=1.5;
+    if(credits(s.id).lessons>0)sc[s.id]+=0.3;
+  });
+
+  var out=db.students.slice().sort(function(a,b){
+    var d=sc[b.id]-sc[a.id];
+    if(Math.abs(d)>0.001)return d>0?1:-1;
+    return a.name.localeCompare(b.name);
+  });
+  out.fit=sc;                                     /* so the caller can tell a real hit from a shrug */
+  return out;
+}
+function studentChips(inputId,includeNone,ds,t){
+  var list=rankStudents(ds,t), fit=list.fit||{};
+  var out='<div class="chips" id="chips-'+inputId+'">';
+  list.forEach(function(s,i){
+    /* only badge the front one, and only when the ordering actually knows
+       something rather than just falling back to the alphabet */
+    var lead=(i===0&&fit[s.id]>1.2)?" lead":"";
+    out+='<button type="button" class="chip-s'+lead+'" data-pick="'+inputId+'" data-sid="'+s.id+'">'+
       avatarHTML(s)+'<b style="color:'+colorFor(s)+'">'+esc(s.name)+'</b></button>';
   });
   if(includeNone){
     out+='<button type="button" class="chip-s" data-pick="'+inputId+'" data-sid="">'+
-      '<div class="av" style="background:#2A3547;color:var(--muted)">–</div><b>Other</b></button>';
+      '<div class="av" style="background:#2A3547;color:var(--muted)">\u2013</div><b>Other</b></button>';
   }
   return out+'</div>';
+}
+/* redraw the rail against a new date or time without losing what is picked */
+function refreshChips(inputId,includeNone,ds,t,onPick,follow){
+  var box=$("chips-"+inputId); if(!box)return;
+  var keep=$(inputId).value;
+  var frag=document.createElement("div");
+  frag.innerHTML=studentChips(inputId,includeNone,ds,t);
+  box.parentNode.replaceChild(frag.firstChild,box);
+  var fresh=$("chips-"+inputId);
+  /* if you have not chosen anybody yourself, ride the new top pick */
+  if(follow){
+    var top=fresh.querySelector('[data-sid]:not([data-sid=""])');
+    $(inputId).value=top?top.dataset.sid:"";
+  } else $(inputId).value=keep;
+  wireChips(inputId,onPick);
+  fresh.scrollLeft=0;
 }
 function wireChips(inputId,onPick){
   var nodes=$("sheetBody").querySelectorAll('[data-pick="'+inputId+'"]');
@@ -1469,8 +1984,11 @@ function logSheet(){
 }
 
 function lessonForm(opts){
-  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
-  return '<div class="field"><label>Student</label>'+studentChips("lStu",true)+
+  var ds=selDay?iso(new Date(view.getFullYear(),view.getMonth(),selDay)):iso(new Date());
+  var t=nowTime();
+  var ranked=rankStudents(ds,t);
+  var first=ranked.length?ranked[0].id:"";
+  return '<div class="field"><label>Student <em id="lWhy" style="font-style:normal;float:right;color:var(--muted);font-size:11px"></em></label>'+studentChips("lStu",true,ds,t)+
   '<input type="hidden" id="lStu" value="'+first+'"></div>'+
   '<div class="two"><div class="field"><label for="lDate">Date</label><input id="lDate" type="date"></div>'+
   '<div class="field"><label for="lTime">Time</label><input id="lTime" type="time"></div></div>'+
@@ -1479,8 +1997,10 @@ function lessonForm(opts){
   '<button class="btn" id="lGo">Log lesson</button>';
 }
 function bookForm(opts){
-  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
-  return '<div class="field"><label>Student</label>'+studentChips("kStu",false)+
+  var ds=selDay?iso(new Date(view.getFullYear(),view.getMonth(),selDay)):iso(new Date());
+  var ranked=rankStudents(ds,"16:00");
+  var first=ranked.length?ranked[0].id:"";
+  return '<div class="field"><label>Student <em id="kWhy" style="font-style:normal;float:right;color:var(--muted);font-size:11px"></em></label>'+studentChips("kStu",false,ds,"16:00")+
   '<input type="hidden" id="kStu" value="'+first+'"></div>'+
   '<div class="two"><div class="field"><label for="kDate">Date</label><input id="kDate" type="date"></div>'+
   '<div class="field"><label for="kTime">Time</label><input id="kTime" type="time" value="16:00"></div></div>'+
@@ -1491,8 +2011,10 @@ function bookForm(opts){
   '<p class="empty" style="margin:13px 0 0">This only puts the lesson on your schedule. No money counts until you tick it off as taught.</p>';
 }
 function bundleForm(opts){
-  var first=db.students.length?db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)})[0].id:"";
-  return '<div class="field"><label>Student</label>'+studentChips("bStu",false)+
+  /* no clock on a payment, so this one just favours who you are teaching */
+  var ranked=rankStudents(null,null);
+  var first=ranked.length?ranked[0].id:"";
+  return '<div class="field"><label>Student</label>'+studentChips("bStu",false,null,null)+
   '<input type="hidden" id="bStu" value="'+first+'"></div>'+
   '<div class="two"><div class="field"><label for="bDate">Date paid</label><input id="bDate" type="date"></div>'+
   '<div class="field"><label for="bQty">Lessons in bundle</label><input id="bQty" type="number" inputmode="numeric" min="1" value="4"></div></div>'+
@@ -1524,7 +2046,22 @@ function wireLog(){
         if(s&&s.rate)$("lAmt").value=boxVal(s.rate);
       }
     };
-    wireChips("lStu",syncHint); syncHint();
+    var lPicked=false;
+    var lWhy=function(){
+      var el=$("lWhy"); if(!el)return;
+      var top=rankStudents($("lDate").value,$("lTime").value);
+      el.textContent=(top.length&&(top.fit||{})[top[0].id]>1.2)?("usually "+ampm($("lTime").value)):"";
+    };
+    var lRerank=function(){
+      refreshChips("lStu",true,$("lDate").value,$("lTime").value,function(){lPicked=true;syncHint()},!lPicked);
+      syncHint();
+      lWhy();
+    };
+    $("lDate").onchange=lRerank;
+    $("lTime").onchange=lRerank;
+    $("lTime").oninput=lRerank;
+    wireChips("lStu",function(){lPicked=true;syncHint()});
+    lRerank();
     $("lGo").onclick=function(){
       var sid=$("lStu").value, d=$("lDate").value||today;
       var qty=Math.max(1,Math.min(12,parseInt($("lQty").value)||1));
@@ -1550,8 +2087,21 @@ function wireLog(){
       $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab.</p>';
       return;
     }
-    wireChips("kStu");
     $("kDate").value = selDay ? iso(new Date(view.getFullYear(),view.getMonth(),selDay)) : today;
+    var kPicked=false;
+    var kRerank=function(){
+      refreshChips("kStu",false,$("kDate").value,$("kTime").value,function(){kPicked=true},!kPicked);
+      var el=$("kWhy");
+      if(el){
+        var top=rankStudents($("kDate").value,$("kTime").value);
+        el.textContent=(top.length&&(top.fit||{})[top[0].id]>1.2)?("usually "+ampm($("kTime").value)):"";
+      }
+    };
+    $("kDate").onchange=kRerank;
+    $("kTime").onchange=kRerank;
+    $("kTime").oninput=kRerank;
+    wireChips("kStu",function(){kPicked=true});
+    kRerank();
     $("kGo").onclick=function(){
       var sid=$("kStu").value, d=$("kDate").value||today, tm=$("kTime").value||"16:00";
       if(!sid){toast("Pick a student");return}
@@ -1719,9 +2269,11 @@ function studentSheet(id){
       '</div>'+
     '</div>'+
     '<input id="pfp" type="file" accept="image/*" style="display:none">'+
-    (s.photo?'':'<div class="swatches">'+PALETTE.map(function(c){
-      return '<button class="sw'+(colorFor(s)===c?" on":"")+'" data-col="'+c+'" style="background:'+c+'"></button>';
-    }).join("")+'</div>')+
+    '<p class="eyebrow" style="margin:2px 0 8px">Their colour</p>'+
+    '<div class="swatches">'+PALETTE.map(function(c){
+      return '<button class="sw'+(colorFor(s)===c?" on":"")+'" data-col="'+c+'" style="background:'+c+'" aria-label="'+c+'"></button>';
+    }).join("")+'</div>'+
+    '<p class="empty" style="font-size:12px;margin:-2px 0 14px">Used for their name everywhere, and for the ring on the stats page.</p>'+
     '<div class="stats" style="margin-bottom:16px">'+
       '<div class="stat"><b>'+money(total)+'</b><small>earned all time</small></div>'+
       '<div class="stat"><b style="color:var(--sky)">'+c.lessons+'</b><small>lessons prepaid</small></div>'+
@@ -1742,6 +2294,14 @@ function studentSheet(id){
         return '<option value="'+esc(z)+'"'+(s.tz===z?" selected":"")+'>'+esc(z.replace(/_/g," "))+'</option>';
       }).join("")+'</select></div>'+
     '<button class="btn alt" id="mkHw" style="margin-top:6px">Make this week\'s homework</button>'+
+    '<div class="two" style="margin-top:9px">'+
+      '<button class="btn line" id="aiDriftBtn" style="margin:0">What keeps tripping them</button>'+
+      '<button class="btn line" id="aiNudgeBtn" style="margin:0">Draft a message</button>'+
+    '</div>'+
+    '<div id="aiOut"></div>'+
+    '<p class="eyebrow" style="margin-top:18px">After the lesson</p>'+
+    '<div class="jotadd"><input id="dumpIn" type="text" autocomplete="off" placeholder="Just type what happened, one line"><button type="button" id="dumpGo">Sort it</button></div>'+
+    '<p class="empty" style="font-size:12px;margin:6px 0 0">It splits what you typed into next lesson, goals and notes, and shows you before it saves anything.</p>'+
     '<div id="hwShelf"></div>'+
     '<div id="burnBox"></div>'+
     '<div id="tlBox"></div>'+
@@ -1854,6 +2414,75 @@ function studentSheet(id){
     });
   }
   $("mkHw").onclick=function(){hwSheet(id)};
+  /* the assistant, on this one student */
+  var aiBox=function(html){var b=$("aiOut"); if(b)b.innerHTML=html};
+  var aiBusy=function(btn,on,label){
+    btn.disabled=on;
+    btn.textContent=on?"Thinking\u2026":label;
+  };
+  if($("aiDriftBtn"))$("aiDriftBtn").onclick=function(){
+    var b=this; aiBusy(b,true,""); aiBox('<p class="empty" style="margin:11px 0 0">Reading the notes\u2026</p>');
+    aiDrift(s,function(txt){
+      aiBusy(b,false,"What keeps tripping them");
+      aiBox('<p class="empty" style="margin:11px 0 0;color:var(--text);white-space:pre-wrap;line-height:1.55">'+esc(txt)+'</p>');
+    },function(e){
+      aiBusy(b,false,"What keeps tripping them");
+      aiBox('<p class="empty" style="margin:11px 0 0;color:var(--shu)">'+esc(e)+'</p>');
+    });
+  };
+  if($("aiNudgeBtn"))$("aiNudgeBtn").onclick=function(){
+    var b=this;
+    var c=credits(s.id);
+    var kind=(c.lessons>0&&c.lessons<=2)?"low":"quiet";
+    aiBusy(b,true,""); aiBox('<p class="empty" style="margin:11px 0 0">Drafting\u2026</p>');
+    aiNudge(s,kind,function(txt){
+      aiBusy(b,false,"Draft a message");
+      aiBox('<p class="empty" style="margin:11px 0 6px;color:var(--text);white-space:pre-wrap;line-height:1.55">'+esc(txt)+'</p>'+
+            '<button class="btn line" id="aiCopy">Copy it</button>');
+      if($("aiCopy"))$("aiCopy").onclick=function(){
+        try{
+          if(navigator.clipboard&&navigator.clipboard.writeText){
+            navigator.clipboard.writeText(txt).then(function(){toast("Copied")},function(){toast("Could not copy")});
+          } else toast("Copying is not available here");
+        }catch(e){toast("Could not copy")}
+      };
+    },function(e){
+      aiBusy(b,false,"Draft a message");
+      aiBox('<p class="empty" style="margin:11px 0 0;color:var(--shu)">'+esc(e)+'</p>');
+    });
+  };
+  /* one line in, three lists out, shown before anything is written */
+  if($("dumpGo"))$("dumpGo").onclick=function(){
+    var txt=($("dumpIn").value||"").trim();
+    if(!txt){toast("Type what happened first");return}
+    var b=this; b.disabled=true; b.textContent="\u2026";
+    aiSortNote(s,txt,function(o){
+      b.disabled=false; b.textContent="Sort it";
+      var rows=["plan","goals","notes"].map(function(k){
+        var arr=Array.isArray(o[k])?o[k]:[];
+        if(!arr.length)return "";
+        return '<p class="eyebrow" style="margin:14px 0 6px">'+
+          (k==="plan"?"Next lesson":k==="goals"?"Goals":"Notes")+'</p>'+
+          arr.map(function(t){return '<div class="row"><div class="main"><span>'+esc(t)+'</span></div></div>'}).join("");
+      }).join("");
+      if(!rows){toast("Nothing came out of that");return}
+      aiBox(rows+'<button class="btn" id="dumpSave" style="margin-top:12px">Save these</button>'+
+                '<button class="btn line" id="dumpDrop" style="margin-top:8px">Throw it away</button>');
+      $("dumpSave").onclick=function(){
+        var n=0;
+        ["plan","goals","notes"].forEach(function(k){
+          (Array.isArray(o[k])?o[k]:[]).forEach(function(t){if(jotAdd(s,k,t))n++});
+        });
+        saveDB(); $("dumpIn").value=""; aiBox("");
+        studentSheet(s.id);
+        toast(n+" saved to the jotter");
+      };
+      $("dumpDrop").onclick=function(){aiBox("")};
+    },function(e){
+      b.disabled=false; b.textContent="Sort it";
+      aiBox('<p class="empty" style="margin:11px 0 0;color:var(--shu)">'+esc(e)+'</p>');
+    });
+  };
 
   /* ---- prepay, and how fast it is going ---- */
   function paintBurn(){
@@ -2084,6 +2713,8 @@ function delLesson(l){
 
 /* ================= render ================= */
 var shown=0;
+/* Tapping the big number swaps this month for the whole ledger and back. */
+var totalAll=false;
 var COUNT_MS=1100;                    /* how long the total takes to climb */
 function setCountPace(trackMs){
   /* a share of the clip, so a long song counts slower — but never tedious */
@@ -2122,10 +2753,12 @@ function setTotal(v){
 
 function renderHome(){
   var y=view.getFullYear(), m=view.getMonth();
-  $("mlabel").textContent=MONTHS[m]+" "+y;
+  $("mlabel").textContent=totalAll?"All time":(MONTHS[m]+" "+y);
   var mine=monthLessons(view);
   mine.forEach(function(l){var a=num(l.amount); if(a!==l.amount){l.amount=a; saveDB()}});
-  var sumv=num(sum(mine.map(function(l){return l.amount})));
+  var allL=totalAll?db.lessons.slice():null;
+  if(allL)allL.forEach(function(l){var a=num(l.amount); if(a!==l.amount){l.amount=a; saveDB()}});
+  var sumv=num(sum((allL||mine).map(function(l){return l.amount})));
   setTotal(sumv);
 
   var prevD=new Date(y,m-1,1), prevSum=earnedIn(prevD);
@@ -2142,6 +2775,23 @@ function renderHome(){
   if(prevSum>0){
     var pct=Math.round((sumv-prevSum)/prevSum*100);
     hl+='<span class="chip '+(pct>=0?"up":"down")+'">'+(pct>=0?"+":"")+pct+"% vs "+MONTHS[prevD.getMonth()].slice(0,3)+'</span>';
+  }
+  var fc=forecast();
+  if(fc&&!allL){
+    hl+='<span class="chip up">on pace for <b>'+money(fc.pace)+'</b></span>';
+    if(fc.booked>fc.earned)hl+='<span class="chip">booked to <b>'+money(fc.booked)+'</b></span>';
+  }
+  var ob=outstanding();
+  if(ob.n>0&&!allL)hl+='<span class="chip">owed <b>'+ob.n+'</b> lessons</span>';
+  if(allL){
+    var ad={}; allL.forEach(function(l){ad[l.date]=1});
+    var dates=allL.map(function(l){return l.date}).sort();
+    var mons={}; allL.forEach(function(l){mons[String(l.date).slice(0,7)]=1});
+    hl='<span class="chip"><b>'+allL.length+'</b> lessons</span>'+
+       '<span class="chip"><b>'+Object.keys(ad).length+'</b> days</span>'+
+       '<span class="chip"><b>'+Object.keys(mons).length+'</b> months</span>'+
+       (dates.length?'<span class="chip">since '+esc(dayLabel(dates[0]))+' '+esc(String(dates[0]).slice(0,4))+'</span>':"")+
+       '<span class="chip up">tap the number to go back</span>';
   }
   $("heroline").innerHTML=hl;
 
@@ -2769,7 +3419,10 @@ function renderUpcoming(){
   });
 }
 
-var stuFilter="all";
+var stuFilter="active";
+/* Opens on whoever you are actually teaching. If that would be an empty page
+   the first time round, it quietly falls back to everyone. */
+var stuFilterTouched=false;
 /* sun when it is a decent hour where they are, moon when it is not */
 function clockHTML(s,ck){
   ck=ck||clockIn(s.tz); if(!ck)return "";
@@ -2805,6 +3458,9 @@ function renderStudents(){
   db.students.forEach(function(s){counts[statusOf(s)]++});
   var strip=$("stuFilters");
   if(db.students.length<2){ strip.innerHTML=""; stuFilter="all"; }
+  if(!stuFilterTouched&&stuFilter!=="all"&&!db.students.some(function(s){return statusOf(s)===stuFilter})){
+    stuFilter="all";
+  }
   else{
     strip.innerHTML=["all"].concat(STATUS).filter(function(k){
       return k==="all"||counts[k]>0;
@@ -2814,7 +3470,7 @@ function renderStudents(){
         lab+'<i>'+counts[k]+'</i></button>';
     }).join("");
     Array.prototype.forEach.call(strip.querySelectorAll("[data-f]"),function(b){
-      b.onclick=function(){stuFilter=b.dataset.f;renderStudents()};
+      b.onclick=function(){stuFilter=b.dataset.f;stuFilterTouched=true;renderStudents()};
     });
   }
 
@@ -2838,6 +3494,7 @@ function renderStudents(){
       /* status, their clock, where they are. Nothing else — the rest is one
          tap away, and this line has to stay readable at a glance. */
       var bits=['<span class="pill '+st+'">'+STATUS_LABEL[st]+'</span>'];
+      if(c.lessons>0)bits.push('<span class="pre'+(c.lessons<=1?" low":"")+'">Prepaid: '+c.lessons+' left</span>');
       var ck=clockIn(s.tz);
       var nsh=sheets(s).length;
       if(nsh)bits.push('<span class="sheets">'+nsh+' sheet'+(nsh===1?"":"s")+'</span>');
@@ -3038,6 +3695,216 @@ function burn(sid){
   });
 }
 
+
+/* ================= the ledger, read back to you =================
+   Everything below reads db and answers a question about it. None of it
+   writes, except the two award functions at the bottom, which only ever
+   add a mark once. */
+
+/* ---- money ---- */
+/* Prepay is money you have but have not earned: it is owed in lessons. */
+function outstanding(){
+  return db.bundles.reduce(function(a,b){
+    var r=b.lessons-b.used;
+    return r>0?{n:a.n+r,v:a.v+r*(b.amount/b.lessons)}:a;
+  },{n:0,v:0});
+}
+/* Where this month lands if the rest of it looks like the part you have
+   already taught. Only meaningful once a few days are in. */
+function forecast(){
+  var now=new Date();
+  if(ym(now)!==ym(view))return null;
+  var y=now.getFullYear(), m=now.getMonth();
+  var dim=new Date(y,m+1,0).getDate(), day=now.getDate();
+  var earned=sum(monthLessons(view).map(function(l){return l.amount}));
+  if(day<4||earned<=0)return null;
+  var booked=db.bookings.filter(function(b){
+    return !b.doneId&&String(b.date).slice(0,7)===ym(now)&&b.date>=iso(now);
+  }).reduce(function(a,b){
+    var st=student(b.studentId);
+    return a+(st&&st.rate?num(st.rate):0);
+  },0);
+  var pace=earned/day*dim;
+  return {pace:pace, booked:earned+booked, earned:earned, left:dim-day};
+}
+
+/* ---- personal bests ---- */
+function dayTotals(){
+  var d={};
+  db.lessons.forEach(function(l){d[l.date]=(d[l.date]||0)+num(l.amount)});
+  return d;
+}
+function dayCounts(){
+  var d={};
+  db.lessons.forEach(function(l){d[l.date]=(d[l.date]||0)+1});
+  return d;
+}
+function bestOf(map){
+  var k=null,v=0;
+  Object.keys(map).forEach(function(x){if(map[x]>v){v=map[x];k=x}});
+  return k?{key:k,val:v}:null;
+}
+function weekKey(ds){
+  var d=new Date(String(ds)+"T12:00:00");
+  d.setDate(d.getDate()-d.getDay());
+  return iso(d);
+}
+function bests(){
+  var wk={}, mo={};
+  db.lessons.forEach(function(l){
+    var a=num(l.amount);
+    wk[weekKey(l.date)]=(wk[weekKey(l.date)]||0)+a;
+    mo[String(l.date).slice(0,7)]=(mo[String(l.date).slice(0,7)]||0)+a;
+  });
+  return {
+    week:  bestOf(wk),
+    month: bestOf(mo),
+    day:   bestOf(dayTotals()),
+    busiest: bestOf(dayCounts())
+  };
+}
+
+/* ---- seasons ----
+   Twelve weeks, then it resets and you start again. A streak you can never
+   drop is not much of a game; a season you can have a bad one of, is. */
+var SEASON_EPOCH="2025-01-06";                 /* a Monday, and far enough back */
+var SEASON_DAYS=84;
+function seasonIndex(ds){
+  var a=Date.parse(SEASON_EPOCH+"T12:00:00"), b=Date.parse(String(ds)+"T12:00:00");
+  if(!isFinite(b))return 0;
+  return Math.max(0,Math.floor((b-a)/86400000/SEASON_DAYS));
+}
+function seasonRange(i){
+  var a=new Date(SEASON_EPOCH+"T12:00:00");
+  a.setDate(a.getDate()+i*SEASON_DAYS);
+  var b=new Date(a); b.setDate(b.getDate()+SEASON_DAYS-1);
+  return {from:iso(a),to:iso(b)};
+}
+var RANKS=[
+  {n:"\u7121\u7d1a",  en:"Unranked", at:0},
+  {n:"\u4e94\u7d1a",  en:"5th kyu",  at:5},
+  {n:"\u56db\u7d1a",  en:"4th kyu",  at:15},
+  {n:"\u4e09\u7d1a",  en:"3rd kyu",  at:30},
+  {n:"\u4e8c\u7d1a",  en:"2nd kyu",  at:50},
+  {n:"\u4e00\u7d1a",  en:"1st kyu",  at:75},
+  {n:"\u521d\u6bb5",  en:"1st dan",  at:110},
+  {n:"\u4e8c\u6bb5",  en:"2nd dan",  at:150},
+  {n:"\u4e09\u6bb5",  en:"3rd dan",  at:200}
+];
+function rankFor(n){
+  var r=RANKS[0];
+  RANKS.forEach(function(x){if(n>=x.at)r=x});
+  return r;
+}
+function nextRank(n){
+  for(var i=0;i<RANKS.length;i++)if(n<RANKS[i].at)return RANKS[i];
+  return null;
+}
+function seasonStats(i){
+  var r=seasonRange(i);
+  var mine=db.lessons.filter(function(l){return l.date>=r.from&&l.date<=r.to});
+  var days={}; mine.forEach(function(l){days[l.date]=1});
+  var earned=sum(mine.map(function(l){return l.amount}));
+  var today=iso(new Date());
+  var elapsed=Math.min(SEASON_DAYS,Math.max(0,
+    Math.floor((Date.parse(today+"T12:00:00")-Date.parse(r.from+"T12:00:00"))/86400000)+1));
+  return {
+    i:i, from:r.from, to:r.to, lessons:mine.length, earned:earned,
+    days:Object.keys(days).length, elapsed:elapsed,
+    left:Math.max(0,SEASON_DAYS-elapsed),
+    rank:rankFor(mine.length), next:nextRank(mine.length)
+  };
+}
+
+/* ---- per student milestones ----
+   Small, and they only ever fire once. s.marks holds what has been said. */
+var MILES=[
+  {k:"l10",  n:10,  t:"10th lesson"},
+  {k:"l25",  n:25,  t:"25 lessons"},
+  {k:"l50",  n:50,  t:"50 lessons"},
+  {k:"l100", n:100, t:"100 lessons"},
+  {k:"l200", n:200, t:"200 lessons"}
+];
+function taughtCount(id){
+  return db.lessons.filter(function(l){return l.studentId===id}).length;
+}
+function firstLesson(id){
+  var d=db.lessons.filter(function(l){return l.studentId===id})
+    .map(function(l){return l.date}).sort();
+  return d[0]||null;
+}
+/* returns the milestones this student has crossed but not yet been told about */
+function newMilestones(st){
+  if(!Array.isArray(st.marks))st.marks=[];
+  var n=taughtCount(st.id), out=[];
+  MILES.forEach(function(m){
+    if(n>=m.n&&st.marks.indexOf(m.k)<0)out.push(m);
+  });
+  var f=firstLesson(st.id);
+  if(f&&st.marks.indexOf("yr1")<0){
+    var a=new Date(f+"T12:00:00"); a.setFullYear(a.getFullYear()+1);
+    if(iso(new Date())>=iso(a))out.push({k:"yr1",t:"a year together"});
+  }
+  return out;
+}
+
+/* ---- achievements ----
+   db.badges is {id: dateAwarded}. Each one is a plain test over the ledger,
+   so nothing has to be tracked as it happens. */
+function ACHIEVEMENTS(){
+  var all=db.lessons, tot=sum(all.map(function(l){return l.amount}));
+  var b=bests(), dc=dayCounts();
+  var mons={}; all.forEach(function(l){mons[String(l.date).slice(0,7)]=1});
+  var earlies=all.filter(function(l){return l.time&&l.time<"08:00"}).length;
+  var lates=all.filter(function(l){return l.time&&l.time>="21:00"}).length;
+  var zones={};
+  db.students.forEach(function(s){if(s.tz)zones[String(s.tz).split("/")[0]]=1});
+  var seas=seasonStats(seasonIndex(iso(new Date())));
+  return [
+    {id:"first",  n:"First one",      d:"Log a lesson.",                     have:all.length>=1,        of:1,   at:Math.min(all.length,1)},
+    {id:"ten",    n:"Ten deep",       d:"Ten lessons taught.",               have:all.length>=10,       of:10,  at:all.length},
+    {id:"fifty",  n:"Fifty",          d:"Fifty lessons taught.",             have:all.length>=50,       of:50,  at:all.length},
+    {id:"century",n:"Century",        d:"A hundred lessons taught.",         have:all.length>=100,      of:100, at:all.length},
+    {id:"fivehun",n:"Five hundred",   d:"Five hundred lessons taught.",      have:all.length>=500,      of:500, at:all.length},
+    {id:"streak7",n:"A full week",    d:"Teach seven days running.",         have:streak()>=7,          of:7,   at:streak()},
+    {id:"streak30",n:"A full month",  d:"Teach thirty days running.",        have:streak()>=30,         of:30,  at:streak()},
+    {id:"five1day",n:"Long day",      d:"Five lessons in one day.",          have:!!(b.busiest&&b.busiest.val>=5), of:5, at:b.busiest?b.busiest.val:0},
+    {id:"eight1day",n:"Marathon",     d:"Eight lessons in one day.",         have:!!(b.busiest&&b.busiest.val>=8), of:8, at:b.busiest?b.busiest.val:0},
+    {id:"roster5",n:"A roster",       d:"Five students on the books.",       have:db.students.length>=5, of:5,  at:db.students.length},
+    {id:"roster12",n:"A full book",   d:"Twelve students on the books.",     have:db.students.length>=12,of:12, at:db.students.length},
+    {id:"world",  n:"Around the world",d:"Students on four continents.",     have:Object.keys(zones).length>=4, of:4, at:Object.keys(zones).length},
+    {id:"early",  n:"Before dawn",    d:"Ten lessons before 8am.",           have:earlies>=10,          of:10,  at:earlies},
+    {id:"late",   n:"After hours",    d:"Ten lessons at 9pm or later.",      have:lates>=10,            of:10,  at:lates},
+    {id:"year",   n:"A whole year",   d:"Twelve months with a lesson in.",   have:Object.keys(mons).length>=12, of:12, at:Object.keys(mons).length},
+    {id:"kyu",    n:"Ranked",         d:"Reach 1st kyu in a season.",        have:seas.lessons>=75,     of:75,  at:seas.lessons},
+    {id:"dan",    n:"Dan grade",      d:"Reach 1st dan in a season.",        have:seas.lessons>=110,    of:110, at:seas.lessons},
+    {id:"sheets", n:"Prolific",       d:"Twenty homework sheets made.",
+     have:db.students.reduce(function(a,x){return a+sheets(x).length},0)>=20, of:20,
+     at:db.students.reduce(function(a,x){return a+sheets(x).length},0)}
+  ];
+}
+function badgeHave(id){return !!(db.badges&&db.badges[id])}
+/* awards anything newly true, and hands back what was new so it can be shown */
+function checkBadges(){
+  if(!db.badges)db.badges={};
+  var fresh=[];
+  ACHIEVEMENTS().forEach(function(a){
+    if(a.have&&!db.badges[a.id]){db.badges[a.id]=iso(new Date());fresh.push(a)}
+  });
+  if(fresh.length)saveDB();
+  return fresh;
+}
+
+/* a best is only interesting if you can say when it was */
+function bstWhen(k){
+  k=String(k||"");
+  if(/^\d{4}-\d{2}$/.test(k)){
+    var p=k.split("-");
+    return MONTHS[parseInt(p[1],10)-1]+" "+p[0];
+  }
+  if(/^\d{4}-\d{2}-\d{2}$/.test(k))return dayLabel(k)+" "+k.slice(0,4);
+  return k;
+}
 function renderStats(){
   var months=[],labels=[],curIdx=5;
   for(var i=5;i>=0;i--){
@@ -3049,6 +3916,50 @@ function renderStats(){
   var prevTot=earnedIn(new Date(view.getFullYear(),view.getMonth()-1,1));
   var curTot=earnedIn(view);
   $("paceNote").textContent=prevTot?(curTot>=prevTot?"ahead of last month":"behind last month"):"";
+
+  /* ---- season ---- */
+  var se=seasonStats(seasonIndex(iso(new Date())));
+  $("seasonNote").textContent="week "+Math.min(12,Math.ceil(se.elapsed/7))+" of 12";
+  $("rankJP").textContent=se.rank.n;
+  $("rankEN").textContent=se.rank.en;
+  $("rankNow").textContent=se.lessons+" lesson"+(se.lessons===1?"":"s");
+  $("rankNext").textContent=se.next?(se.next.at-se.lessons)+" to "+se.next.en:"top rank";
+  $("rankBar").style.width=(se.next?Math.min(100,se.lessons/se.next.at*100):100)+"%";
+  $("seasonFoot").textContent=se.left>0
+    ? se.left+" day"+(se.left===1?"":"s")+" left, "+money(se.earned)+" so far. It resets after that, rank and all."
+    : "This season is done. A fresh one starts tomorrow.";
+
+  /* ---- what you owe in lessons ---- */
+  var ob=outstanding();
+  $("liabN").textContent=ob.n;
+  $("liabV").textContent=money(ob.v);
+  $("liabFoot").textContent=ob.n
+    ? "Already paid to you, still owed as teaching. It moves into earnings a lesson at a time."
+    : "Nothing outstanding. Everything paid has been taught.";
+
+  /* ---- personal bests ---- */
+  var bst=bests();
+  var bcell=function(b,label,fmt){
+    return '<div class="stat"><b>'+(b?fmt(b.val):"\u2013")+'</b><small>'+label+
+      (b?'<br><span style="opacity:.7">'+esc(bstWhen(b.key))+'</span>':"")+'</small></div>';
+  };
+  $("bestGrid").innerHTML=
+    bcell(bst.month,"best month",money)+
+    bcell(bst.week,"best week",money)+
+    bcell(bst.day,"best day",money)+
+    bcell(bst.busiest,"most in a day",function(v){return v+" lessons"});
+
+  /* ---- achievements ---- */
+  var list=ACHIEVEMENTS();
+  var got=list.filter(function(a){return a.have}).length;
+  $("achNote").textContent=got+" of "+list.length;
+  $("achList").innerHTML=list.map(function(a){
+    return '<div class="ach'+(a.have?" got":"")+'">'+
+      '<span class="seal">'+(a.have?"\u25cf":"\u25cb")+'</span>'+
+      '<span class="body"><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></span>'+
+      '<span class="prog">'+(a.have?"done":Math.min(a.at,a.of)+"/"+a.of)+'</span>'+
+      '</div>';
+  }).join("");
 
   var all=sum(db.lessons.map(function(l){return l.amount}));
   var tgt=Number(cfg.goalTarget)||0;
@@ -3115,11 +4026,43 @@ function renderStats(){
   $("tBest").textContent=money(best);
 }
 
-function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();gPullToday()}
+/* ---- the small ceremony ----
+   Anything newly true gets said once, quietly, one at a time so two things
+   crossing on the same day do not talk over each other. Nothing here blocks
+   anything: if it fails it simply does not happen. */
+var CEREMONY_ON=true;
+function ceremony(){
+  if(!CEREMONY_ON)return;
+  var queue=[];
+  try{
+    checkBadges().forEach(function(a){
+      queue.push({t:"\u2726 "+a.n,s:a.d});
+    });
+    db.students.forEach(function(st){
+      newMilestones(st).forEach(function(m){
+        st.marks.push(m.k);
+        queue.push({t:st.name+" \u00b7 "+m.t,s:"", col:colorFor(st)});
+      });
+    });
+  }catch(e){return}
+  if(!queue.length)return;
+  saveDB();
+  queue.forEach(function(q,i){
+    setTimeout(function(){
+      try{
+        toast(q.t+(q.s?" \u2014 "+q.s:""));
+        burst(22);
+      }catch(e){}
+    },260+i*1500);
+  });
+}
+function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();gPullToday();ceremony()}
 
 /* ================= actions ================= */
-$("prev").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
-$("next").onclick=function(){view=new Date(view.getFullYear(),view.getMonth()+1,1);selDay=null;shown=0;renderAll()};
+$("prev").onclick=function(){totalAll=false;view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
+$("next").onclick=function(){totalAll=false;view=new Date(view.getFullYear(),view.getMonth()+1,1);selDay=null;shown=0;renderAll()};
+/* the whole ledger, and back again */
+$("total").onclick=function(){totalAll=!totalAll;shown=0;renderAll()};
 $("curBtn").onclick=function(){
   cfg.cur=cfg.cur==="$"?"\u00a5":"$"; saveSet();
   /* the total is the same money either way, so it should just re-letter
@@ -3127,7 +4070,7 @@ $("curBtn").onclick=function(){
   var go=function(){renderAll();$("sTrial").value=boxVal(trialRate());$("gTgt").value=boxVal(cfg.goalTarget);paintFx()};
   if(inYen()&&fxStale()){
     $("curBtn").textContent="…";
-    fxFetch().then(go).catch(function(){go();warn("Could not reach the exchange rate. Using "+(cfg.fx?"the last one it saw":FX_FALLBACK)+".")});
+    fxFetch().then(go).catch(function(){go();warn("Could not reach the exchange rate. Using "+(cfg.fx?"the last one it saw":FX_FALLBACK)+"."+(FX_LAST_ERR?" ("+FX_LAST_ERR+")":""))});
   } else go();
 };
 
@@ -3242,6 +4185,61 @@ $("export").onclick=function(){
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
   download("mainichi-tracker-"+iso(new Date())+".csv",csv,"text/csv");
   toast("Exported");
+};
+/* One tax year at a time, with the prepay split out, because money taken in
+   a bundle and money earned teaching it are not the same year's income. */
+$("taxGo").onclick=function(){
+  var yr=parseInt($("taxYear").value,10);
+  if(!yr){toast("Pick a year");return}
+  var from=cfg.taxStart||"01-01";
+  var a=yr+"-"+from, b=(from==="01-01")?(yr+"-12-31"):(yr+1)+"-"+prevDay(from);
+  var mine=db.lessons.filter(function(l){return l.date>=a&&l.date<=b});
+  var buns=db.bundles.filter(function(x){return x.date>=a&&x.date<=b});
+  if(!mine.length&&!buns.length){toast("Nothing in "+yr);return}
+  var rows=[["tax year",yr+" ("+a+" to "+b+")"],[],
+            ["date","time","student","amount","earned as","note"]];
+  mine.slice().sort(function(x,y){return x.date<y.date?-1:1}).forEach(function(l){
+    rows.push([l.date,l.time||"",sName(l.studentId),num(l.amount).toFixed(2),
+      l.bundleId?"drawn from prepay":"paid on the day",l.note||""]);
+  });
+  rows.push([],["prepay taken in this year (cash in, not all earned yet)"],
+            ["date","student","lessons","amount"]);
+  buns.slice().sort(function(x,y){return x.date<y.date?-1:1}).forEach(function(x){
+    rows.push([x.date,sName(x.studentId),x.lessons,num(x.amount).toFixed(2)]);
+  });
+  var taught=sum(mine.map(function(l){return l.amount}));
+  var taken=sum(buns.map(function(x){return x.amount}));
+  rows.push([],["lessons taught",mine.length],
+            ["earned by teaching",taught.toFixed(2)],
+            ["prepay taken in",taken.toFixed(2)],
+            ["all figures in","USD"]);
+  var csv=rows.map(function(r){
+    return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",");
+  }).join("\n");
+  download("mainichijp-tax-"+yr+".csv",csv,"text/csv");
+  toast(yr+": "+mine.length+" lessons, "+money(taught));
+};
+function prevDay(md){
+  var d=new Date("2001-"+md+"T12:00:00");
+  d.setDate(d.getDate()-1);
+  return iso(d).slice(5);
+}
+$("taxStart").onchange=function(){cfg.taxStart=this.value;saveSet()};
+if($("voiceNote")){
+  $("voiceNote").value=cfg.voiceNote||"";
+  $("voiceNote").oninput=function(){cfg.voiceNote=this.value;saveSet()};
+}
+if($("digestGo"))$("digestGo").onclick=function(){
+  var b=this, out=$("digestOut");
+  b.disabled=true; b.textContent="Reading\u2026";
+  out.innerHTML='<p class="empty" style="margin:13px 0 0">Going through the week\u2026</p>';
+  aiDigest(function(txt){
+    b.disabled=false; b.textContent="Look over the week";
+    out.innerHTML='<p class="empty" style="margin:15px 0 0;color:var(--text);white-space:pre-wrap;line-height:1.6">'+esc(txt)+'</p>';
+  },function(e){
+    b.disabled=false; b.textContent="Look over the week";
+    out.innerHTML='<p class="empty" style="margin:13px 0 0;color:var(--shu)">'+esc(e)+'</p>';
+  });
 };
 $("exportJson").onclick=function(){
   download("mainichi-tracker-backup-"+iso(new Date())+".json",JSON.stringify({db:db,cfg:cfg}),"application/json");
@@ -3627,6 +4625,143 @@ function hwRedoSection(s,cur,i,what,done,fail){
   }).catch(function(e){fail(String(e.message||e))});
 }
 
+
+/* ================= the assistant =================
+   One way in and out for everything that talks to Claude, so the key, the
+   model and the error handling live in exactly one place. Everything below
+   is optional: with no key on the Data tab none of it appears. */
+function aiReady(){return !!(cfg.aiKey||"").trim()}
+function aiAsk(prompt,maxTok,done,fail){
+  var key=(cfg.aiKey||"").trim();
+  if(!key){fail("Add your API key on the Data tab first");return}
+  fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":key,
+      "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:cfg.aiModel||HW_MODEL,max_tokens:maxTok||1400,
+      messages:[{role:"user",content:prompt}]})
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    return r.json();
+  }).then(function(j){
+    var txt=(j.content||[]).filter(function(b){return b.type==="text"})
+      .map(function(b){return b.text}).join("").trim();
+    if(!txt)throw new Error("Nothing came back");
+    done(txt);
+  }).catch(function(e){fail(String(e.message||e))});
+}
+/* the same, but insisting on JSON */
+function aiAskJSON(prompt,maxTok,done,fail){
+  aiAsk(prompt+"\n\nReply with JSON ONLY. No markdown, no backticks, no preamble.",
+    maxTok,function(txt){
+      var t=txt.replace(/```json/g,"").replace(/```/g,"").trim();
+      var a=t.search(/[\[{]/), z=Math.max(t.lastIndexOf("}"),t.lastIndexOf("]"));
+      if(a<0||z<a){fail("No JSON came back");return}
+      try{done(JSON.parse(t.slice(a,z+1)))}catch(e){fail("The reply was not valid JSON")}
+    },fail);
+}
+
+/* ---- what the assistant is allowed to see ----
+   A compact picture of the teaching, with no money in it unless the tool
+   actually needs money. Names are needed; nothing else personal is sent. */
+function aiRoster(){
+  var today=iso(new Date());
+  return db.students.filter(function(s){return teaching(s)}).map(function(s){
+    var mine=db.lessons.filter(function(l){return l.studentId===s.id});
+    var last=mine.map(function(l){return l.date}).sort().pop()||null;
+    var gap=last?Math.round((Date.parse(today+"T12:00:00")-Date.parse(last+"T12:00:00"))/86400000):null;
+    return {
+      name:s.name, status:statusOf(s), lessons:mine.length,
+      lastLesson:last, daysSince:gap, prepaidLeft:credits(s.id).lessons,
+      plan:jots(s,"plan").filter(function(e){return !e.done}).map(function(e){return e.t}).slice(0,6),
+      goals:jots(s,"goals").filter(function(e){return !e.done}).map(function(e){return e.t}).slice(0,6),
+      notes:jots(s,"notes").slice(0,10).map(function(e){return e.date+": "+e.t})
+    };
+  });
+}
+
+/* ---- 1. the weekly digest ---- */
+function aiDigest(done,fail){
+  var r=aiRoster();
+  if(!r.length){fail("No active students to look at");return}
+  var mine=db.lessons.filter(function(l){return l.date>=weekStart()});
+  aiAsk([
+    "You are helping a one-to-one Japanese tutor look over their own teaching.",
+    "Here is the roster, with each student's open plan items, goals and dated notes:",
+    JSON.stringify(r),
+    "",
+    "This week: "+mine.length+" lessons taught across "+
+      Object.keys(mine.reduce(function(a,l){a[l.date]=1;return a},{})).length+" days.",
+    "",
+    "Write a short brief for the tutor. Plain prose, no headings, no bullet symbols,",
+    "no markdown. Three short paragraphs at most:",
+    "1. Who is drifting: long gaps, stalled plans, notes that repeat a problem.",
+    "2. Who is ready to be pushed: goals nearly met, fast progress.",
+    "3. One concrete thing to do this week.",
+    "Name people directly. Be specific about what the notes actually say.",
+    "Do not invent anything that is not in the data. If something is unclear, say so.",
+    "Warm and plain, the way a colleague would say it. Under 220 words."
+  ].join("\n"),1200,done,fail);
+}
+
+/* ---- 2. one line after class, sorted into the jotter ---- */
+function aiSortNote(st,dump,done,fail){
+  aiAskJSON([
+    "A Japanese tutor just finished a lesson with "+st.name+" and typed this:",
+    JSON.stringify(dump),
+    "",
+    "Split it into three lists for their notebook:",
+    'plan  = things to do next lesson (short imperative phrases)',
+    'goals = longer-term aims worth tracking',
+    'notes = what happened, observations, anything dated',
+    "",
+    "Keep the tutor's own words where you can. Do not pad. Do not invent.",
+    "If a list has nothing in it, give an empty array.",
+    'Shape: {"plan":["..."],"goals":["..."],"notes":["..."]}'
+  ].join("\n"),900,done,fail);
+}
+
+/* ---- 3. what keeps tripping them up ---- */
+function aiDrift(st,done,fail){
+  var notes=jots(st,"notes").map(function(e){return e.date+": "+e.t});
+  var plan=jots(st,"plan").map(function(e){return (e.done?"[done] ":"")+e.t});
+  if(notes.length<3){fail("Not enough notes on "+st.name+" yet");return}
+  aiAsk([
+    "Here are a Japanese tutor's dated notes on one student, "+st.name+", newest first:",
+    JSON.stringify(notes),
+    "",
+    "And their plan items:",
+    JSON.stringify(plan),
+    "",
+    "Which specific things keep coming back? Kanji, grammar points, sounds, habits.",
+    "List only what genuinely recurs across more than one note, with the dates it",
+    "appeared. Then one line on what to drill next.",
+    "Plain prose, no markdown, no bullet symbols. Under 150 words.",
+    "If nothing actually recurs, say exactly that and stop."
+  ].join("\n"),900,done,fail);
+}
+
+/* ---- 4. the low-on-lessons nudge, in your own voice ---- */
+function aiNudge(st,kind,done,fail){
+  var c=credits(st.id), last=firstLesson(st.id);
+  var mine=db.lessons.filter(function(l){return l.studentId===st.id});
+  var lastDate=mine.map(function(l){return l.date}).sort().pop()||null;
+  var what=kind==="quiet"
+    ? "They have not had a lesson since "+(lastDate||"a while ago")+". Check in gently, no guilt, no hard sell."
+    : "They have "+c.lessons+" prepaid lesson"+(c.lessons===1?"":"s")+" left. Let them know, and offer to top up.";
+  aiAsk([
+    "Write a short message from a Japanese tutor to their student "+st.name+".",
+    what,
+    "Context on this student:",
+    JSON.stringify({lessons:mine.length,goals:jots(st,"goals").map(function(e){return e.t}).slice(0,4)}),
+    "",
+    (cfg.voiceNote||"").trim()?"The tutor writes like this:\n"+cfg.voiceNote.trim():"",
+    "",
+    "Warm, short, a little funny, never pushy or salesy. No subject line.",
+    "No markdown. Under 70 words. Just the message, nothing else."
+  ].filter(Boolean).join("\n"),600,done,fail);
+}
+
 /* ---- the prompt ---- */
 function hwPrompt(s,opts){
   var plan=jots(s,"plan").filter(function(e){return !e.done}).map(function(e){return e.t});
@@ -3775,6 +4910,9 @@ var COLS=[
   ["tz",     ["timezone","tz","location","country","city","place","where"]],
   ["time",   ["time","start","時間"]],
   ["student",["student","name","who","pupil","client","生徒","名前"]],
+  /* before amount on purpose: "Prepaid" contains "paid", and the amount
+     column would otherwise swallow it. */
+  ["prepay", ["prepay","prepaid","bundle","package","pack","credit","前払い","回数券"]],
   ["amount", ["amount","paid","price","rate","fee","income","total","earned","revenue","cost","金額","料金"]],
   ["lessons",["lesson","qty","quantity","count","session","回数"]],
   ["kind",   ["kind","type","category","種類"]],
@@ -3849,6 +4987,8 @@ function xlsScan(text){
     var dt=m.date!==undefined?readDate(row[m.date]):null;
     var who=m.student!==undefined?String(row[m.student]||"").trim():"";
     var amt=m.amount!==undefined?readMoney(row[m.amount]):0;
+    var preRaw=m.prepay!==undefined?parseInt(String(row[m.prepay]).replace(/[^0-9.\-]/g,""),10):0;
+    if(!dt&&who&&preRaw>0)dt=iso(new Date());   /* a bare prepay count is dated today */
     if(!dt||(!who&&!amt)){plan.skipped++;continue}
     if(who){
       var key=who.toLowerCase();
@@ -3864,8 +5004,11 @@ function xlsScan(text){
     }
     var kind=m.kind!==undefined?String(row[m.kind]||"").toLowerCase():"";
     var n=m.lessons!==undefined?parseInt(row[m.lessons],10):0;
-    if(kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1){
-      plan.bundles.push({date:dt,who:who,lessons:n>0?n:1,amount:amt});
+    var pre=m.prepay!==undefined?parseInt(String(row[m.prepay]).replace(/[^0-9.\-]/g,""),10):0;
+    if(!(pre>0))pre=0;
+    var isBundle=pre>0||kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1;
+    if(isBundle){
+      plan.bundles.push({date:dt,who:who,lessons:pre>0?pre:(n>0?n:1),amount:amt});
     } else {
       if(!amt){plan.skipped++;continue}
       var t=m.time!==undefined?readTime(row[m.time]):"";
@@ -3945,12 +5088,179 @@ $("fxNow").onclick=function(){
     paintFx(); renderAll();
   }).catch(function(){
     b.disabled=false; b.textContent="Refresh the rate";
-    warn("Could not reach the exchange rate just now.");
+    warn("Could not reach the exchange rate just now."+(FX_LAST_ERR?" ("+FX_LAST_ERR+")":""));
   });
 };
 paintFx();
+if($("taxStart")&&cfg.taxStart)$("taxStart").value=cfg.taxStart;
+if($("taxYear"))$("taxYear").value=new Date().getFullYear();
 /* quietly top the rate up when the app opens in yen */
 if(inYen()&&fxStale())fxFetch().then(function(){paintFx();renderAll()}).catch(function(){});
+
+
+/* ================= the website =================
+   Read-only, straight from the browser. Plausible and Umami both allow it;
+   the numbers are pulled fresh each time and nothing about the site is kept
+   here except your own post markers. */
+function siteCfg(){
+  return {kind:cfg.siteKind||"off", host:(cfg.siteHost||"").replace(/\/+$/,""),
+          id:cfg.siteId||"", key:cfg.siteKey||""};
+}
+function siteMarks(){
+  if(!Array.isArray(db.marks))db.marks=[];
+  return db.marks.slice().sort(function(a,b){return a.date<b.date?1:-1});
+}
+function paintMarks(){
+  var box=$("pmList"); if(!box)return;
+  var m=siteMarks();
+  box.innerHTML=m.length?m.map(function(x){
+    return '<div class="row"><div class="main"><span>'+esc(x.what||"post")+'</span>'+
+      '<small>'+esc(dayLabel(x.date))+" "+esc(String(x.date).slice(0,4))+'</small></div>'+
+      '<button class="x" data-mark="'+x.id+'">&times;</button></div>';
+  }).join(""):'<p class="empty" style="margin:0">No markers yet.</p>';
+  Array.prototype.forEach.call(box.querySelectorAll("[data-mark]"),function(b){
+    b.onclick=function(){
+      db.marks=db.marks.filter(function(x){return x.id!==b.dataset.mark});
+      saveDB(); paintMarks(); renderSite();
+    };
+  });
+}
+/* conversion: the clicks the site reported against lessons you actually logged */
+function convWindow(){
+  var a=new Date(); a.setDate(a.getDate()-30);
+  return {from:iso(a), to:iso(new Date())};
+}
+function siteFetch(done,fail){
+  var c=siteCfg();
+  if(c.kind==="off"||!c.host||!c.id||!c.key){fail("Not connected yet");return}
+  var w=convWindow();
+  var url,opts={headers:{}};
+  if(c.kind==="plausible"){
+    url=c.host+"/api/v1/stats/timeseries?site_id="+encodeURIComponent(c.id)+
+        "&period=30d&metrics=visitors,pageviews";
+    opts.headers.Authorization="Bearer "+c.key;
+  } else {
+    url=c.host+"/api/websites/"+encodeURIComponent(c.id)+"/pageviews?startAt="+
+        (Date.parse(w.from+"T00:00:00"))+"&endAt="+(Date.parse(w.to+"T23:59:59"))+"&unit=day&timezone=UTC";
+    opts.headers["x-umami-api-key"]=c.key;
+  }
+  fetch(url,opts).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error("HTTP "+r.status+" "+t.slice(0,90))});
+    return r.json();
+  }).then(function(j){
+    var series;
+    if(c.kind==="plausible"){
+      series=(j.results||[]).map(function(x){return {date:x.date,n:x.visitors||0}});
+    } else {
+      series=((j.sessions||j.pageviews||[])).map(function(x){
+        return {date:iso(new Date(x.x||x.t||Date.now())), n:x.y||0};
+      });
+    }
+    if(!series.length)throw new Error("No data came back");
+    done(series);
+  }).catch(function(e){fail(String(e.message||e))});
+}
+function renderSite(){
+  if(!$("siteTotal"))return;
+  var c=siteCfg();
+  $("siteLab").textContent=c.id||"mainichijp.co";
+  paintMarks();
+  if(c.kind==="off"||!c.host||!c.id||!c.key){
+    $("siteTotal").innerHTML='<span class="cur">\u25cb</span>\u2013';
+    $("siteLine").innerHTML='<span class="chip">not connected</span>';
+    $("siteChartPanel").style.display="none";
+    $("siteConvPanel").style.display="none";
+    return;
+  }
+  siteFetch(function(series){
+    var tot=series.reduce(function(a,x){return a+x.n},0);
+    $("siteTotal").innerHTML='<span class="cur">\u25cb</span>'+tot.toLocaleString("en-US");
+    var best=series.slice().sort(function(a,b){return b.n-a.n})[0];
+    $("siteLine").innerHTML='<span class="chip">last <b>30</b> days</span>'+
+      '<span class="chip">best day <b>'+(best?best.n:0)+'</b></span>'+
+      (best?'<span class="chip">'+esc(dayLabel(best.date))+'</span>':"");
+    $("siteRange").textContent="last 30 days";
+    $("siteChartPanel").style.display="";
+    siteChart(series);
+    /* conversion, against your own ledger */
+    var w=convWindow();
+    var clicks=Math.round(tot*(Number(cfg.siteClickRate)||0.06));
+    var newOnes=db.students.filter(function(st){
+      var f=firstLesson(st.id);
+      return f&&f>=w.from&&f<=w.to;
+    }).length;
+    var earned=sum(db.lessons.filter(function(l){return l.date>=w.from&&l.date<=w.to})
+      .map(function(l){return l.amount}));
+    $("convClicks").textContent=clicks;
+    $("convLessons").textContent=newOnes;
+    $("convRate").textContent=clicks?Math.round(newOnes/clicks*1000)/10+"%":"\u2013";
+    $("convWorth").textContent=clicks?money(earned/clicks):"\u2013";
+    $("siteConvPanel").style.display="";
+  },function(e){
+    $("siteTotal").innerHTML='<span class="cur">\u25cb</span>\u2013';
+    $("siteLine").innerHTML='<span class="chip" style="color:var(--shu)">'+esc(e)+'</span>';
+    $("siteChartPanel").style.display="none";
+    $("siteConvPanel").style.display="none";
+  });
+}
+/* the chart, with your post markers standing up through it */
+function siteChart(series){
+  var el=$("chSite"); if(!el)return;
+  var W=320,H=150,pad=20;
+  var max=Math.max.apply(null,series.map(function(x){return x.n}).concat([1]));
+  var step=(W-pad*2)/Math.max(1,series.length-1);
+  var pts=series.map(function(x,i){
+    return (pad+i*step).toFixed(1)+","+(H-18-(x.n/max)*(H-40)).toFixed(1);
+  }).join(" ");
+  var out='<line class="gl" x1="0" y1="'+(H-18)+'" x2="'+W+'" y2="'+(H-18)+'"/>';
+  var marks=siteMarks().filter(function(m){
+    return m.date>=series[0].date&&m.date<=series[series.length-1].date;
+  });
+  marks.forEach(function(m){
+    var i=0;
+    series.forEach(function(x,k){if(x.date<=m.date)i=k});
+    var x=(pad+i*step).toFixed(1);
+    out+='<line x1="'+x+'" y1="10" x2="'+x+'" y2="'+(H-18)+'" stroke="var(--sky)" stroke-width="1" stroke-dasharray="2 3" opacity=".75"/>';
+    out+='<circle cx="'+x+'" cy="10" r="2.6" fill="var(--sky)"/>';
+  });
+  out+='<polyline points="'+pts+'" fill="none" stroke="var(--shu)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+  el.innerHTML=out;
+  $("siteMarks").innerHTML=marks.length
+    ? '<p class="empty" style="margin:11px 0 0">'+marks.map(function(m){
+        return esc(dayLabel(m.date))+": "+esc(m.what||"post");
+      }).join(" \u00b7 ")+'</p>'
+    : "";
+}
+/* wiring */
+(function(){
+  if(!$("siteGo"))return;
+  var paintKind=function(){
+    Array.prototype.forEach.call($("siteKind").querySelectorAll("[data-k]"),function(b){
+      b.classList.toggle("on",b.dataset.k===(cfg.siteKind||"off"));
+    });
+  };
+  Array.prototype.forEach.call($("siteKind").querySelectorAll("[data-k]"),function(b){
+    b.onclick=function(){cfg.siteKind=b.dataset.k;saveSet();paintKind();renderSite()};
+  });
+  $("siteHost").value=cfg.siteHost||"";
+  $("siteId").value=cfg.siteId||"";
+  $("siteKey").value=cfg.siteKey||"";
+  $("siteHost").oninput=function(){cfg.siteHost=this.value.trim();saveSet()};
+  $("siteId").oninput=function(){cfg.siteId=this.value.trim();saveSet()};
+  $("siteKey").oninput=function(){cfg.siteKey=this.value.trim();saveSet()};
+  $("siteGo").onclick=function(){renderSite()};
+  $("pmDate").value=iso(new Date());
+  $("pmAdd").onclick=function(){
+    var d=$("pmDate").value, w=($("pmWhat").value||"").trim();
+    if(!d){toast("Pick a date");return}
+    if(!Array.isArray(db.marks))db.marks=[];
+    db.marks.push({id:uid(),date:d,what:w||"post"});
+    saveDB(); $("pmWhat").value=""; paintMarks(); renderSite();
+    toast("Marker added");
+  };
+  paintKind();
+  paintMarks();
+})();
 
 /* ---------- themes ---------- */
 /* bg, card, line, text, accent, alt — enough to draw the card in its own skin */
@@ -3981,12 +5291,65 @@ var THEMES=[
    c:["#C9C6BE","#DEDCD5","#1A1A1A","#111111","#1A1A1A","#C9A227"]},
   {id:"blame",    name:"Concrete",  light:false, blurb:"Monochrome megastructure. One red light far below.",
    c:["#0D0D0D","#151515","#2E2E2E","#DEDEDE","#C4291F","#9A9A9A"]},
+  {id:"tower",    name:"Tower",     light:false, blurb:"Takes the whole app apart. Concrete, acid yellow, no corners anywhere.",
+   c:["#0A0A0B","#101012","#2B2B30","#E8E8E4","#E9FF3D","#4B6FA8"], lock:"fifty"},
+  {id:"climber",  name:"The Climber",light:true, blurb:"Granite, snow glare and one orange rope down the page.",
+   c:["#E6E7E5","#F7F8F6","#B9BCB6","#1B1D1C","#D2622A","#4A6B7C"], lock:"streak7"},
+  {id:"kinkaku",  name:"Kinkaku",   light:false, blurb:"Gold leaf on lacquer. Earned, not chosen.",
+   c:["#12100C","#1C1813","#3A3020","#F3E7C8","#D9A83A","#8C7B4A"], lock:"century"},
+  {id:"hanabi",   name:"Hanabi",    light:false, blurb:"The dark between fireworks.",
+   c:["#0B0D1A","#141830","#2A3055","#EDEBFF","#FF5C8A","#5FD0E8"], lock:"streak30"},
+  {id:"kohaku",   name:"Kohaku",    light:true,  blurb:"Amber and rice paper. For someone who kept at it.",
+   c:["#F5EDDE","#FFFAF0","#DFCFAF","#3A2E1E","#C4741E","#6B7F4A"], lock:"year"},
   {id:"term",     name:"Phosphor",  light:false, blurb:"One green, monospace, like the machine it was written on.",
    c:["#020703","#061109","#12351E","#43F87C","#43F87C","#1E8A44"]},
   {id:"chaos",    name:"Chaos",     light:false, blurb:"You asked for weird. It does not sit still.",
    c:["#0A0012","#1A0733","#FF00C8","#F7FF3C","#FF0055","#00F0FF"]}
 ];
 function themeOf(id){return THEMES.filter(function(t){return t.id===(id||"")})[0]||THEMES[0]}
+/* A locked theme opens the moment its achievement does. Whatever you are
+   already wearing stays wearable no matter what, so nothing can strand you
+   in a theme you cannot re-pick. */
+function themeOpen(t){
+  if(!t.lock)return true;
+  if(cfg.theme===t.id)return true;
+  return badgeHave(t.lock);
+}
+function lockNote(t){
+  var a=ACHIEVEMENTS().filter(function(x){return x.id===t.lock})[0];
+  return a?a.d:"locked";
+}
+/* The mark inside the + button. Each one still has to read as "add something"
+   at 23px on a phone, so they are all centred, all one stroke weight, and none
+   of them are so clever you would have to think about it. */
+var PLUS_MARK={
+  "":         'M12 5.5v13M5.5 12h13',                                   /* the plain cross */
+  paper:      'M12 5.5v13M5.5 12h13',
+  mainichi:   'M12 6v12M6 12h12M4 4h1M19 4h1M4 20h1M19 20h1',           /* cross on grid paper */
+  sakura:     'M12 7.2a2.4 2.4 0 1 1 0 4.8 2.4 2.4 0 1 1 0-4.8M7.2 12a2.4 2.4 0 1 1 4.8 0 2.4 2.4 0 1 1-4.8 0M12 12a2.4 2.4 0 1 1 4.8 0 2.4 2.4 0 1 1-4.8 0M9.6 14.4a2.4 2.4 0 1 1 4.8 0 2.4 2.4 0 1 1-4.8 0',
+  matcha:     'M19.5 4.5C19.5 13 14 18.5 5 18.5 5 10 10.5 4.5 19.5 4.5M6.5 17 13 10.5',   /* a leaf */
+  sumi:       'M12 5c-.6 4.6-.6 9.4 0 14M5 12c4.6-.6 9.4-.6 14 0',      /* a brushed cross */
+  onepiece:   'M12 3.8l2.4 5 5.4.7-4 3.8 1 5.4-4.8-2.7-4.8 2.7 1-5.4-4-3.8 5.4-.7z',  /* the Sunny's star */
+  squid:      'M12 4.8 20 19.2H4z',                                     /* their triangle */
+  sonny:      'M12 4.2c3.3 4.2 5.2 6.9 5.2 9.2a5.2 5.2 0 0 1-10.4 0c0-2.3 1.9-5 5.2-9.2M9.6 13.6a2.4 2.4 0 0 0 4.8 0',
+  aero:       'M12 5.6v12.8M5.6 12h12.8M8 8l1.4 1.4',                   /* cross with a glint */
+  vapor:      'M12 4.2 19.8 12 12 19.8 4.2 12z',                        /* a diamond */
+  brutalist:  'M12 4.5v15M4.5 12h15',                                   /* the same cross, wider */
+  blame:      'M12 3.4v17M3.4 12h17M12 7.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 1 0 0-8.8',   /* crosshair */
+  term:       'M5 7l4 4-4 4M11 17h8',                                   /* a shell prompt */
+  chaos:      'M12 3.6v16.8M5 7.4l14 9.2M19 7.4 5 16.6',                /* an asterisk */
+  tower:      'M6.5 4.5h-2v15h2M17.5 4.5h2v15h-2M12 8.4v7.2M8.4 12h7.2', /* bracketed */
+  kinkaku:    'M12 4.2 5 8.6h14zM6.4 10.4v6.2M12 10.4v6.2M17.6 10.4v6.2M4.4 18.6h15.2',
+  hanabi:     'M12 12v-7M12 12v7M12 12H5M12 12h7M12 12 7.2 7.2M12 12l4.8 4.8M12 12 16.8 7.2M12 12l-4.8 4.8',
+  kohaku:     'M12 4.6c2.6 3 4 5.4 4 7.4a4 4 0 0 1-8 0c0-2 1.4-4.4 4-7.4M8.6 18.8h6.8',
+  climber:    'M3.4 19 9.6 8.4l3.6 5.8 2.4-3.6L20.6 19zM12 3.4v3.4M10.3 5.1h3.4'      /* a peak, and a cross above it */
+};
+function paintPlus(id){
+  var b=$("openLog"); if(!b)return;
+  var svg=b.querySelector("svg"); if(!svg)return;
+  var d=PLUS_MARK[id||""]||PLUS_MARK[""];
+  svg.innerHTML='<path d="'+d+'"/>';
+}
 function applyTheme(id){
   var t=themeOf(id);
   if(t.id)document.body.setAttribute("data-theme",t.id);
@@ -3995,6 +5358,7 @@ function applyTheme(id){
   var m=document.querySelector('meta[name="theme-color"]');
   if(m)m.setAttribute("content",t.c[0]);
   if($("themeNow"))$("themeNow").textContent=t.name;
+  paintPlus(t.id);
   /* the creature and the confetti are drawn, not styled: force a repaint */
   try{shown=0;renderAll()}catch(e){}
 }
@@ -4003,8 +5367,9 @@ function paintThemes(){
   var cur=cfg.theme||"";
   box.innerHTML=THEMES.map(function(t){
     var c=t.c;   /* bg, card, line, text, accent, alt */
-    var on=cur===t.id;
-    return '<button type="button" class="tcard'+(on?" on":"")+'" data-theme="'+t.id+'" '+
+    var on=cur===t.id, open=themeOpen(t);
+    return '<button type="button" class="tcard'+(on?" on":"")+(open?"":" locked")+'" data-theme="'+t.id+'" '+
+      (open?"":'data-locked="'+esc(lockNote(t))+'" ')+
       'style="background:'+c[0]+';color:'+c[3]+'">'+
       '<span class="tdots">'+
         '<i style="background:'+c[4]+'"></i>'+
@@ -4013,10 +5378,12 @@ function paintThemes(){
       '</span>'+
       '<span class="tname">'+esc(t.name)+'</span>'+
       (on?'<span class="twear" style="color:'+c[4]+'">wearing</span>':"")+
+      (open?"":'<span class="tlock">locked</span>')+
       '</button>';
   }).join("");
   Array.prototype.forEach.call(box.querySelectorAll("[data-theme]"),function(b){
     b.onclick=function(){
+      if(b.dataset.locked){toast(b.dataset.locked);return}
       cfg.theme=b.dataset.theme; saveSet();
       applyTheme(cfg.theme); paintThemes();
       var el=$("themePick").querySelector(".tcard.on");
