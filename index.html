@@ -313,6 +313,13 @@ button,input,select{font-family:var(--body)}
 .stu .when .where{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;
   max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stu .sheets{font-size:9px;color:var(--muted);white-space:nowrap}
+/* the action sitting under a row, revealed by dragging it aside */
+.stu{position:relative;transition:transform .22s cubic-bezier(.2,.9,.3,1)}
+.stu.swiping{transition:none;z-index:1}
+.stu:after{content:"LOG";position:absolute;right:14px;top:0;bottom:0;z-index:-1;
+  display:flex;align-items:center;font-size:11px;letter-spacing:.18em;font-weight:800;
+  color:var(--shu);opacity:0;transition:opacity .16s}
+.stu.swiping:after{opacity:1}
 .stu .pre{font-size:10.5px;font-weight:600;letter-spacing:.01em;line-height:1.15;color:var(--sky);white-space:nowrap;
   flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .stu .pre.low{color:var(--shu)}
@@ -366,11 +373,23 @@ button,input,select{font-family:var(--body)}
 .ladder i.hit{background:currentColor}
 .ladder i.now{height:6px;margin-top:-1px}
 .rankbar{flex:1;min-width:0}
+/* the one on the front of the stats panel */
+.ach.up{border-bottom:0;padding-bottom:0}
+.ach.up .body b{color:var(--text)}
+.ach .bar{display:block;height:3px;border-radius:100px;background:var(--inset);margin-top:6px;overflow:hidden}
+.ach .bar i{display:block;height:100%;background:var(--shu);border-radius:100px}
 .ach{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
 .ach:last-child{border-bottom:0}
 .ach .seal{flex:0 0 30px;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--dim)}
-.ach.got .seal{border-color:var(--shu);color:var(--shu);background:rgba(224,87,76,.1)}
+/* rarity: unearned seals stay grey, earned ones take their metal */
+.ach.got .seal.bronze{border-color:#C1783C;color:#C1783C;background:rgba(193,120,60,.12)}
+.ach.got .seal.silver{border-color:#C9D1DA;color:#C9D1DA;background:rgba(201,209,218,.12)}
+.ach.got .seal.gold  {border-color:#E8B34A;color:#E8B34A;background:rgba(232,179,74,.13)}
+.ach.got .seal.plat  {border-color:#9FE3D0;color:#9FE3D0;background:rgba(159,227,208,.13)}
+.ach.got .seal.myth  {border-color:#FF5C6E;color:#FF5C6E;background:rgba(255,92,110,.14);
+  box-shadow:0 0 12px rgba(255,92,110,.35)}
+.ach.up .seal{border-style:dashed}
 .ach .body{flex:1;min-width:0}
 .ach .body b{display:block;font-size:14.5px;font-weight:600;line-height:1.2}
 .ach.got .body b{color:var(--text)}
@@ -420,6 +439,8 @@ button,input,select{font-family:var(--body)}
 .track{height:7px;background:var(--inset);border-radius:100px;overflow:hidden}
 .track i{display:block;height:100%;background:var(--sky);border-radius:100px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
 .track i.shu{background:var(--shu)}
+.track i.good{background:var(--good)}
+.track i.gold{background:var(--gold)}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .stat{background:var(--inset);border-radius:11px;padding:13px}
 .stat b{display:block;font-family:var(--display);font-size:21px;font-variant-numeric:tabular-nums;line-height:1.2}
@@ -427,21 +448,168 @@ button,input,select{font-family:var(--body)}
 
 /* ---------- forms ---------- */
 .field{margin-bottom:11px}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
-.field input,.field select{width:100%;font-size:16px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--inset)}
-.field input:focus,.field select:focus{outline:2px solid var(--sky);outline-offset:1px;border-color:transparent}
+/* a small accent pip in front of every label, so a form reads as a form at a
+   glance rather than as more prose on the card */
+.field label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field label:before{content:"";flex:0 0 auto;width:5px;height:5px;border-radius:50%;
+  background:var(--shu);opacity:.6}
+/* Fields sit in a well: a shade off the card, an accent edge down the left,
+   and a top-in shadow so they read as recessed rather than painted on. All of
+   it comes from theme variables, so every theme gets it without its own rule. */
+.field input,.field select,textarea{width:100%;font-size:16px;color:var(--text);
+  padding:11px 12px;border:1px solid var(--edge);border-left:2.5px solid var(--dim);
+  border-radius:10px;background:var(--inset);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.13);
+  transition:border-color .16s,box-shadow .16s}
+.field input::placeholder,textarea::placeholder{color:var(--dim)}
+.field input:focus,.field select:focus,textarea:focus{outline:none;
+  border-color:var(--edge);border-left-color:var(--shu);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.13),0 0 0 3px var(--inset),0 0 0 4px var(--shu)}
+/* the segmented switches get the same treatment: a well, and the live one
+   lifted out of it with an accent underline */
+.seg{box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+.seg button.on{box-shadow:0 1px 0 var(--edge),inset 0 -2px 0 var(--shu)}
+/* and so does the jotter's inline add row */
+.jotadd input{border-left:2.5px solid var(--dim)}
+.jotadd input:focus{border-left-color:var(--shu)}
 @keyframes nudge{0%,100%{transform:translateX(0)}22%{transform:translateX(-5px)}62%{transform:translateX(4px)}}
 .nudge{animation:nudge .3s ease;outline:2px solid var(--shu)!important;outline-offset:1px;border-color:transparent!important}
 button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
 .field select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.btn{width:100%;padding:14px;border:0;border-radius:11px;background:var(--shu);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
-.btn:active{transform:scale(.99);opacity:.9}
+.btn{width:100%;padding:14px;border:0;border-radius:11px;background:var(--shu);color:#fff;
+  font-weight:700;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;justify-content:center;gap:9px;line-height:1.25;
+  transition:transform .12s cubic-bezier(.2,.9,.3,1),opacity .12s,box-shadow .18s}
+.btn:active{transform:scale(.975);opacity:.9}
 .btn.alt{background:var(--surf2);color:var(--text)}
 .btn.line{background:none;border:1px solid var(--line);color:var(--muted);font-weight:400}
+/* The mark is painted as a mask over currentColor rather than an element, so
+   it takes the button's colour for free and, more importantly, survives the
+   many places that rewrite a button's label mid-flight ("Sound: on",
+   "Thinking...", "Refresh the rate"). A ::before is not textContent. */
+.btn[data-ic]:before{content:"";flex:0 0 auto;width:17px;height:17px;
+  background:currentColor;opacity:.92;
+  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.btn.line[data-ic]:before{opacity:.72}
+.btn[data-ic]:active:before{opacity:1}
+/* a destructive button should not look like the others */
+.btn.line[data-danger]{border-color:rgba(224,87,76,.38);color:var(--shu)}
+.btn.line[data-danger]:before{opacity:1}
 .seg{display:flex;gap:6px;background:var(--inset);padding:4px;border-radius:11px;margin-bottom:15px}
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--surf2);color:var(--text);font-weight:500}
+
+/* the thing you actually opened the app to find out */
+.upnext{display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--shu);
+  border-radius:var(--r);padding:12px 14px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.upnext:active{opacity:.8}
+.upnext .un{flex:1;min-width:0}
+.upnext .un small{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--shu)}
+.upnext .un b{display:block;font-size:17px;font-weight:700;line-height:1.2;margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.upnext .un em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.upnext .cd{flex:0 0 auto;text-align:right}
+.upnext .cd b{display:block;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.upnext .cd small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+/* ---- a window, not a drawer ----
+   Forty achievements deserve their own screen. Slides up over everything,
+   scrolls on its own, and closes back to where you were. */
+.modal{position:fixed;inset:0;z-index:118;background:var(--void);display:none;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.modal.on{display:block;animation:modalIn .26s cubic-bezier(.2,.9,.3,1)}
+@keyframes modalIn{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+.modalbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;
+  padding:calc(12px + env(safe-area-inset-top)) 16px 12px;
+  background:var(--void);border-bottom:1px solid var(--line)}
+.modalbar .mx{flex:0 0 34px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surf);color:var(--text);font-size:19px;line-height:1;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.modalbar .mx:active{opacity:.7}
+.modalbar .mtitle{flex:1;min-width:0;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.modalbar .mcount{flex:0 0 auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.modalbody{padding:16px 16px calc(30px + env(safe-area-inset-bottom));max-width:540px;margin:0 auto}
+/* the summary at the top of the window */
+.achhead{display:flex;align-items:center;gap:16px;margin-bottom:17px}
+.achring{flex:0 0 74px;width:74px;height:74px;border-radius:50%;position:relative;
+  display:flex;align-items:center;justify-content:center}
+.achring b{position:relative;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.achsum{flex:1;min-width:0}
+.achsum b{display:block;font-size:19px;font-weight:700;line-height:1.15}
+.achsum small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+.achtiers{display:flex;gap:11px;margin-top:9px;flex-wrap:wrap}
+.achtiers span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
+  font-variant-numeric:tabular-nums}
+.achtiers i{width:9px;height:9px;border-radius:50%;display:block;flex:0 0 auto}
+.achempty{padding:34px 8px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.6}
+.toast{position:fixed;left:12px;right:12px;z-index:115;
+  bottom:calc(84px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px;
+  background:var(--surf2);border:1px solid var(--line);border-radius:13px;
+  padding:12px 12px 12px 15px;box-shadow:0 10px 30px rgba(0,0,0,.4);
+  font-size:14px;color:var(--text);
+  transform:translateY(140%);opacity:0;pointer-events:none;
+  transition:transform .34s cubic-bezier(.2,1.1,.3,1),opacity .22s;max-width:540px;margin:0 auto}
+.toast.on{transform:translateY(0);opacity:1;pointer-events:auto}
+.toast span{flex:1;min-width:0}
+.toast button{flex:0 0 auto;background:none;border:1px solid var(--shu);color:var(--shu);
+  border-radius:9px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.toast button:active{background:var(--shu);color:var(--surf)}
+
+/* ---- the unlock banner ----
+   Comes down from the top, holds, goes back up. A light sweeps across the
+   seal once on the way in. It never blocks anything: pointer events are off
+   and it sits above the sheet so it still reads while one is open. */
+.pop{position:fixed;left:12px;right:12px;top:0;z-index:120;pointer-events:none;
+  display:flex;align-items:center;gap:13px;
+  background:var(--surf2);border:1px solid var(--line);border-radius:16px;
+  padding:12px 15px 12px 12px;
+  box-shadow:0 14px 40px rgba(0,0,0,.45);
+  transform:translateY(-160%);opacity:0;
+  transition:transform .52s cubic-bezier(.2,1.2,.3,1),opacity .3s}
+.pop.on{transform:translateY(calc(env(safe-area-inset-top,0px) + 12px));opacity:1}
+.pop .popseal{flex:0 0 46px;width:46px;height:46px;border-radius:50%;
+  background:var(--inset);border:1.5px solid var(--shu);color:var(--shu);
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  position:relative;overflow:hidden}
+.pop .popseal:after{content:"";position:absolute;top:0;bottom:0;width:36%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:translateX(-260%)}
+.pop.on .popseal:after{animation:popShine .9s .22s ease-out 1}
+@keyframes popShine{to{transform:translateX(360%)}}
+.pop .popbody{flex:1;min-width:0}
+.pop .popbody small{display:block;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:700;color:var(--shu)}
+.pop .popbody b{display:block;font-size:16px;font-weight:700;line-height:1.2;margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pop .popbody em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);
+  margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){
+  .pop{transition:opacity .2s}
+  .pop.on{transform:translateY(calc(env(safe-area-inset-top,0px) + 12px))}
+  .pop.on .popseal:after{animation:none}
+}
+
+/* ---- goal marks ---- */
+.hbar{position:relative}
+.goalmarks{position:relative;height:0}
+.goalmarks i{position:absolute;top:-7px;width:2px;height:7px;background:var(--edge);
+  border-radius:1px;transform:translateX(-1px)}
+.goalmarks i.hit{background:var(--good)}
+.goalmarks b{position:absolute;top:2px;font-size:9.5px;font-weight:600;color:var(--muted);
+  white-space:nowrap;transform:translateX(-50%);letter-spacing:.02em}
+.goalmarks b.hit{color:var(--good)}
+.goalmarks b.last{transform:translateX(-100%)}
+.goalmarks b.first{transform:translateX(0)}
+.goalrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.goalrow:last-child{border-bottom:0}
+.goalrow .gn{flex:1;min-width:0;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.goalrow .gv{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.goalrow.done .gn{color:var(--good)}
 
 /* ---------- sheet ---------- */
 .scrim{position:fixed;inset:0;background:rgba(6,9,14,.6);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:60}
@@ -855,6 +1023,124 @@ body[data-theme="climber"] .stu .main>span{font-family:var(--display);font-weigh
 body[data-theme="climber"] .navinner{border-radius:3px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(27,29,28,.14)}
 body[data-theme="climber"] .tab{border-radius:2px}
 body[data-theme="climber"] .sheet{border-radius:3px;border-top:3px solid var(--shu)}
+/* ---------- seasonal drops ---------- */
+body[data-theme="hanami"]{
+  --void:#F7EFF2; --surf:#FFFAFB; --surf2:#EFE2E8; --line:#E8CFD8;
+  --text:#3A2A31; --muted:#8A7480; --shu:#E86B94; --sky:#7FA86B;
+  --inset:#FCF6F8; --tag:#FFFAFB; --dim:#8A7480; --edge:#E8CFD8;
+  --good:#5E8A4E; --gold:#C8913F; --heroA:#EFE2E8; --heroB:#F7EFF2;
+}
+body[data-theme="tamago"]{
+  --void:#F6F3E8; --surf:#FFFDF4; --surf2:#EFEADA; --line:#DED8C0;
+  --text:#3B3826; --muted:#857F63; --shu:#7BB8A8; --sky:#E0A93F;
+  --inset:#FBF9F0; --tag:#FFFDF4; --dim:#857F63; --edge:#DED8C0;
+  --good:#5E9A6E; --gold:#C9922E; --heroA:#EFEADA; --heroB:#F6F3E8;
+}
+body[data-theme="kogane"]{
+  --void:#FBF4E4; --surf:#FFFCF3; --surf2:#F4EBD6; --line:#E6D9B8;
+  --text:#37301E; --muted:#8A7D5B; --shu:#D9A227; --sky:#4E7FA8;
+  --inset:#FDF8EC; --tag:#FFFCF3; --dim:#8A7D5B; --edge:#E6D9B8;
+  --good:#6E8F4A; --gold:#B8891F; --heroA:#F4EBD6; --heroB:#FBF4E4;
+}
+body[data-theme="tanabata"]{
+  --void:#0B1030; --surf:#141A46; --surf2:#1C2358; --line:#2A3272;
+  --text:#EDEFFF; --muted:#8890C8; --shu:#66D9FF; --sky:#FFD35C;
+  --inset:#0D1238; --tag:#141A46; --dim:#8890C8; --edge:#2A3272;
+  --good:#7FE0B8; --gold:#FFD35C; --heroA:#1C2358; --heroB:#0B1030;
+}
+body[data-theme="natsu"]{
+  --void:#140B14; --surf:#1F1120; --surf2:#2A1730; --line:#3A1F38;
+  --text:#FFEEDD; --muted:#A88898; --shu:#FF7A3D; --sky:#42C7C0;
+  --inset:#180D18; --tag:#1F1120; --dim:#A88898; --edge:#3A1F38;
+  --good:#42C7C0; --gold:#FFC93D; --heroA:#2A1730; --heroB:#140B14;
+}
+body[data-theme="obon"]{
+  --void:#0A0F12; --surf:#111820; --surf2:#18222C; --line:#22303A;
+  --text:#E8F0F4; --muted:#7E96A4; --shu:#E8B54A; --sky:#6FA8B8;
+  --inset:#0C1216; --tag:#111820; --dim:#7E96A4; --edge:#22303A;
+  --good:#6FA8B8; --gold:#E8B54A; --heroA:#18222C; --heroB:#0A0F12;
+}
+body[data-theme="kouyou"]{
+  --void:#170D0A; --surf:#211310; --surf2:#2E1A14; --line:#3E2118;
+  --text:#FBEADF; --muted:#A88070; --shu:#D9552B; --sky:#C8912F;
+  --inset:#1A0F0C; --tag:#211310; --dim:#A88070; --edge:#3E2118;
+  --good:#8FA05A; --gold:#C8912F; --heroA:#2E1A14; --heroB:#170D0A;
+}
+body[data-theme="obake"]{
+  --void:#0A0710; --surf:#140C1A; --surf2:#1E1128; --line:#2B1740;
+  --text:#F0E6FF; --muted:#9880B0; --shu:#FF7A18; --sky:#8CE05A;
+  --inset:#0C0813; --tag:#140C1A; --dim:#9880B0; --edge:#2B1740;
+  --good:#8CE05A; --gold:#FFC93D; --heroA:#1E1128; --heroB:#0A0710;
+}
+body[data-theme="seiya"]{
+  --void:#08120E; --surf:#0E1B15; --surf2:#14261D; --line:#1B3226;
+  --text:#EFF6F0; --muted:#82A08E; --shu:#D8433F; --sky:#4FA86B;
+  --inset:#0A150F; --tag:#0E1B15; --dim:#82A08E; --edge:#1B3226;
+  --good:#4FA86B; --gold:#D9B44A; --heroA:#14261D; --heroB:#08120E;
+}
+body[data-theme="yuki"]{
+  --void:#EDF1F5; --surf:#FBFDFF; --surf2:#E2EAF2; --line:#CBD8E4;
+  --text:#1E2A36; --muted:#6F8296; --shu:#5B87B8; --sky:#8FA8BF;
+  --inset:#F5F9FC; --tag:#FBFDFF; --dim:#6F8296; --edge:#CBD8E4;
+  --good:#5E8F7A; --gold:#A8894A; --heroA:#E2EAF2; --heroB:#EDF1F5;
+}
+body[data-theme="hatsu"]{
+  --void:#FFF2E8; --surf:#FFF9F3; --surf2:#FBEADC; --line:#F0D6BE;
+  --text:#3A2418; --muted:#96745C; --shu:#E8623C; --sky:#D9A227;
+  --inset:#FFF6EE; --tag:#FFF9F3; --dim:#96745C; --edge:#F0D6BE;
+  --good:#6E9A4E; --gold:#C8891F; --heroA:#FBEADC; --heroB:#FFF2E8;
+}
+body[data-theme="choco"]{
+  --void:#120A0C; --surf:#1C1013; --surf2:#26161B; --line:#3A1E26;
+  --text:#FFEDF2; --muted:#A8808E; --shu:#FF4D7E; --sky:#C89B6A;
+  --inset:#150C0F; --tag:#1C1013; --dim:#A8808E; --edge:#3A1E26;
+  --good:#C89B6A; --gold:#E8A85A; --heroA:#26161B; --heroB:#120A0C;
+}
+body[data-theme="shinkansen"]{
+  /* white body, blue band, one orange stripe: nothing else */
+  --void:#EEF1F5; --surf:#FFFFFF; --surf2:#E2E8F0; --line:#C6D2E0;
+  --text:#12243A; --muted:#69788C; --shu:#0B63B8; --sky:#E8552F;
+  --inset:#F3F6FA; --tag:#FFFFFF; --dim:#A6B4C6; --edge:#B4C2D4;
+  --good:#2F8F6B; --gold:#C8891F; --heroA:#FFFFFF; --heroB:#E8EEF6;
+}
+body[data-theme="shinkansen"] .hero{border-bottom:4px solid var(--sky)}
+body[data-theme="shinkansen"] .panel{border-left:3px solid var(--shu)}
+body[data-theme="karesansui"]{
+  /* raked sand, and three stones */
+  --void:#E9E4D8; --surf:#F4F0E6; --surf2:#DED8C8; --line:#CFC7B4;
+  --text:#33302A; --muted:#8A8474; --shu:#7A7263; --sky:#96795A;
+  --inset:#EFEBE0; --tag:#F4F0E6; --dim:#B3AC99; --edge:#C2BAA6;
+  --good:#6E7A55; --gold:#A08A4E; --heroA:#F7F4EC; --heroB:#E4DFD1;
+  --display:"Shippori Mincho B1",Georgia,serif;
+}
+/* the rake marks */
+body[data-theme="karesansui"]{
+  background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.035) 0 1px,transparent 1px 9px);
+  background-attachment:fixed;
+}
+body[data-theme="karesansui"] .panel{box-shadow:none;border:1px solid var(--line)}
+body[data-theme="kabukicho"]{
+  /* wet neon on black */
+  --void:#08060D; --surf:#120C1C; --surf2:#1B1129; --line:#2C1B3F;
+  --text:#F2E9FF; --muted:#8A76A8; --shu:#FF2D78; --sky:#00E0C6;
+  --inset:#0C0813; --tag:#120C1C; --dim:#4A3868; --edge:#3A2452;
+  --good:#00E0C6; --gold:#FFC93D; --heroA:#1D1030; --heroB:#0A0710;
+}
+body[data-theme="kabukicho"] .total{text-shadow:0 0 22px rgba(255,45,120,.55)}
+body[data-theme="kabukicho"] .hero:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 84% 14%,rgba(0,224,198,.18),transparent 40%),
+             radial-gradient(circle at 12% 86%,rgba(255,45,120,.16),transparent 44%);
+}
+body[data-theme="kabukicho"] .eyebrow{color:var(--sky)}
+body[data-theme="genmaicha"]{
+  /* toasted rice and green tea */
+  --void:#14170F; --surf:#1C2016; --surf2:#252B1C; --line:#333A26;
+  --text:#E6EBD8; --muted:#8A9470; --shu:#9DBF5A; --sky:#C6A15B;
+  --inset:#171A11; --tag:#1C2016; --dim:#4E5738; --edge:#3F4830;
+  --good:#9DBF5A; --gold:#C6A15B; --heroA:#232917; --heroB:#12150D;
+}
+
 body[data-theme="kinkaku"]{
   /* gold leaf on black lacquer, and nothing else allowed to shout */
   --void:#12100C; --surf:#1C1813; --surf2:#26201A; --line:#3A3020;
@@ -951,6 +1237,10 @@ body[data-theme="chaos"] .stu:nth-child(3n) .main>span{transform:rotate(-1.2deg)
 }
 
 /* light themes need their own weight: softer shadows, real borders */
+body.light .field input,body.light .field select,body.light textarea,
+body.light .seg{box-shadow:inset 0 1px 2px rgba(0,0,0,.055)}
+body.light .field input:focus,body.light .field select:focus,body.light textarea:focus{
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.055),0 0 0 3px var(--surf),0 0 0 4px var(--shu)}
 body.light .navinner{box-shadow:0 6px 20px rgba(60,45,30,.14)}
 body.light .minibar .inner{box-shadow:0 6px 20px rgba(60,45,30,.14)}
 body.light .sheet{box-shadow:0 -8px 30px rgba(60,45,30,.16)}
@@ -972,6 +1262,11 @@ body.light .toastless{display:none}
   transition:transform .18s ease,border-color .18s ease;display:block}
 .tcard:active{transform:scale(.96)}
 .tcard.on{border-color:var(--shu)}
+.tfilters{margin:2px 0 4px}
+.tfilters em{font-style:normal;opacity:.55;font-variant-numeric:tabular-nums}
+.tgroup{margin:16px 0 3px}
+.tgroup em{font-style:normal;opacity:.5;font-variant-numeric:tabular-nums}
+.tgnote{font-size:11.5px;margin:0 0 9px;line-height:1.45}
 .tdots{display:flex;gap:6px;margin-bottom:12px}
 .tdots i{width:19px;height:19px;border-radius:50%;display:block;flex:0 0 auto}
 .tname{display:block;font-size:14.5px;font-weight:600;line-height:1.25;
@@ -1070,6 +1365,7 @@ body.light .toastless{display:none}
 
   <!-- ============ TODAY ============ -->
   <section class="view on" id="v-home">
+    <div class="upnext" id="upnext" style="display:none"></div>
     <div class="hero">
       <div class="mnav">
         <button id="prev" aria-label="Previous month">‹</button>
@@ -1118,6 +1414,7 @@ body.light .toastless{display:none}
   <section class="view" id="v-students">
     <div class="panel">
       <p class="eyebrow">Students <em id="stucount"></em></p>
+      <div class="jotadd" style="margin-bottom:11px"><input id="stuSearch" type="search" autocomplete="off" placeholder="Search students"><button type="button" id="stuClear">&times;</button></div>
       <div class="filters" id="stuFilters"></div>
       <div id="stulist"></div>
     </div>
@@ -1214,6 +1511,7 @@ body.light .toastless{display:none}
       <div class="hbar">
         <div class="t"><span id="goalNow">$0</span><b id="goalTgt"></b></div>
         <div class="track"><i class="shu" id="goalBar" style="width:0%"></i></div>
+        <div class="goalmarks" id="goalMarks"></div>
       </div>
       <p class="empty" id="goalFoot" style="margin:11px 0 0"></p>
     </div>
@@ -1245,12 +1543,18 @@ body.light .toastless{display:none}
       <p class="empty" id="liabFoot" style="margin:12px 0 0"></p>
     </div>
     <div class="panel">
+      <p class="eyebrow">Sticking <em id="retNote"></em></p>
+      <div class="stats" id="retGrid"></div>
+      <p class="empty" id="retFoot" style="margin:12px 0 0"></p>
+    </div>
+    <div class="panel">
       <p class="eyebrow">Personal bests</p>
       <div class="stats" id="bestGrid"></div>
     </div>
     <div class="panel">
       <p class="eyebrow">Achievements <em id="achNote"></em></p>
-      <div id="achList"></div>
+      <div id="achNext"></div>
+      <button class="btn alt" id="achOpen" style="margin-top:13px">See all achievements</button>
     </div>
     <div class="panel">
       <p class="eyebrow">Streak <em id="streakNote"></em></p>
@@ -1283,11 +1587,14 @@ body.light .toastless{display:none}
   <!-- ============ DATA ============ -->
   <section class="view" id="v-data">
     <div class="panel">
-      <p class="eyebrow">Goal</p>
+      <p class="eyebrow">Saving for</p>
       <div class="two">
-        <div class="field" style="margin:0"><label for="gName">Saving for</label><input id="gName" type="text" placeholder="Japan trip"></div>
+        <div class="field" style="margin:0"><label for="gName">What</label><input id="gName" type="text" placeholder="Japan trip" autocomplete="off"></div>
         <div class="field" style="margin:0"><label for="gTgt">Target</label><input id="gTgt" type="number" inputmode="decimal" placeholder="0"></div>
       </div>
+      <button class="btn alt" id="gAdd" style="margin-top:11px">Add this goal</button>
+      <div id="gList" style="margin-top:13px"></div>
+      <p class="empty" style="margin:12px 0 0">Add as many as you like. The bar on the stats page runs to the furthest one, with every other one marked along it.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Google Calendar <em id="gcalState">not connected</em></p>
@@ -1315,7 +1622,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">Theme <em id="themeNow"></em></p>
-      <div class="themes" id="themePick"></div>
+      <div id="themePick"></div>
     </div>
     <div class="panel">
       <p class="eyebrow">Effects</p>
@@ -1373,7 +1680,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BE</b> · 24 Aug 2026<br>If this does not say BE, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BN</b> · 24 Aug 2026<br>If this does not say BN, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -1385,6 +1692,46 @@ body.light .toastless{display:none}
       <button class="btn line" id="wipe" style="color:var(--shu)">Erase all data</button>
     </div>
   </section>
+</div>
+
+<!-- ============ ACHIEVEMENTS ============ -->
+<div class="modal" id="achWin" role="dialog" aria-modal="true" aria-label="Achievements">
+  <div class="modalbar">
+    <button type="button" class="mx" id="achClose" aria-label="Close">&times;</button>
+    <span class="mtitle">Achievements</span>
+    <span class="mcount" id="achWinCount"></span>
+  </div>
+  <div class="modalbody">
+    <div class="achhead">
+      <div class="achring" id="achRing"></div>
+      <div class="achsum">
+        <b id="achSumBig"></b>
+        <small id="achSumSmall"></small>
+        <div class="achtiers" id="achTiers"></div>
+      </div>
+    </div>
+    <div class="seg" id="achTabs">
+      <button type="button" data-at="open" class="on">Ongoing <em id="achNOpen"></em></button>
+      <button type="button" data-at="done">Completed <em id="achNDone"></em></button>
+    </div>
+    <div id="achWinList"></div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast" aria-live="polite">
+  <span id="toastMsg"></span>
+  <button type="button" id="toastUndo">Undo</button>
+</div>
+
+<!-- ============ ACHIEVEMENT ============ -->
+<div class="pop" id="pop" aria-live="polite">
+  <div class="popseal"><span id="popSym">✦</span></div>
+  <div class="popbody">
+    <small id="popKind">Achievement unlocked</small>
+    <b id="popName"></b>
+    <em id="popWhat"></em>
+  </div>
 </div>
 
 <!-- ============ SHEET ============ -->
@@ -1768,7 +2115,28 @@ function nowTime(){var d=new Date();return String(d.getHours()).padStart(2,"0")+
    not worth covering a control for. Ordinary confirmations now say nothing:
    the number moved, the row ticked, the list changed, you can see it.
    The two things a pill was actually carrying still have somewhere to go. */
-function toast(){}
+/* Was a no-op. Every "Logged $30" and "Pick a student" in the app has been
+   going nowhere. It is now a real thing, and it carries an undo, because the
+   moment you want one is the second after you tapped. */
+function buzz(ms){
+  try{if(navigator.vibrate)navigator.vibrate(ms||10)}catch(e){}
+}
+var TOAST_T=null;
+function toast(msg,undo){
+  var el=$("toast"); if(!el||!msg)return;
+  clearTimeout(TOAST_T);
+  $("toastMsg").textContent=msg;
+  var b=$("toastUndo");
+  b.style.display=undo?"":"none";
+  b.onclick=undo?function(){
+    clearTimeout(TOAST_T);
+    el.classList.remove("on");
+    try{undo()}catch(e){}
+    buzz(14);
+  }:null;
+  el.classList.remove("on"); void el.offsetWidth; el.classList.add("on");
+  TOAST_T=setTimeout(function(){el.classList.remove("on")},undo?5200:2600);
+}
 
 /* something genuinely went wrong and you need to know why */
 function warn(m){
@@ -1825,7 +2193,8 @@ Array.prototype.forEach.call(tabs,function(t){
 });
 
 /* ================= sheet ================= */
-function openSheet(html){$("sheetBody").innerHTML=html;$("sheet").classList.add("on");$("scrim").classList.add("on")}
+function openSheet(html){$("sheetBody").innerHTML=html;$("sheet").classList.add("on");$("scrim").classList.add("on");
+  try{markAllButtons($("sheetBody"))}catch(e){}}
 function closeSheet(){
   var sh=$("sheet");
   sh.classList.remove("dragging");
@@ -2097,7 +2466,17 @@ function wireLog(){
       fresh=d; selDay=null;
       closeSheet(); renderAll();
       setTimeout(function(){burst(Math.min(14+qty*8,48));totalPop(made)},210);
-      toast(qty>1 ? qty+" lessons, "+money(made) : "Logged "+money(made)+(drew?" from prepay":""));
+      buzz(12);
+      var undoIds=db.lessons.slice(-qty).map(function(l){return l.id});
+      toast(qty>1 ? qty+" lessons, "+money(made) : "Logged "+money(made)+(drew?" from prepay":""),
+        function(){
+          db.lessons.slice(-qty).forEach(function(l){
+            if(l.bundleId){var nb=db.bundles.filter(function(b){return b.id===l.bundleId})[0];
+              if(nb&&nb.used>0)nb.used--}
+          });
+          db.lessons=db.lessons.filter(function(l){return undoIds.indexOf(l.id)<0});
+          saveDB(); renderAll(); toast("Taken back off");
+        });
     };
   } else if(logMode==="book"){
     if(!db.students.length){
@@ -2502,6 +2881,13 @@ function studentSheet(id){
   };
 
   /* ---- prepay, and how fast it is going ---- */
+  /* the bar was always the same blue however close to empty it was, which is
+     the one moment it should be saying something */
+  function burnTone(left){
+    if(left<=1)return "shu";
+    if(left<=3)return "gold";
+    return "good";
+  }
   function paintBurn(){
     var box=$("burnBox"); if(!box)return;
     var bs=burn(id);
@@ -2510,7 +2896,7 @@ function studentSheet(id){
       bs.map(function(x){
         return '<div class="burn"><div class="t"><span>'+x.used+' of '+x.b.lessons+' used</span>'+
           '<b>'+money(x.b.amount/x.b.lessons*x.left)+' left</b></div>'+
-          '<div class="track"><i style="width:'+x.pct.toFixed(0)+'%"></i></div>'+
+          '<div class="track"><i class="'+burnTone(x.left)+'" style="width:'+x.pct.toFixed(0)+'%"></i></div>'+
           '<p class="out">'+(x.runsOut
             ? "At their recent pace ("+x.perWeek.toFixed(1).replace(/\.0$/,"")+" a week) this runs out around "+esc(dayLabel(x.runsOut))+"."
             : "Not enough recent lessons to guess when this runs out.")+'</p></div>';
@@ -2641,10 +3027,19 @@ function studentSheet(id){
   });
   $("delStu").onclick=function(){
     if(mine.length){warn("Delete this student's lessons first.");return}
+    var mineS=student(id);
     db.bundles=db.bundles.filter(function(b){return b.studentId!==id});
     db.slots=db.slots.filter(function(x){return x.studentId!==id});
     db.students=db.students.filter(function(x){return x.id!==id});
-    saveDB(); closeSheet(); renderAll(); toast("Student removed");
+    var gone=mineS, goneB=db.bundles.filter(function(b){return b.studentId===id}),
+        goneSl=db.slots.filter(function(x){return x.studentId===id});
+    saveDB(); closeSheet(); renderAll();
+    toast("Student removed",function(){
+      db.students.push(gone);
+      goneB.forEach(function(b){db.bundles.push(b)});
+      goneSl.forEach(function(x){db.slots.push(x)});
+      saveDB(); renderAll(); toast(gone.name+" is back");
+    });
   };
 }
 
@@ -2793,6 +3188,7 @@ function renderHome(){
     var pct=Math.round((sumv-prevSum)/prevSum*100);
     hl+='<span class="chip '+(pct>=0?"up":"down")+'">'+(pct>=0?"+":"")+pct+"% vs "+MONTHS[prevD.getMonth()].slice(0,3)+'</span>';
   }
+  paintUpNext();
   var fc=forecast();
   if(fc&&!allL){
     hl+='<span class="chip up">on pace for <b>'+money(fc.pace)+'</b></span>';
@@ -3436,6 +3832,7 @@ function renderUpcoming(){
   });
 }
 
+var stuQuery="";
 var stuFilter="active";
 /* Opens on whoever you are actually teaching. If that would be an empty page
    the first time round, it quietly falls back to everyone. */
@@ -3465,6 +3862,103 @@ function nextLessonFor(sid){
     .sort(function(a,b){return (a.date+(a.time||""))<(b.date+(b.time||""))?-1:1})[0];
   return up||null;
 }
+
+/* ================= gestures on a student row =================
+   Two shortcuts for the two things you do forty times a week.
+
+   Press and hold  -> a short menu: log now, message, worksheet, open.
+   Drag left       -> the row slides and reveals Log, so a lesson taught is
+                      one gesture rather than a sheet and three taps.
+
+   Both bail out the moment the finger moves the wrong way, so scrolling the
+   list is never hijacked. */
+var QUICK_MS=420, SWIPE_OPEN=88;
+function quickSheet(id){
+  var s=student(id); if(!s)return;
+  buzz(16);
+  openSheet(
+    '<h3 style="color:'+colorFor(s)+'">'+esc(s.name)+'</h3>'+
+    '<button class="btn" id="qLog">Log a lesson now</button>'+
+    '<div class="two" style="margin-top:9px">'+
+      '<button class="btn alt" id="qHw" style="margin:0">Worksheet</button>'+
+      '<button class="btn alt" id="qMsg" style="margin:0">Message</button>'+
+    '</div>'+
+    '<button class="btn line" id="qOpen" style="margin-top:9px">Open their page</button>'
+  );
+  $("qLog").onclick=function(){closeSheet();setTimeout(function(){logMode="lesson";logSheet(id)},220)};
+  $("qHw").onclick=function(){closeSheet();setTimeout(function(){hwSheet(id)},220)};
+  $("qMsg").onclick=function(){closeSheet();setTimeout(function(){studentSheet(id)},220)};
+  $("qOpen").onclick=function(){closeSheet();setTimeout(function(){studentSheet(id)},220)};
+}
+function wireRow(row,id){
+  var t0=null, x0=0, y0=0, held=false, dragging=false, decided=false;
+  var reset=function(){
+    clearTimeout(t0); t0=null; held=false; dragging=false; decided=false;
+    row.classList.remove("swiping");
+    row.style.transform="";
+  };
+  row.addEventListener("touchstart",function(e){
+    if(e.touches.length!==1)return;
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY;
+    held=false; dragging=false; decided=false;
+    clearTimeout(t0);
+    t0=setTimeout(function(){held=true;quickSheet(id)},QUICK_MS);
+  },{passive:true});
+  row.addEventListener("touchmove",function(e){
+    if(held)return;
+    var dx=e.touches[0].clientX-x0, dy=e.touches[0].clientY-y0;
+    if(!decided){
+      if(Math.abs(dx)<7&&Math.abs(dy)<7)return;
+      decided=true;
+      /* a vertical move is a scroll and none of our business */
+      if(Math.abs(dy)>Math.abs(dx)){clearTimeout(t0);return}
+      dragging=true; clearTimeout(t0);
+      row.classList.add("swiping");
+    }
+    if(!dragging)return;
+    var slide=Math.max(-120,Math.min(0,dx));
+    row.style.transform="translateX("+slide+"px)";
+  },{passive:true});
+  var end=function(e){
+    clearTimeout(t0);
+    if(held){row.dataset.ate="1";reset();return}
+    if(dragging){
+      var m=/translateX\((-?[\d.]+)px\)/.exec(row.style.transform||"");
+      var slid=m?Math.abs(parseFloat(m[1])):0;
+      reset();
+      row.dataset.ate="1";
+      if(slid>=SWIPE_OPEN)quickLog(id);
+      return;
+    }
+    reset();
+  };
+  row.addEventListener("touchend",end,{passive:true});
+  row.addEventListener("touchcancel",function(){reset()},{passive:true});
+}
+/* one tap's worth of logging: today, now, at their usual price */
+function quickLog(id){
+  var s=student(id); if(!s)return;
+  var pr=priceFor(id);
+  if(!pr||!pr.amount){toast("No rate set for "+s.name);return}
+  var nb=pr.bundle||null;
+  if(nb)nb.used++;
+  var l={id:uid(),date:iso(new Date()),time:nowTime(),studentId:id,
+         amount:num(pr.amount),bundleId:nb?nb.id:null,slotId:null,
+         note:nb?"Prepay":"Direct"};
+  db.lessons.push(l);
+  saveDB();
+  try{gPush(l)}catch(e){}
+  renderAll();
+  buzz(18);
+  try{burst(18)}catch(e){}
+  toast("Logged "+money(l.amount)+" for "+s.name+(nb?" from prepay":""),function(){
+    if(l.bundleId){var b=db.bundles.filter(function(x){return x.id===l.bundleId})[0];
+      if(b&&b.used>0)b.used--}
+    db.lessons=db.lessons.filter(function(x){return x.id!==l.id});
+    saveDB(); renderAll(); toast("Taken back off");
+  });
+}
+
 function renderStudents(){
   var box=$("stulist"); box.innerHTML="";
   var low=0;
@@ -3475,6 +3969,9 @@ function renderStudents(){
   db.students.forEach(function(s){counts[statusOf(s)]++});
   var strip=$("stuFilters");
   if(db.students.length<2){ strip.innerHTML=""; stuFilter="all"; }
+  var sq=(stuQuery||"").trim().toLowerCase();
+  var box2=$("stuSearch");
+  if(box2)box2.parentNode.style.display=db.students.length>=6?"":"none";
   if(!stuFilterTouched&&stuFilter!=="all"&&!db.students.some(function(s){return statusOf(s)===stuFilter})){
     stuFilter="all";
   }
@@ -3498,11 +3995,18 @@ function renderStudents(){
     var rank={active:0,trial:1,paused:2,stopped:3};
     var list=db.students.slice()
       .filter(function(s){return stuFilter==="all"||statusOf(s)===stuFilter})
+      .filter(function(s){
+        if(!sq)return true;
+        return String(s.name||"").toLowerCase().indexOf(sq)>-1||
+               String(s.tz||"").toLowerCase().indexOf(sq)>-1;
+      })
       .sort(function(a,b){
         var d=rank[statusOf(a)]-rank[statusOf(b)];
         return d||a.name.localeCompare(b.name);
       });
-    if(!list.length)box.innerHTML='<p class="empty">Nobody is '+STATUS_LABEL[stuFilter].toLowerCase()+' right now.</p>';
+    if(!list.length)box.innerHTML=sq
+      ? '<p class="empty">Nobody matching \u201c'+esc(sq)+'\u201d.</p>'
+      : '<p class="empty">Nobody is '+STATUS_LABEL[stuFilter].toLowerCase()+' right now.</p>';
     list.forEach(function(s){
       var c=credits(s.id), st=statusOf(s);
       var taught=db.lessons.filter(function(l){return l.studentId===s.id}).length;
@@ -3525,7 +4029,9 @@ function renderStudents(){
       el.innerHTML=avatarHTML(s)+
         '<div class="main"><span style="color:'+colorFor(s)+'">'+esc(s.name)+'</span><small>'+bits.join("")+'</small></div>'+
         when;
-      el.onclick=function(){studentSheet(s.id)};
+      /* a tap opens them; a hold or a drag does something quicker */
+      el.onclick=function(){if(!el.dataset.ate)studentSheet(s.id); el.dataset.ate=""};
+      wireRow(el,s.id);
       box.appendChild(el);
     });
   }
@@ -3634,7 +4140,10 @@ function streak(){
   /* a week you have not taught yet does not break anything — it just has not
      happened. So start counting from last week unless this one is already in. */
   if(!weeks[thisWeek])cur.setDate(cur.getDate()-7);
-  for(var i=0;i<520;i++){
+  /* the ceiling is how many weeks you have actually logged, so a bug in the
+     key can never again pass itself off as a ten year streak */
+  var cap=Object.keys(weeks).length;
+  for(var i=0;i<cap;i++){
     if(!weeks[weekKey(cur)])break;
     n++; cur.setDate(cur.getDate()-7);
   }
@@ -3761,8 +4270,11 @@ function bestOf(map){
   Object.keys(map).forEach(function(x){if(map[x]>v){v=map[x];k=x}});
   return k?{key:k,val:v}:null;
 }
-function weekKey(ds){
+/* named apart from the streak counter's own weekKey(Date), which this used
+   to shadow. Two functions, one name, and the wrong one won. */
+function weekKeyOf(ds){
   var d=new Date(String(ds)+"T12:00:00");
+  if(isNaN(d.getTime()))return String(ds);
   d.setDate(d.getDate()-d.getDay());
   return iso(d);
 }
@@ -3770,7 +4282,7 @@ function bests(){
   var wk={}, mo={};
   db.lessons.forEach(function(l){
     var a=num(l.amount);
-    wk[weekKey(l.date)]=(wk[weekKey(l.date)]||0)+a;
+    wk[weekKeyOf(l.date)]=(wk[weekKeyOf(l.date)]||0)+a;
     mo[String(l.date).slice(0,7)]=(mo[String(l.date).slice(0,7)]||0)+a;
   });
   return {
@@ -3874,8 +4386,21 @@ function newMilestones(st){
 /* ---- achievements ----
    db.badges is {id: dateAwarded}. Each one is a plain test over the ledger,
    so nothing has to be tracked as it happens. */
+/* Progress is capped at the target here rather than at every place that
+   draws it, so "365/100" can never leak onto a card. */
 function ACHIEVEMENTS(){
+  return ACHIEVEMENTS_RAW().map(function(a){
+    a.at=Math.max(0,Math.min(num(a.at),a.of));
+    return a;
+  });
+}
+function monthsApart(a,b){
+  var x=String(a).split("-"), y=String(b).split("-");
+  return (parseInt(y[0],10)-parseInt(x[0],10))*12+(parseInt(y[1],10)-parseInt(x[1],10));
+}
+function ACHIEVEMENTS_RAW(){
   var all=db.lessons, tot=sum(all.map(function(l){return l.amount}));
+  var wks=streak().now;                          /* weeks in a row, not days */
   var b=bests(), dc=dayCounts();
   var mons={}; all.forEach(function(l){mons[String(l.date).slice(0,7)]=1});
   var earlies=all.filter(function(l){return l.time&&l.time<"08:00"}).length;
@@ -3883,14 +4408,71 @@ function ACHIEVEMENTS(){
   var zones={};
   db.students.forEach(function(s){if(s.tz)zones[String(s.tz).split("/")[0]]=1});
   var seas=seasonStats(seasonIndex(iso(new Date())));
+  /* the week you taught the most separate days in */
+  var perWeek={};
+  all.forEach(function(l){
+    var k=weekKeyOf(l.date);
+    (perWeek[k]=perWeek[k]||{})[l.date]=1;
+  });
+  var bigWeek=0, weekendWk=false;
+  Object.keys(perWeek).forEach(function(k){
+    var ds=Object.keys(perWeek[k]);
+    if(ds.length>bigWeek)bigWeek=ds.length;
+    var sat=false, sun=false;
+    ds.forEach(function(x){
+      var g=dowOf(x);
+      if(g===6)sat=true; if(g===0)sun=true;
+    });
+    if(sat&&sun)weekendWk=true;
+  });
+  /* the student you have taught most, and anyone who came back after a gap */
+  var perStu={}, comeback=false;
+  db.students.forEach(function(st){
+    var ds=all.filter(function(l){return l.studentId===st.id})
+      .map(function(l){return l.date}).sort();
+    perStu[st.id]=ds.length;
+    for(var i=1;i<ds.length;i++){
+      if((Date.parse(ds[i]+"T12:00:00")-Date.parse(ds[i-1]+"T12:00:00"))/864e5>=60)comeback=true;
+    }
+  });
+  var topStudent=Object.keys(perStu).reduce(function(a,k){return Math.max(a,perStu[k])},0);
+  /* ---- what a long history knows that a fresh install cannot ----
+     These are all read straight off the ledger, so importing years of your
+     spreadsheet awards them on the spot rather than starting you at zero. */
+  var dates=all.map(function(l){return l.date}).sort();
+  var first=dates[0]||null, last=dates[dates.length-1]||null;
+  var spanDays=(first&&last)?Math.round((Date.parse(last+"T12:00:00")-Date.parse(first+"T12:00:00"))/864e5):0;
+  var years={}, monthTot={}, monthCnt={};
+  all.forEach(function(l){
+    years[String(l.date).slice(0,4)]=1;
+    var k=String(l.date).slice(0,7);
+    monthTot[k]=(monthTot[k]||0)+num(l.amount);
+    monthCnt[k]=(monthCnt[k]||0)+1;
+  });
+  var bigMonth=0, bigMonthCash=0;
+  Object.keys(monthCnt).forEach(function(k){
+    if(monthCnt[k]>bigMonth)bigMonth=monthCnt[k];
+    if(monthTot[k]>bigMonthCash)bigMonthCash=monthTot[k];
+  });
+  /* consecutive months with at least one lesson in them */
+  var mk=Object.keys(monthCnt).sort(), runM=0, bestM=0;
+  for(var mi=0;mi<mk.length;mi++){
+    if(mi&&monthsApart(mk[mi-1],mk[mi])===1)runM++; else runM=1;
+    if(runM>bestM)bestM=runM;
+  }
+  var everTaught=Object.keys(perStu).filter(function(k){return perStu[k]>0}).length;
+  /* seasons you actually showed up for */
+  var seenSeasons={};
+  all.forEach(function(l){seenSeasons[seasonIndex(l.date)]=(seenSeasons[seasonIndex(l.date)]||0)+1});
+  var goodSeasons=Object.keys(seenSeasons).filter(function(k){return seenSeasons[k]>=15}).length;
   return [
     {id:"first",  n:"First one",      d:"Log a lesson.",                     have:all.length>=1,        of:1,   at:Math.min(all.length,1)},
     {id:"ten",    n:"Ten deep",       d:"Ten lessons taught.",               have:all.length>=10,       of:10,  at:all.length},
     {id:"fifty",  n:"Fifty",          d:"Fifty lessons taught.",             have:all.length>=50,       of:50,  at:all.length},
     {id:"century",n:"Century",        d:"A hundred lessons taught.",         have:all.length>=100,      of:100, at:all.length},
     {id:"fivehun",n:"Five hundred",   d:"Five hundred lessons taught.",      have:all.length>=500,      of:500, at:all.length},
-    {id:"streak7",n:"A full week",    d:"Teach seven days running.",         have:streak()>=7,          of:7,   at:streak()},
-    {id:"streak30",n:"A full month",  d:"Teach thirty days running.",        have:streak()>=30,         of:30,  at:streak()},
+    {id:"streak7",n:"Six weeks running",d:"Teach in six consecutive weeks.", have:wks>=6,               of:6,   at:wks},
+    {id:"streak30",n:"Half a year",   d:"Teach in twenty six consecutive weeks.",have:wks>=26,          of:26,  at:wks},
     {id:"five1day",n:"Long day",      d:"Five lessons in one day.",          have:!!(b.busiest&&b.busiest.val>=5), of:5, at:b.busiest?b.busiest.val:0},
     {id:"eight1day",n:"Marathon",     d:"Eight lessons in one day.",         have:!!(b.busiest&&b.busiest.val>=8), of:8, at:b.busiest?b.busiest.val:0},
     {id:"roster5",n:"A roster",       d:"Five students on the books.",       have:db.students.length>=5, of:5,  at:db.students.length},
@@ -3902,6 +4484,39 @@ function ACHIEVEMENTS(){
     {id:"gold",   n:"Gold",           d:"Reach Gold in a season.",           have:seas.lessons>=40,     of:40,  at:seas.lessons},
     {id:"plat",   n:"Platinum",       d:"Reach Platinum in a season.",       have:seas.lessons>=85,     of:85,  at:seas.lessons},
     {id:"gmaster",n:"Grandmaster",    d:"Reach Grandmaster in a season.",    have:seas.lessons>=150,    of:150, at:seas.lessons},
+    {id:"grand",  n:"A grand",         d:"Earn a thousand dollars in total.", have:tot>=1000,            of:1000,at:Math.round(tot)},
+    {id:"fivegrand",n:"Five grand",    d:"Earn five thousand in total.",      have:tot>=5000,            of:5000,at:Math.round(tot)},
+    {id:"tengrand",n:"Five figures",   d:"Earn ten thousand in total.",       have:tot>=10000,           of:10000,at:Math.round(tot)},
+    {id:"perfectwk",n:"Perfect week",  d:"Teach on all seven days of one week.",have:bigWeek>=7,         of:7,   at:bigWeek},
+    {id:"weekend", n:"Weekender",      d:"Teach a Saturday and a Sunday in one week.",have:weekendWk,   of:1,   at:weekendWk?1:0},
+    {id:"loyal",  n:"Loyal",           d:"Take one student past a hundred lessons.",have:topStudent>=100,of:100, at:topStudent},
+    {id:"firstpre",n:"Paid up front",  d:"Take your first prepay bundle.",    have:db.bundles.length>=1, of:1,   at:Math.min(db.bundles.length,1)},
+    {id:"banked", n:"Banked",          d:"Ten prepay bundles taken.",         have:db.bundles.length>=10,of:10,  at:db.bundles.length},
+    {id:"comeback",n:"Comeback",       d:"Teach someone again after two months quiet.",have:comeback,   of:1,   at:comeback?1:0},
+    {id:"seasons4",n:"Four seasons",   d:"Reach Bronze or better in four seasons.",have:goodSeasons>=4, of:4,   at:goodSeasons},
+    /* the archive: earned by history, whether you lived it here or brought it in */
+    {id:"arch1yr", n:"A year on record", d:"A year between your first lesson and your last.",
+     have:spanDays>=365, of:365, at:Math.min(spanDays,365)},
+    {id:"arch2yr", n:"Two years on record", d:"Two years between your first lesson and your last.",
+     have:spanDays>=730, of:730, at:Math.min(spanDays,730)},
+    {id:"arch3yr", n:"The long haul",  d:"Three years between your first lesson and your last.",
+     have:spanDays>=1095, of:1095, at:Math.min(spanDays,1095)},
+    {id:"calyears",n:"Across the years",d:"Lessons in three different calendar years.",
+     have:Object.keys(years).length>=3, of:3, at:Object.keys(years).length},
+    {id:"unbroken",n:"Unbroken",      d:"Twelve months in a row with a lesson in each.",
+     have:bestM>=12, of:12, at:bestM},
+    {id:"unbroken24",n:"Two years unbroken",d:"Twenty four months in a row with a lesson in each.",
+     have:bestM>=24, of:24, at:bestM},
+    {id:"bigmonth",n:"Busy month",    d:"Forty lessons inside one month.",
+     have:bigMonth>=40, of:40, at:bigMonth},
+    {id:"bigmonth2",n:"Peak month",   d:"Eighty lessons inside one month.",
+     have:bigMonth>=80, of:80, at:bigMonth},
+    {id:"alumni", n:"Alumni",         d:"Twenty five people taught, ever.",
+     have:everTaught>=25, of:25, at:everTaught},
+    {id:"alumni50",n:"A generation",  d:"Fifty people taught, ever.",
+     have:everTaught>=50, of:50, at:everTaught},
+    {id:"thousand",n:"Four figures",  d:"A thousand lessons taught.",
+     have:all.length>=1000, of:1000, at:all.length},
     {id:"sheets", n:"Prolific",       d:"Twenty homework sheets made.",
      have:db.students.reduce(function(a,x){return a+sheets(x).length},0)>=20, of:20,
      at:db.students.reduce(function(a,x){return a+sheets(x).length},0)}
@@ -3919,6 +4534,117 @@ function checkBadges(){
   return fresh;
 }
 
+/* ---- who sticks ---- */
+function retention(){
+  var per={};
+  db.lessons.forEach(function(l){
+    if(!l.studentId)return;
+    per[l.studentId]=(per[l.studentId]||0)+1;
+  });
+  var counts=Object.keys(per).map(function(k){return per[k]}).sort(function(a,b){return a-b});
+  var started=counts.length;
+  var mid=started?(started%2?counts[(started-1)/2]:Math.round((counts[started/2-1]+counts[started/2])/2)):0;
+  return {
+    started:started,
+    past1:counts.filter(function(n){return n>=2}).length,
+    past3:counts.filter(function(n){return n>=3}).length,
+    past10:counts.filter(function(n){return n>=10}).length,
+    median:mid,
+    pct:function(a,b){return b?Math.round(a/b*100)+"%":"\u2013"}
+  };
+}
+
+/* ---- what is next ----
+   The next unticked booking today or tomorrow, with a countdown. It is the
+   single most common reason to open this thing, and it used to be three
+   scrolls down. */
+function paintUpNext(){
+  var box=$("upnext"); if(!box)return;
+  var now=new Date(), today=iso(now), mins=now.getHours()*60+now.getMinutes();
+  var soon=db.bookings.filter(function(b){
+    if(b.doneId)return false;
+    if(b.date<today)return false;
+    if(b.date===today){var t=tmin(b.time); return t===null||t>=mins-15}
+    return b.date<=iso(new Date(now.getTime()+864e5));
+  }).sort(function(a,b){
+    return (a.date+" "+(a.time||"")) < (b.date+" "+(b.time||"")) ? -1 : 1;
+  })[0];
+  if(!soon){box.style.display="none";return}
+  var st=student(soon.studentId);
+  var away=null;
+  if(soon.time!==undefined&&tmin(soon.time)!==null){
+    var mm=(soon.date===today?0:1440)+tmin(soon.time)-mins;
+    away=mm;
+  }
+  var cd=away===null ? {b:"\u2013",s:""}
+    : away<0 ? {b:"now",s:"started"}
+    : away<60 ? {b:away+"m",s:"away"}
+    : away<1440 ? {b:Math.round(away/60*10)/10+"h",s:"away"}
+    : {b:"tmw",s:soon.time||""};
+  box.innerHTML=
+    '<span class="un"><small>Up next</small>'+
+      '<b style="color:'+(st?colorFor(st):"var(--text)")+'">'+esc(st?st.name:"Someone")+'</b>'+
+      '<em>'+esc(soon.date===today?"today":dayLabel(soon.date))+(soon.time?" \u00b7 "+esc(ampm(soon.time)):"")+'</em>'+
+    '</span>'+
+    '<span class="cd"><b>'+cd.b+'</b><small>'+esc(cd.s)+'</small></span>';
+  box.style.display="";
+  box.onclick=function(){if(st)studentSheet(st.id)};
+}
+
+/* ---- goals ----
+   As many as you like. The bar runs to the furthest one and every other one
+   is a tick along it, so you can see the near thing and the far thing at the
+   same time instead of only ever one target. */
+function goalList(){
+  if(!Array.isArray(db.goals))db.goals=[];
+  /* carry the old single goal over the first time */
+  if(!db.goals.length&&Number(cfg.goalTarget)>0){
+    db.goals.push({id:uid(),name:cfg.goalName||"Goal",target:Number(cfg.goalTarget)});
+    saveDB();
+  }
+  return db.goals.slice().sort(function(a,b){return a.target-b.target});
+}
+function paintGoals(all){
+  var gs=goalList(), top=gs.length?gs[gs.length-1].target:0;
+  var next=gs.filter(function(g){return all<g.target})[0]||null;
+  $("goalname").textContent=next?next.name:(gs.length?"all reached":"");
+  $("goalNow").textContent=money(all);
+  $("goalTgt").textContent=top?"of "+money(top):"no target";
+  $("goalBar").style.width=(top?Math.min(all/top*100,100):0)+"%";
+  var box=$("goalMarks");
+  if(box){
+    box.innerHTML=top?gs.map(function(g,i){
+      var pct=Math.min(100,g.target/top*100);
+      var hit=all>=g.target;
+      var side=i===gs.length-1?" last":(pct<12?" first":"");
+      return '<i class="'+(hit?"hit":"")+'" style="left:'+pct+'%"></i>'+
+             '<b class="'+(hit?"hit":"")+side+'" style="left:'+pct+'%">'+esc(g.name)+'</b>';
+    }).join(""):"";
+    box.style.height=top?"16px":"0";
+  }
+  $("goalFoot").textContent=!gs.length
+    ? "Add something you are saving for on the data tab. You can add as many as you like."
+    : next
+      ? Math.round(all/next.target*100)+"% of the way to "+next.name+", "+money(next.target-all)+" to go."
+      : "Every goal reached. Add a bigger one.";
+}
+function paintGoalList(){
+  var box=$("gList"); if(!box)return;
+  var gs=goalList(), all=sum(db.lessons.map(function(l){return l.amount}));
+  box.innerHTML=gs.length?gs.map(function(g){
+    var hit=all>=g.target;
+    return '<div class="goalrow'+(hit?" done":"")+'">'+
+      '<span class="gn">'+(hit?"\u2713 ":"")+esc(g.name)+'</span>'+
+      '<span class="gv">'+money(g.target)+'</span>'+
+      '<button class="x" data-goal="'+g.id+'">&times;</button></div>';
+  }).join(""):'<p class="empty" style="margin:0">Nothing yet.</p>';
+  Array.prototype.forEach.call(box.querySelectorAll("[data-goal]"),function(b){
+    b.onclick=function(){
+      db.goals=db.goals.filter(function(g){return g.id!==b.dataset.goal});
+      saveDB(); paintGoalList(); renderStats();
+    };
+  });
+}
 /* a best is only interesting if you can say when it was */
 function bstWhen(k){
   k=String(k||"");
@@ -3929,6 +4655,89 @@ function bstWhen(k){
   if(/^\d{4}-\d{2}-\d{2}$/.test(k))return dayLabel(k)+" "+k.slice(0,4);
   return k;
 }
+var achTab="open";
+var TIER_COL={bronze:"#C1783C",silver:"#C9D1DA",gold:"#E8B34A",plat:"#9FE3D0",myth:"#FF5C6E"};
+var TIER_NAME={bronze:"Bronze",silver:"Silver",gold:"Gold",plat:"Platinum",myth:"Mythic"};
+function achRow(a){
+  return '<div class="ach'+(a.have?" got":"")+'">'+
+    '<span class="seal '+achTier(a)+'">'+(a.have?"\u25cf":"\u25cb")+'</span>'+
+    '<span class="body"><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small>'+
+      (a.have?"":'<span class="bar"><i style="width:'+Math.round(a.at/a.of*100)+'%"></i></span>')+
+    '</span>'+
+    '<span class="prog">'+(a.have?"done":a.at+"/"+a.of)+'</span>'+
+    '</div>';
+}
+function paintAchWin(){
+  if(!$("achWinList"))return;
+  var list=ACHIEVEMENTS();
+  var done=list.filter(function(a){return a.have});
+  var open=list.filter(function(a){return !a.have});
+  var pct=list.length?Math.round(done.length/list.length*100):0;
+
+  $("achWinCount").textContent=done.length+" / "+list.length;
+  $("achNOpen").textContent=open.length;
+  $("achNDone").textContent=done.length;
+  /* the ring is a conic sweep, so it needs no svg and no maths at draw time */
+  $("achRing").style.background=
+    "conic-gradient(var(--shu) 0 "+pct+"%, var(--inset) "+pct+"% 100%)";
+  $("achRing").innerHTML='<span style="position:absolute;inset:6px;border-radius:50%;background:var(--void)"></span><b>'+pct+'%</b>';
+  $("achSumBig").textContent=done.length+" earned";
+  $("achSumSmall").textContent=open.length
+    ? open.length+" still going. Closest is "+
+      open.slice().sort(function(a,b){return (b.at/b.of)-(a.at/a.of)})[0].n+"."
+    : "Every one of them. That is the lot.";
+  var byTier={};
+  done.forEach(function(a){var t=achTier(a);byTier[t]=(byTier[t]||0)+1});
+  $("achTiers").innerHTML=["bronze","silver","gold","plat","myth"].map(function(t){
+    var tot=list.filter(function(a){return achTier(a)===t}).length;
+    if(!tot)return "";
+    return '<span><i style="background:'+TIER_COL[t]+'"></i>'+TIER_NAME[t]+' '+(byTier[t]||0)+'/'+tot+'</span>';
+  }).join("");
+
+  Array.prototype.forEach.call($("achTabs").querySelectorAll("[data-at]"),function(b){
+    b.classList.toggle("on",b.dataset.at===achTab);
+  });
+  /* ongoing sorted by how close it is; completed newest first */
+  var show=achTab==="done"
+    ? done.slice().sort(function(a,b){
+        var x=(db.badges||{})[a.id]||"", y=(db.badges||{})[b.id]||"";
+        return x<y?1:x>y?-1:0;
+      })
+    : open.slice().sort(function(a,b){return (b.at/b.of)-(a.at/a.of)});
+  $("achWinList").innerHTML=show.length
+    ? show.map(achRow).join("")
+    : '<p class="achempty">'+(achTab==="done"
+        ? "Nothing earned yet. Log a lesson and that changes immediately."
+        : "All of them done. There is nothing left to chase.")+'</p>';
+}
+function openAchWin(){
+  achTab="open";
+  paintAchWin();
+  $("achWin").classList.add("on");
+  document.body.style.overflow="hidden";
+  buzz(8);
+}
+function closeAchWin(){
+  $("achWin").classList.remove("on");
+  document.body.style.overflow="";
+}
+/* ---- how hard each one is ----
+   Same shape, different metal, so "First one" does not sit next to
+   "Four figures" looking like an equal. */
+var ACH_TIER={
+  first:"bronze",   firstpre:"bronze", ten:"bronze",     roster5:"bronze",
+  five1day:"bronze",early:"bronze",    late:"bronze",    weekend:"bronze",
+  streak7:"silver", fifty:"silver",    roster12:"silver",grand:"silver",
+  sheets:"silver",  banked:"silver",   comeback:"silver",perfectwk:"silver",
+  arch1yr:"silver", bigmonth:"silver", world:"silver",
+  century:"gold",   year:"gold",       gold:"gold",      eight1day:"gold",
+  fivegrand:"gold", streak30:"gold",   arch2yr:"gold",   calyears:"gold",
+  unbroken:"gold",  alumni:"gold",     seasons4:"gold",  loyal:"gold",
+  plat:"plat",      fivehun:"plat",    tengrand:"plat",  arch3yr:"plat",
+  unbroken24:"plat",bigmonth2:"plat",  alumni50:"plat",
+  gmaster:"myth",   thousand:"myth"
+};
+function achTier(a){return ACH_TIER[a&&a.id]||"bronze"}
 function renderStats(){
   var months=[],labels=[],curIdx=5;
   for(var i=5;i>=0;i--){
@@ -3972,6 +4781,23 @@ function renderStats(){
     ? "Already paid to you, still owed as teaching. It moves into earnings a lesson at a time."
     : "Nothing outstanding. Everything paid has been taught.";
 
+  /* ---- who sticks ----
+     Of everyone who got as far as a third lesson, how many got to a tenth.
+     That is the number that tells you whether the problem is your teaching
+     or your first three lessons, and nothing else in here says it. */
+  var rt=retention();
+  $("retNote").textContent=rt.started+" ever taught";
+  $("retGrid").innerHTML=
+    '<div class="stat"><b>'+rt.past1+'</b><small>came back at all<br><span style="opacity:.7">past one lesson</span></small></div>'+
+    '<div class="stat"><b>'+rt.past3+'</b><small>reached a third<br><span style="opacity:.7">'+rt.pct(rt.past3,rt.started)+' of everyone</span></small></div>'+
+    '<div class="stat"><b>'+rt.past10+'</b><small>reached a tenth<br><span style="opacity:.7">'+rt.pct(rt.past10,rt.past3)+' of those who got to three</span></small></div>'+
+    '<div class="stat"><b>'+(rt.median||"\u2013")+'</b><small>lessons, typical<br><span style="opacity:.7">middle of the roster</span></small></div>';
+  $("retFoot").textContent=rt.started<5
+    ? "A few more students and this starts to mean something."
+    : rt.past3&&(rt.past10/rt.past3)<0.4
+      ? "Most people who reach a third lesson are not reaching a tenth. That gap is usually lessons four to six, not the trial."
+      : "People who get past a third lesson mostly keep going. Your first three are doing their job.";
+
   /* ---- personal bests ---- */
   var bst=bests();
   var bcell=function(b,label,fmt){
@@ -3988,21 +4814,24 @@ function renderStats(){
   var list=ACHIEVEMENTS();
   var got=list.filter(function(a){return a.have}).length;
   $("achNote").textContent=got+" of "+list.length;
-  $("achList").innerHTML=list.map(function(a){
-    return '<div class="ach'+(a.have?" got":"")+'">'+
-      '<span class="seal">'+(a.have?"\u25cf":"\u25cb")+'</span>'+
-      '<span class="body"><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></span>'+
-      '<span class="prog">'+(a.have?"done":Math.min(a.at,a.of)+"/"+a.of)+'</span>'+
-      '</div>';
-  }).join("");
+  /* The panel shows only the one you are closest to finishing, which is the
+     only one that can change your mind about what to do today. The rest live
+     in their own window. */
+  var open=list.filter(function(a){return !a.have});
+  var near=open.slice().sort(function(a,b){return (b.at/b.of)-(a.at/a.of)})[0]||null;
+  $("achNext").innerHTML=near
+    ? '<div class="ach up">'+
+        '<span class="seal '+achTier(near)+'">\u25cb</span>'+
+        '<span class="body"><b>'+esc(near.n)+'</b><small>'+esc(near.d)+'</small>'+
+        '<span class="bar"><i style="width:'+Math.round(near.at/near.of*100)+'%"></i></span></span>'+
+        '<span class="prog">'+near.at+'/'+near.of+'</span>'+
+      '</div>'
+    : '<p class="empty" style="margin:11px 0 0">Every one of them earned. That is the lot.</p>';
+  $("achOpen").textContent="See all "+list.length+" achievements";
+  if($("achWin").classList.contains("on"))paintAchWin();
 
   var all=sum(db.lessons.map(function(l){return l.amount}));
-  var tgt=Number(cfg.goalTarget)||0;
-  $("goalname").textContent=cfg.goalName||"";
-  $("goalNow").textContent=money(all);
-  $("goalTgt").textContent=tgt?"of "+money(tgt):"no target";
-  $("goalBar").style.width=(tgt?Math.min(all/tgt*100,100):0)+"%";
-  $("goalFoot").textContent=!tgt?"Set a target on the data tab.":all>=tgt?"Target reached. Set a bigger one.":Math.round(all/tgt*100)+"% there, "+money(tgt-all)+" to go.";
+  paintGoals(all);
 
   var by={};
   db.lessons.forEach(function(l){var k=l.studentId||"_";by[k]=(by[k]||0)+l.amount});
@@ -4066,30 +4895,69 @@ function renderStats(){
    crossing on the same day do not talk over each other. Nothing here blocks
    anything: if it fails it simply does not happen. */
 var CEREMONY_ON=true;
+var POP_Q=[], POP_LIVE=false;
+/* one banner at a time, each held long enough to actually read */
+function popShow(o){
+  POP_Q.push(o);
+  if(!POP_LIVE)popNext();
+}
+function popNext(){
+  var el=$("pop"); if(!el)return;
+  if(!POP_Q.length){POP_LIVE=false;return}
+  POP_LIVE=true;
+  var o=POP_Q.shift();
+  $("popSym").textContent=o.sym||"\u2726";
+  $("popKind").textContent=o.kind||"Achievement unlocked";
+  $("popName").textContent=o.name||"";
+  $("popWhat").textContent=o.what||"";
+  var seal=el.querySelector(".popseal");
+  seal.style.borderColor=o.col||"var(--shu)";
+  seal.style.color=o.col||"var(--shu)";
+  $("popKind").style.color=o.col||"var(--shu)";
+  el.classList.remove("on");
+  /* force a reflow so the shine restarts on a repeat */
+  void el.offsetWidth;
+  el.classList.add("on");
+  try{burst(20)}catch(e){}
+  setTimeout(function(){
+    el.classList.remove("on");
+    setTimeout(popNext,420);
+  },3400);
+}
 function ceremony(){
   if(!CEREMONY_ON)return;
-  var queue=[];
+  var found=[];
   try{
+    checkDrops().forEach(function(t){
+      found.push({kind:"Seasonal drop kept",name:t.name,what:"Yours for good, every year from now.",
+        sym:"\u2744",col:t.c[4]});
+    });
     checkBadges().forEach(function(a){
-      queue.push({t:"\u2726 "+a.n,s:a.d});
+      found.push({kind:"Achievement unlocked",name:a.n,what:a.d,sym:"\u2726"});
+      /* a theme that was waiting on this one gets its own banner */
+      THEMES.forEach(function(t){
+        if(t.lock===a.id)found.push({kind:"Theme unlocked",name:t.name,what:t.blurb,
+          sym:PLUS_MARK[t.id]?"\u25c6":"\u25c6",col:t.c[4]});
+      });
     });
     db.students.forEach(function(st){
       newMilestones(st).forEach(function(m){
         st.marks.push(m.k);
-        queue.push({t:st.name+" \u00b7 "+m.t,s:"", col:colorFor(st)});
+        found.push({kind:"Milestone",name:st.name,what:m.t,sym:"\u25cf",col:colorFor(st)});
       });
     });
   }catch(e){return}
-  if(!queue.length)return;
+  if(!found.length)return;
   saveDB();
-  queue.forEach(function(q,i){
-    setTimeout(function(){
-      try{
-        toast(q.t+(q.s?" \u2014 "+q.s:""));
-        burst(22);
-      }catch(e){}
-    },260+i*1500);
-  });
+  /* Importing years of a spreadsheet can trip a dozen of these in one go.
+     Show the first few properly, then one banner for the rest, rather than
+     holding you hostage for forty seconds. */
+  if(found.length>4){
+    var head=found.slice(0,3), rest=found.length-3;
+    head.forEach(popShow);
+    popShow({kind:"And the rest",name:"+"+rest+" more unlocked",
+      what:"All of them are on the stats page.",sym:"\u2726"});
+  } else found.forEach(popShow);
 }
 function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();gPullToday();ceremony()}
 
@@ -4102,7 +4970,7 @@ $("curBtn").onclick=function(){
   cfg.cur=cfg.cur==="$"?"\u00a5":"$"; saveSet();
   /* the total is the same money either way, so it should just re-letter
      itself. Leaving `shown` alone keeps setTotal's diff at zero. */
-  var go=function(){renderAll();$("sTrial").value=boxVal(trialRate());$("gTgt").value=boxVal(cfg.goalTarget);paintFx()};
+  var go=function(){renderAll();$("sTrial").value=boxVal(trialRate());paintGoalList();paintFx()};
   if(inYen()&&fxStale()){
     $("curBtn").textContent="…";
     fxFetch().then(go).catch(function(){go();warn("Could not reach the exchange rate. Using "+(cfg.fx?"the last one it saw":FX_FALLBACK)+"."+(FX_LAST_ERR?" ("+FX_LAST_ERR+")":""))});
@@ -4199,8 +5067,24 @@ $("sfxBtn").onclick=function(){
   if(cfg.sfx===false)stopAudio();
   this.textContent="Sound: "+(cfg.sfx===false?"off":"on");
 };
-$("gName").oninput=function(){cfg.goalName=this.value;saveSet();$("goalname").textContent=this.value};
-$("gTgt").oninput=function(){cfg.goalTarget=base(parseFloat(this.value)||0);saveSet();renderStats()};
+if($("stuSearch")){
+  $("stuSearch").oninput=function(){stuQuery=this.value;renderStudents()};
+  $("stuClear").onclick=function(){
+    stuQuery=""; $("stuSearch").value=""; renderStudents(); $("stuSearch").focus();
+  };
+}
+$("gAdd").onclick=function(){
+  var n=($("gName").value||"").trim();
+  var v=base(parseFloat($("gTgt").value)||0);
+  if(!v){toast("Give it a target");return}
+  if(!Array.isArray(db.goals))db.goals=[];
+  if(db.goals.some(function(g){return Math.abs(g.target-v)<0.005})){toast("There is already a goal at that number");return}
+  db.goals.push({id:uid(),name:n||money(v),target:v});
+  saveDB();
+  $("gName").value=""; $("gTgt").value="";
+  paintGoalList(); renderStats();
+  toast("Goal added");
+};
 
 function download(name,text,type){
   var url=URL.createObjectURL(new Blob([text],{type:type}));
@@ -4264,6 +5148,15 @@ if($("voiceNote")){
   $("voiceNote").value=cfg.voiceNote||"";
   $("voiceNote").oninput=function(){cfg.voiceNote=this.value;saveSet()};
 }
+if($("achOpen"))$("achOpen").onclick=openAchWin;
+if($("achClose"))$("achClose").onclick=closeAchWin;
+if($("achTabs"))Array.prototype.forEach.call($("achTabs").querySelectorAll("[data-at]"),function(b){
+  b.onclick=function(){achTab=b.dataset.at;paintAchWin();buzz(6)};
+});
+/* the back gesture and the escape key should shut it like anything else */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&$("achWin")&&$("achWin").classList.contains("on"))closeAchWin();
+});
 if($("digestGo"))$("digestGo").onclick=function(){
   var b=this, out=$("digestOut");
   b.disabled=true; b.textContent="Reading\u2026";
@@ -5316,6 +6209,84 @@ function siteChart(series){
   paintMarks();
 })();
 
+
+/* ================= button marks =================
+   Every action button gets a mark of its own so you can find the one you
+   want by shape rather than by reading. They share one stroke weight and one
+   24x24 box, and they are deliberately literal: a page for a worksheet, a
+   calendar for booking, a wallet for prepay. Anything not in here simply has
+   no mark, which is fine.
+
+   Applied by id after the page is built, so adding a button to the markup
+   needs one line here and nothing else. */
+var BTN_ICON={
+  /* logging */
+  lGo:      '<path d="M12 5v14M5 12h14"/>',                                   /* add a lesson */
+  kGo:      '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>', /* schedule */
+  bGo:      '<rect x="3" y="6.5" width="18" height="12" rx="2.5"/><path d="M3 10.5h18M16.5 15h2"/>',       /* prepay: a wallet */
+  /* students */
+  addStu:   '<circle cx="10" cy="8.5" r="3.5"/><path d="M4 19.5c0-3.3 2.7-5.5 6-5.5M17 9.5v5M14.5 12h5"/>',
+  addSlot:  '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',      /* a weekly time */
+  delStu:   '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13M10.5 11v5M13.5 11v5"/>',
+  /* the assistant */
+  mkHw:     '<path d="M6 3.5h8.5L19 8v12.5H6z"/><path d="M14 3.5V8h5M9 12.5h7M9 16h5"/>',  /* a worksheet */
+  aiDriftBtn:'<path d="M3.5 15.5 8 9.5l3.5 4L15 6l5.5 9.5"/><circle cx="8" cy="9.5" r="1.4"/>', /* a pattern */
+  aiNudgeBtn:'<path d="M3.5 6.5h17v11h-11L4.5 21v-3.5h-1z"/><path d="M8 11h8M8 14h5"/>',   /* a message */
+  aiCopy:   '<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/>',
+  digestGo: '<path d="M4.5 4.5h15v15h-15z"/><path d="M8 9h8M8 12.5h8M8 16h5"/>',           /* a brief */
+  dumpGo:   '<path d="M12 4v9M8.5 9.5 12 13l3.5-3.5"/><path d="M4.5 15v4.5h15V15"/>',      /* sort it down */
+  dumpSave: '<path d="M5 12.5 10 17.5 19 6.5"/>',
+  dumpDrop: '<path d="M6 6l12 12M18 6 6 18"/>',
+  hwGo:     '<path d="M12 4.5 14 9.5l5.5.6-4.1 3.7 1.1 5.4L12 16.5l-4.5 2.7 1.1-5.4L4.5 10.1 10 9.5z"/>',
+  /* data */
+  xlsRead:  '<path d="M4.5 4.5h10L19.5 9v10.5h-15z"/><path d="M14.5 4.5V9h5M8 16.5 11 13l2 2 3-4"/>',
+  xlsGo:    '<path d="M12 3.5v11M8.5 11 12 14.5 15.5 11"/><path d="M4.5 16v4.5h15V16"/>',  /* bring it in */
+  export:   '<path d="M12 20.5v-11M8.5 13 12 9.5l3.5 3.5"/><path d="M4.5 8V3.5h15V8"/>',   /* send it out */
+  exportJson:'<path d="M9 4.5H6a1.5 1.5 0 0 0-1.5 1.5v3L3 12l1.5 3v3A1.5 1.5 0 0 0 6 19.5h3M15 4.5h3A1.5 1.5 0 0 1 19.5 6v3L21 12l-1.5 3v3a1.5 1.5 0 0 1-1.5 1.5h-3"/>',
+  taxGo:    '<path d="M6.5 3.5h11v17l-2.75-2-2.75 2-2.75-2-2.75 2z"/><path d="M9.5 8h5M9.5 12h5"/>',  /* a receipt */
+  rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
+  dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
+  wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
+  fxNow:    '<path d="M4 9.5h13l-3-3M20 14.5H7l3 3"/>',                                    /* swap */
+  achOpen:  '<path d="M12 3.6 14.2 9h5.8l-4.6 3.9 1.7 5.7L12 15.4l-5.1 3.2 1.7-5.7L4 9h5.8z"/>',
+  yirGo:    '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5v5.5l3.5 2"/>',
+  /* settings and connections */
+  gAdd:     '<path d="M12 5.5v13M5.5 12h13"/>',
+  gcalConnect:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4M10 15l1.8 1.8L15 13.5"/>',
+  gcalOut:  '<path d="M14 5.5H6.5A1.5 1.5 0 0 0 5 7v10a1.5 1.5 0 0 0 1.5 1.5H14"/><path d="M17 8.5 20.5 12 17 15.5M20.5 12h-9"/>',
+  gcalPullBtn:'<path d="M12 4v10M8.5 10.5 12 14l3.5-3.5"/><path d="M4.5 16.5v3h15v-3"/>',
+  gcalPushBtn:'<path d="M12 20V10M8.5 13.5 12 10l3.5 3.5"/><path d="M4.5 7.5v-3h15v3"/>',
+  sfxBtn:   '<path d="M5 9.5h3.5L13 5.5v13L8.5 14.5H5z"/><path d="M16.5 9.5a4 4 0 0 1 0 5"/>',
+  testSfx:  '<path d="M8 5.5 18.5 12 8 18.5z"/>',
+  /* the website */
+  siteGo:   '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.6 3.6 5.4 3.6 8.5s-1.2 5.9-3.6 8.5c-2.4-2.6-3.6-5.4-3.6-8.5S9.6 6.1 12 3.5z"/>',
+  pmAdd:    '<path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/><path d="M12 8v5M9.5 10.5h5"/>',       /* a bookmark */
+  /* sheets */
+  cropOk:   '<path d="M5 12.5 10 17.5 19 6.5"/>',
+  cropCancel:'<path d="M6 6l12 12M18 6 6 18"/>',
+  yes:      '<path d="M5 12.5 10 17.5 19 6.5"/>',
+  no:       '<path d="M6 6l12 12M18 6 6 18"/>',
+  warnOk:   '<path d="M5 12.5 10 17.5 19 6.5"/>'
+};
+var DANGER_BTN=["wipe","delStu","gcalOut","dumpDrop","no","cropCancel"];
+function iconURL(d){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" '+
+    'stroke="#000" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  return 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+}
+function markButton(b){
+  if(!b||b.dataset.ic)return;
+  var d=BTN_ICON[b.id];
+  if(!d)return;
+  b.style.setProperty("--ic",iconURL(d));
+  b.dataset.ic="1";
+  if(DANGER_BTN.indexOf(b.id)>-1)b.dataset.danger="1";
+}
+function markAllButtons(root){
+  var box=root||document;
+  Array.prototype.forEach.call(box.querySelectorAll(".btn[id]"),markButton);
+}
+
 /* ---------- themes ---------- */
 /* bg, card, line, text, accent, alt — enough to draw the card in its own skin */
 var THEMES=[
@@ -5355,6 +6326,56 @@ var THEMES=[
    c:["#0B0D1A","#141830","#2A3055","#EDEBFF","#FF5C8A","#5FD0E8"], lock:"streak30"},
   {id:"kohaku",   name:"Kohaku",    light:true,  blurb:"Amber and rice paper. For someone who kept at it.",
    c:["#F5EDDE","#FFFAF0","#DFCFAF","#3A2E1E","#C4741E","#6B7F4A"], lock:"year"},
+  {id:"shinkansen",name:"Shinkansen",light:true, blurb:"White, blue and a stripe of speed. Earned by volume.",
+   c:["#EEF1F5","#FFFFFF","#C6D2E0","#12243A","#0B63B8","#E8552F"], lock:"fivehun"},
+  {id:"karesansui",name:"Karesansui",light:true, blurb:"Raked sand and three stones. Very little happens.",
+   c:["#E9E4D8","#F4F0E6","#CFC7B4","#33302A","#7A7263","#96795A"], lock:"tengrand"},
+  {id:"kabukicho",name:"Kabukicho", light:false, blurb:"Wet neon on black. Nobody teaches this many hours by accident.",
+   c:["#08060D","#120C1C","#2C1B3F","#F2E9FF","#FF2D78","#00E0C6"], lock:"eight1day"},
+  {id:"genmaicha",name:"Genmaicha", light:false, blurb:"Toasted rice and green tea. Steady, and a long time coming.",
+   c:["#14170F","#1C2016","#333A26","#E6EBD8","#9DBF5A","#C6A15B"], lock:"seasons4"},
+  /* ---- seasonal drops ----
+     Each one opens for a window every year. While it is open you can wear it
+     for the day, no strings. Teach enough inside the window and it is yours
+     for good, and then it comes back every year without you having to earn it
+     twice. Miss it and you are back to day passes next year. */
+  {id:"hanami",   name:"Hanami",     light:true,  drop:{from:"03-20",to:"04-20",need:14},
+   blurb:"Petals on wet stone. Three weeks of it, then it is gone.",
+   c:["#F7EFF2","#FFFAFB","#E8CFD8","#3A2A31","#E86B94","#7FA86B"]},
+  {id:"tamago",   name:"Tamago",     light:true,  drop:{from:"03-25",to:"04-12",need:8},
+   blurb:"Dyed shells and spring pastels.",
+   c:["#F6F3E8","#FFFDF4","#DED8C0","#3B3826","#7BB8A8","#E0A93F"]},
+  {id:"kogane",   name:"Kogane",     light:true,  drop:{from:"04-29",to:"05-06",need:5},
+   blurb:"Golden Week. Flags, crowds, and everything shut.",
+   c:["#FBF4E4","#FFFCF3","#E6D9B8","#37301E","#D9A227","#4E7FA8"]},
+  {id:"tanabata", name:"Tanabata",   light:false, drop:{from:"07-01",to:"07-08",need:5},
+   blurb:"Paper wishes strung on bamboo, one night a year.",
+   c:["#0B1030","#141A46","#2A3272","#EDEFFF","#66D9FF","#FFD35C"]},
+  {id:"natsu",    name:"Natsumatsuri",light:false,drop:{from:"06-21",to:"08-31",need:20},
+   blurb:"Festival lanterns and heat that will not lift.",
+   c:["#140B14","#1F1120","#3A1F38","#FFEEDD","#FF7A3D","#42C7C0"]},
+  {id:"obon",     name:"Obon",       light:false, drop:{from:"08-10",to:"08-18",need:6},
+   blurb:"Floating lights on dark water.",
+   c:["#0A0F12","#111820","#22303A","#E8F0F4","#E8B54A","#6FA8B8"]},
+  {id:"kouyou",   name:"Kouyou",     light:false, drop:{from:"09-22",to:"11-15",need:18},
+   blurb:"Maples turning. The best six weeks of the year.",
+   c:["#170D0A","#211310","#3E2118","#FBEADF","#D9552B","#C8912F"]},
+  {id:"obake",    name:"Obake",      light:false, drop:{from:"10-18",to:"11-02",need:8},
+   blurb:"Something is behind you. Do not turn round.",
+   c:["#0A0710","#140C1A","#2B1740","#F0E6FF","#FF7A18","#8CE05A"]},
+  {id:"seiya",    name:"Seiya",      light:false, drop:{from:"12-13",to:"12-27",need:8},
+   blurb:"Cold air, warm windows, the whole city lit up.",
+   c:["#08120E","#0E1B15","#1B3226","#EFF6F0","#D8433F","#4FA86B"]},
+  {id:"yuki",     name:"Yukiakari",  light:true,  drop:{from:"12-01",to:"02-15",need:18},
+   blurb:"Snow light. Everything quieter than it should be.",
+   c:["#EDF1F5","#FBFDFF","#CBD8E4","#1E2A36","#5B87B8","#8FA8BF"]},
+  {id:"hatsu",    name:"Hatsuhinode",light:true,  drop:{from:"12-30",to:"01-08",need:5},
+   blurb:"First light of the year, over the water.",
+   c:["#FFF2E8","#FFF9F3","#F0D6BE","#3A2418","#E8623C","#D9A227"]},
+  {id:"choco",    name:"Choco",      light:false, drop:{from:"02-07",to:"02-16",need:6},
+   blurb:"Cocoa and a lot of pink foil.",
+   c:["#120A0C","#1C1013","#3A1E26","#FFEDF2","#FF4D7E","#C89B6A"]},
+
   {id:"term",     name:"Phosphor",  light:false, blurb:"One green, monospace, like the machine it was written on.",
    c:["#020703","#061109","#12351E","#43F87C","#43F87C","#1E8A44"]},
   {id:"chaos",    name:"Chaos",     light:false, blurb:"You asked for weird. It does not sit still.",
@@ -5364,14 +6385,77 @@ function themeOf(id){return THEMES.filter(function(t){return t.id===(id||"")})[0
 /* A locked theme opens the moment its achievement does. Whatever you are
    already wearing stays wearable no matter what, so nothing can strand you
    in a theme you cannot re-pick. */
+/* is today inside this drop's window? handles the ones that straddle new year */
+function dropLive(t,when){
+  if(!t.drop)return false;
+  var d=when||new Date(), md=iso(d).slice(5);
+  var a=t.drop.from, b=t.drop.to;
+  return (a<=b) ? (md>=a&&md<=b) : (md>=a||md<=b);
+}
+/* the window as real dates, so progress can be counted inside it */
+function dropRange(t,when){
+  var d=when||new Date(), y=d.getFullYear(), md=iso(d).slice(5);
+  var a=t.drop.from, b=t.drop.to;
+  if(a<=b)return {from:y+"-"+a,to:y+"-"+b};
+  /* straddles the turn of the year: work out which side of it we are on */
+  return (md>=a) ? {from:y+"-"+a,to:(y+1)+"-"+b} : {from:(y-1)+"-"+a,to:y+"-"+b};
+}
+function dropOwned(t){
+  return !!(t.drop&&db.drops&&db.drops[t.id]);
+}
+/* lessons taught inside the current window */
+function dropProgress(t){
+  if(!t.drop)return {at:0,of:0};
+  var r=dropRange(t);
+  var n=db.lessons.filter(function(l){return l.date>=r.from&&l.date<=r.to}).length;
+  return {at:Math.min(n,t.drop.need),of:t.drop.need,done:n>=t.drop.need};
+}
+/* awards any drop whose window is open and whose target has been met */
+function checkDrops(){
+  if(!db.drops)db.drops={};
+  var fresh=[];
+  THEMES.forEach(function(t){
+    if(!t.drop||db.drops[t.id])return;
+    if(dropLive(t)&&dropProgress(t).done){
+      db.drops[t.id]=iso(new Date());
+      fresh.push(t);
+    }
+  });
+  if(fresh.length)saveDB();
+  return fresh;
+}
 function themeOpen(t){
+  if(t.drop)return dropOwned(t)||dropLive(t);   /* owned for good, or a day pass */
   if(!t.lock)return true;
   if(cfg.theme===t.id)return true;
   return badgeHave(t.lock);
 }
+/* A day pass is exactly that. If you are wearing a drop you have not earned,
+   it comes off at the end of the day, or the moment the window shuts. */
+function dropCheckout(){
+  var t=THEMES.filter(function(x){return x.id===cfg.theme})[0];
+  if(!t||!t.drop||dropOwned(t))return;
+  var today=iso(new Date());
+  if(cfg.themeDay!==today||!dropLive(t)){
+    cfg.theme=cfg.themeWas||"";
+    cfg.themeDay=null;
+    saveSet();
+    applyTheme(cfg.theme);
+    try{paintThemes()}catch(e){}
+  }
+}
 function lockNote(t){
+  if(t.drop){
+    var pr=dropProgress(t);
+    if(dropLive(t))return "Teach "+t.drop.need+" lessons before it closes to keep it ("+pr.at+"/"+pr.of+")";
+    return "Opens "+prettyMD(t.drop.from)+" to "+prettyMD(t.drop.to)+" each year";
+  }
   var a=ACHIEVEMENTS().filter(function(x){return x.id===t.lock})[0];
   return a?a.d:"locked";
+}
+function prettyMD(md){
+  var p=String(md).split("-");
+  return parseInt(p[1],10)+" "+MONTHS[parseInt(p[0],10)-1].slice(0,3);
 }
 /* The mark inside the + button. Each one still has to read as "add something"
    at 23px on a phone, so they are all centred, all one stroke weight, and none
@@ -5396,6 +6480,22 @@ var PLUS_MARK={
   kinkaku:    'M12 4.2 5 8.6h14zM6.4 10.4v6.2M12 10.4v6.2M17.6 10.4v6.2M4.4 18.6h15.2',
   hanabi:     'M12 12v-7M12 12v7M12 12H5M12 12h7M12 12 7.2 7.2M12 12l4.8 4.8M12 12 16.8 7.2M12 12l-4.8 4.8',
   kohaku:     'M12 4.6c2.6 3 4 5.4 4 7.4a4 4 0 0 1-8 0c0-2 1.4-4.4 4-7.4M8.6 18.8h6.8',
+  hanami:     'M12 6.5a2.6 2.6 0 1 1 0 5.2 2.6 2.6 0 1 1 0-5.2M7.4 12a2.6 2.6 0 1 1 5.2 0 2.6 2.6 0 1 1-5.2 0M12 12a2.6 2.6 0 1 1 5.2 0 2.6 2.6 0 1 1-5.2 0M9.4 15.4a2.6 2.6 0 1 1 5.2 0 2.6 2.6 0 1 1-5.2 0',
+  tamago:     'M12 4c3.2 3.6 5 6.6 5 9.2a5 5 0 0 1-10 0C7 10.6 8.8 7.6 12 4M7.6 11.5c1.6 1.2 3.2 1.2 4.4 0s2.8-1.2 4.4 0',
+  kogane:     'M12 3.6 14 9h5.6l-4.5 3.4 1.7 5.4L12 14.6 7.2 17.8l1.7-5.4L4.4 9H10z',
+  tanabata:   'M12 3.5v11M12 14.5c-2.5 0-4.5 1.4-4.5 3S9.5 20.5 12 20.5s4.5-1.4 4.5-3-2-3-4.5-3M7.5 6.5 12 8.5l4.5-2',
+  natsu:      'M12 3.5v3M12 17.5v3M4.5 12h3M16.5 12h3M6.6 6.6l2.1 2.1M15.3 15.3l2.1 2.1M17.4 6.6l-2.1 2.1M8.7 15.3l-2.1 2.1M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 1 1 0-7',
+  obon:       'M8.5 4.5h7v11h-7zM8.5 8h7M12 4.5v11M6 18.5c1.5-1.2 3-1.2 4.5 0s3 1.2 4.5 0 3-1.2 4.5 0',
+  kouyou:     'M12 20.5v-4M12 16.5 6.5 12l2.5-.6L5 7.5l4.5.8L9 4.5 12 8l3-3.5-.5 3.8L19 7.5l-4 3.9 2.5.6z',
+  obake:      'M6.5 20.5V9.5a5.5 5.5 0 0 1 11 0v11l-2-1.6-1.8 1.6-1.7-1.6-1.7 1.6-1.8-1.6zM10 10.5v1.5M14 10.5v1.5',
+  seiya:      'M12 3.5 4.5 20.5h15zM12 8.5 8.5 16h7zM12 3.5v-1',
+  yuki:       'M12 3.5v17M4.5 7.8l15 8.4M19.5 7.8l-15 8.4M12 7.5 9.4 5.6M12 7.5l2.6-1.9M12 16.5l-2.6 1.9M12 16.5l2.6 1.9',
+  hatsu:      'M3.5 17.5h17M12 5.5a6 6 0 0 1 6 6H6a6 6 0 0 1 6-6M12 2.5v1.6M5.6 5.1l1.1 1.1M18.4 5.1l-1.1 1.1',
+  choco:      'M12 20.5S4.5 15.6 4.5 10.4A4 4 0 0 1 12 8.2a4 4 0 0 1 7.5 2.2c0 5.2-7.5 10.1-7.5 10.1z',
+  shinkansen: 'M3.4 15.6h17.2M5 15.6c0-5 3.2-8 7-8s7 3 7 8M8.4 11.4h7.2M6 18.6h12',
+  karesansui: 'M3.6 8.4h16.8M3.6 12h16.8M3.6 15.6h16.8M8 12a2.2 2.2 0 1 1 4.4 0 2.2 2.2 0 1 1-4.4 0',
+  kabukicho:  'M8 4.4v15.2M16 4.4v15.2M8 9.2h8M8 14.8h8M4.6 4.4h6.8M12.6 19.6h6.8',
+  genmaicha:  'M12 20c0-6 3.2-10.6 8-12-.4 6.6-3.6 11-8 12M12 20c0-4.4-2.2-7.6-6-8.6.4 4.8 2.6 8 6 8.6',
   climber:    'M3.4 19 9.6 8.4l3.6 5.8 2.4-3.6L20.6 19zM12 3.4v3.4M10.3 5.1h3.4'      /* a peak, and a cross above it */
 };
 function paintPlus(id){
@@ -5416,28 +6516,94 @@ function applyTheme(id){
   /* the creature and the confetti are drawn, not styled: force a repaint */
   try{shown=0;renderAll()}catch(e){}
 }
+/* ---- browsing forty odd themes ----
+   A flat grid stopped working somewhere around theme twenty. So: a filter
+   row that defaults to what you can actually wear right now, and inside that
+   the themes are grouped, with a count on each group. Open now sits first
+   because it is the only group with a deadline on it. */
+var themeFilter="ready";
+function themeGroup(t){
+  if(t.drop)return dropLive(t)?"now":"season";
+  if(t.lock)return badgeHave(t.lock)?"earned":"locked";
+  return "core";
+}
+var GROUP_LABEL={
+  now:"Open now",  earned:"Earned",  core:"Always yours",
+  locked:"Still locked", season:"Seasonal, closed"
+};
+var GROUP_NOTE={
+  now:"Wear it today for nothing. Teach enough before it closes and it is yours for good.",
+  earned:"Unlocked by something you did.",
+  core:"",
+  locked:"Each one names what it wants.",
+  season:"They come round again every year."
+};
+function themeCard(t,cur){
+  var c=t.c, on=cur===t.id, open=themeOpen(t);
+  var owned=t.drop&&dropOwned(t);
+  var tag=on?"wearing":(owned?"kept":(t.drop&&dropLive(t)?"today only":""));
+  return '<button type="button" class="tcard'+(on?" on":"")+(open?"":" locked")+'" data-theme="'+t.id+'" '+
+    (open?"":'data-locked="'+esc(lockNote(t))+'" ')+
+    'style="background:'+c[0]+';color:'+c[3]+'">'+
+    '<span class="tdots">'+
+      '<i style="background:'+c[4]+'"></i>'+
+      '<i style="background:'+c[5]+'"></i>'+
+      '<i style="background:'+c[1]+';box-shadow:inset 0 0 0 1.5px '+c[2]+'"></i>'+
+    '</span>'+
+    '<span class="tname">'+esc(t.name)+'</span>'+
+    (tag?'<span class="twear" style="color:'+c[4]+'">'+tag+'</span>':"")+
+    (open?"":'<span class="tlock">locked</span>')+
+    '</button>';
+}
 function paintThemes(){
   var box=$("themePick"); if(!box)return;
   var cur=cfg.theme||"";
-  box.innerHTML=THEMES.map(function(t){
-    var c=t.c;   /* bg, card, line, text, accent, alt */
-    var on=cur===t.id, open=themeOpen(t);
-    return '<button type="button" class="tcard'+(on?" on":"")+(open?"":" locked")+'" data-theme="'+t.id+'" '+
-      (open?"":'data-locked="'+esc(lockNote(t))+'" ')+
-      'style="background:'+c[0]+';color:'+c[3]+'">'+
-      '<span class="tdots">'+
-        '<i style="background:'+c[4]+'"></i>'+
-        '<i style="background:'+c[5]+'"></i>'+
-        '<i style="background:'+c[1]+';box-shadow:inset 0 0 0 1.5px '+c[2]+'"></i>'+
-      '</span>'+
-      '<span class="tname">'+esc(t.name)+'</span>'+
-      (on?'<span class="twear" style="color:'+c[4]+'">wearing</span>':"")+
-      (open?"":'<span class="tlock">locked</span>')+
-      '</button>';
-  }).join("");
+  var groups={now:[],earned:[],core:[],locked:[],season:[]};
+  THEMES.forEach(function(t){groups[themeGroup(t)].push(t)});
+  var show=(themeFilter==="ready")  ? ["now","core","earned"]
+          :(themeFilter==="locked") ? ["locked"]
+          :(themeFilter==="season") ? ["now","season"]
+          : ["now","core","earned","locked","season"];
+  var counts={ready:groups.now.length+groups.core.length+groups.earned.length,
+              locked:groups.locked.length,
+              season:groups.now.length+groups.season.length,
+              all:THEMES.length};
+  var chips=[["ready","Ready"],["season","Seasonal"],["locked","Locked"],["all","All"]];
+  var html='<div class="filters tfilters">'+chips.map(function(c){
+    return '<button type="button" data-tf="'+c[0]+'"'+(themeFilter===c[0]?' class="on"':"")+'>'+
+      c[1]+' <em>'+counts[c[0]]+'</em></button>';
+  }).join("")+'</div>';
+  show.forEach(function(g){
+    if(!groups[g].length)return;
+    html+='<p class="eyebrow tgroup">'+GROUP_LABEL[g]+' <em>'+groups[g].length+'</em></p>'+
+      (GROUP_NOTE[g]?'<p class="empty tgnote">'+GROUP_NOTE[g]+'</p>':"")+
+      '<div class="themes">'+groups[g].map(function(t){return themeCard(t,cur)}).join("")+'</div>';
+  });
+  box.innerHTML=html;
+  Array.prototype.forEach.call(box.querySelectorAll("[data-tf]"),function(b){
+    b.onclick=function(){themeFilter=b.dataset.tf;paintThemes()};
+  });
+  paintThemesOld(box,cur);
+}
+function paintThemesOld(box,cur){
+  var _ignore=THEMES.map(function(t){
+    return t.id;
+  });
   Array.prototype.forEach.call(box.querySelectorAll("[data-theme]"),function(b){
     b.onclick=function(){
       if(b.dataset.locked){toast(b.dataset.locked);return}
+      var pick=THEMES.filter(function(x){return x.id===b.dataset.theme})[0];
+      var cur=THEMES.filter(function(x){return x.id===cfg.theme})[0];
+      if(pick&&pick.drop&&!dropOwned(pick)){
+        /* remember what to put you back into tomorrow */
+        if(!cur||!cur.drop||dropOwned(cur))cfg.themeWas=cfg.theme;
+        cfg.themeDay=iso(new Date());
+        var pr=dropProgress(pick);
+        toast("Yours for today. "+(pr.of-pr.at)+" more lesson"+((pr.of-pr.at)===1?"":"s")+" in the window to keep it.");
+      } else if(pick&&!pick.drop){
+        cfg.themeWas=b.dataset.theme;
+        cfg.themeDay=null;
+      }
       cfg.theme=b.dataset.theme; saveSet();
       applyTheme(cfg.theme); paintThemes();
       var el=$("themePick").querySelector(".tcard.on");
@@ -5449,6 +6615,7 @@ function paintThemes(){
   if(sel)box.scrollLeft=Math.max(0,sel.offsetLeft-box.clientWidth/2+sel.offsetWidth/2);
 }
 applyTheme(cfg.theme);
+try{dropCheckout()}catch(e){}
 paintThemes();
 
 $("aiKey").value=cfg.aiKey||"";
@@ -6090,8 +7257,8 @@ if("serviceWorker" in navigator){
 $("sfxBtn").textContent="Sound: "+(cfg.sfx===false?"off":"on");
 $("gcalCid").value=cfg.gcalCid||"";
 renderGcal();
-$("gName").value=cfg.goalName||"";
-$("gTgt").value=boxVal(cfg.goalTarget);
+paintGoalList();
+try{markAllButtons()}catch(e){}
 renderAll();
 </script>
 </body>
