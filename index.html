@@ -57,6 +57,15 @@ body{
   min-height:100dvh;
 }
 .wrap{max-width:540px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left)) 0 max(16px,env(safe-area-inset-right))}
+/* Scrolled content passes under the status bar. Without anything behind it,
+   the clock and the battery land on top of whatever line happens to be there,
+   which is what makes a perfectly fine screen look broken. A fade the exact
+   height of the inset, and nothing has to move. */
+.statusveil{position:fixed;left:0;right:0;top:0;z-index:59;pointer-events:none;
+  height:calc(env(safe-area-inset-top,0px) + 6px);
+  background:linear-gradient(180deg,var(--void) 55%,transparent);
+  opacity:.96}
+@supports not (height: env(safe-area-inset-top)){.statusveil{display:none}}
 button,input,select{font-family:var(--body)}
 
 /* ---------- masthead ---------- */
@@ -1759,6 +1768,7 @@ body.light .toastless{display:none}
   </div>
 </div>
 
+<div class="statusveil" aria-hidden="true"></div>
 <div class="wrap">
   <header class="masthead">
     <div class="brand"><span class="kanji">毎日</span><span class="name">MainichiTracker</span></div>
@@ -2090,7 +2100,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CD</b> · 24 Aug 2026<br>If this does not say CD, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CE</b> · 24 Aug 2026<br>If this does not say CE, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">What the app is carrying</p>
@@ -4360,11 +4370,24 @@ function makeBar(id,opt){
     if(surge>0&&evoT<0)surge=Math.max(0,surge-0.010);
   }
 
+  /* Full rate only while something is actually happening: a crawl in
+     progress, an evolution, a surge, or a fill that has not settled. The rest
+     of the time the creature idles at a third of the frames, which looks the
+     same and costs a third as much. */
+  var IDLE_MS=50;                 /* twenty frames a second when resting */
+  function busy(){
+    return trvOn || evoT>=0 || surge>0.001 || Math.abs(target-fill)>0.0005;
+  }
+  function again(){
+    if(busy())raf=requestAnimationFrame(tick);
+    else raf=setTimeout(tick,IDLE_MS);
+  }
   function tick(){
     if(!alive){raf=null;return}
-    t+=0.016*(opt.speed||1)*(1+surge*0.5);
+    var b=busy();
+    t+=(b?0.016:IDLE_MS/1000)*(opt.speed||1)*(1+surge*0.5);
     draw();
-    raf=requestAnimationFrame(tick);
+    again();
   }
 
   function plan(){
@@ -4407,8 +4430,14 @@ function makeBar(id,opt){
       plan();
     },
     run:function(on){
+      var was=alive;
       alive=!!on;
-      if(alive&&!raf)raf=requestAnimationFrame(tick);
+      if(!alive){
+        /* the handle is a timer id when idling, so cancel both ways */
+        if(raf){try{cancelAnimationFrame(raf)}catch(e){} clearTimeout(raf); raf=null}
+        return;
+      }
+      if(!was||!raf){if(raf){clearTimeout(raf)}raf=requestAnimationFrame(tick)}
     },
     kick:function(){surge=1}
   };
@@ -8380,22 +8409,38 @@ function clearFx(){
   fxc.clearRect(0,0,fx.width,fx.height);
   fxc.restore();
 }
+/* A full screen canvas at devicePixelRatio 2 on a modern iPhone is about
+   three million pixels, and every pixel is four bytes whether or not anything
+   has ever been drawn on it. That buffer used to be allocated at launch and
+   held for the life of the page for the sake of confetti you might see for
+   two seconds. Now it is allocated when something is about to be drawn and
+   handed straight back afterwards, and capped at 1.5x, which is
+   indistinguishable for tumbling shapes. */
+var FX_DPR_CAP=1.5;
 function sizeFx(){
-  dpr=Math.min(window.devicePixelRatio||1,2);
+  dpr=Math.min(window.devicePixelRatio||1,FX_DPR_CAP);
   var w=Math.round(innerWidth), hh=Math.round(innerHeight);
-  if(fx.width===w*dpr&&fx.height===hh*dpr)return;
-  fx.width=w*dpr; fx.height=hh*dpr;
+  if(fx.width===Math.round(w*dpr)&&fx.height===Math.round(hh*dpr))return;
+  fx.width=Math.round(w*dpr); fx.height=Math.round(hh*dpr);
   fx.style.width=w+"px"; fx.style.height=hh+"px";
   fxc.setTransform(dpr,0,0,dpr,0,0);
   clearFx();
 }
-sizeFx();
-window.addEventListener("resize",sizeFx);
-window.addEventListener("orientationchange",function(){setTimeout(sizeFx,120)});
-if(window.visualViewport)visualViewport.addEventListener("resize",sizeFx);
+/* setting a canvas to zero is what actually frees the buffer */
+function freeFx(){
+  if(fx.width===0&&fx.height===0)return;
+  fx.width=0; fx.height=0;
+}
+freeFx();
+/* only re-size a buffer that is currently in use; otherwise leave it at zero */
+var reFx=function(){if(running||parts.length||shower)sizeFx()};
+window.addEventListener("resize",reFx);
+window.addEventListener("orientationchange",function(){setTimeout(reFx,120)});
+if(window.visualViewport)visualViewport.addEventListener("resize",reFx);
 
 function startLoop(){
   if(running)return;
+  sizeFx();                 /* the buffer exists only while it is needed */
   running=true; last=0;
   requestAnimationFrame(tick);
 }
@@ -8403,6 +8448,7 @@ function startLoop(){
 function killFx(){
   parts.length=0; shower=null; running=false; last=0; acc=0;
   clearFx();   /* the track keeps playing; only the canvas is reset */
+  freeFx();    /* and the buffer goes back, which is most of the memory */
 }
 document.addEventListener("visibilitychange",function(){
   if(document.hidden){killFx();expBar.run(false);heroBar.run(false);dropBufs()}
@@ -8457,6 +8503,7 @@ function burst(n,from,quiet,pre){
   }
 
   /* one mark per tap, drawn fresh each time */
+  sizeFx();                   /* the canvas may have been handed back */
   var pick=pick0||drawMark();
   markImg(pick);              /* decode it now, if it never has been */
   var k=pick._scale;
@@ -8525,7 +8572,7 @@ function tick(now){
   }
 
   if(parts.length||shower)requestAnimationFrame(tick);
-  else{running=false;last=0;clearFx()}
+  else{running=false;last=0;clearFx();freeFx()}
 }
 
 /* ---------- rotation / resize recovery ---------- */
