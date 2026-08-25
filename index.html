@@ -17,11 +17,10 @@
 <!-- The faces the themes reach for. All display:swap, so a slow connection
      shows the system font first rather than nothing, and none of them are
      needed for the app to work. -->
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Archivo+Black&family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Playfair+Display:wght@500;700;900&family=Zen+Maru+Gothic:wght@400;500;700&family=Bebas+Neue&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
-<!-- The number on the home screen gets its own face in every theme. This is
-     the only place most of these are used, which is why they are one weight
-     each. All display:swap, so nothing here can hold up a cold start. -->
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Fredoka:wght@500;600;700&family=Righteous&family=DM+Serif+Display&family=Lora:wght@600;700&family=Syne:wght@700;800&family=Chakra+Petch:wght@600;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&family=Bungee&family=Cinzel:wght@700;900&family=Unbounded:wght@600;800&family=Instrument+Serif&family=Dela+Gothic+One&family=Reggae+One&family=Rampart+One&family=Yuji+Syuku&family=Libre+Baskerville:wght@700&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<!-- The faces the themes reach for are NOT loaded here. Thirty families on
+     every cold start is thirty requests and a lot of held memory for the
+     twenty nine you are not wearing. They load when a theme asks for one,
+     and the browser keeps them cached after that. See FONT_Q below. -->
 <style>
 :root{
   --void:#0C111A;
@@ -103,6 +102,12 @@ button,input,select{font-family:var(--body)}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
 
 /* ---------- stamp card ---------- */
+/* the month sliding in from the side you came from */
+@keyframes slidL{from{transform:translateX(16px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes slidR{from{transform:translateX(-16px);opacity:.3}to{transform:none;opacity:1}}
+.grid.slidL{animation:slidL .24s cubic-bezier(.2,.9,.3,1)}
+.grid.slidR{animation:slidR .24s cubic-bezier(.2,.9,.3,1)}
+@media (prefers-reduced-motion:reduce){.grid.slidL,.grid.slidR{animation:none}}
 .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px;font-family:var(--display);font-size:11px;color:var(--muted);text-align:center}
 .dow i{font-style:normal}
 .dow i:first-child{color:var(--shu)}
@@ -2085,7 +2090,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BZ</b> · 24 Aug 2026<br>If this does not say BZ, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CC</b> · 24 Aug 2026<br>If this does not say CC, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -2265,6 +2270,9 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 var $=function(i){return document.getElementById(i)};
 var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
 var view=new Date(); view.setDate(1);
+/* the selected day, as a real date. It used to be a day-of-month number
+   resolved against whatever month was on screen at the time, which drifted
+   the moment anything moved the view. */
 var selDay=null, fresh=null;
 
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -2773,7 +2781,8 @@ function wireChips(inputId,onPick){
 function logSheet(){
   var opts="";
   openSheet(
-    '<h3>Log</h3>'+
+    '<h3>Log'+(selDay?' <em style="font-style:normal;font-size:13px;color:var(--muted);font-weight:400">'+
+      esc(dayLabel(selDay))+" "+parseInt(selDay.slice(8,10),10)+' '+MONTHS[parseInt(selDay.slice(5,7),10)-1]+'</em>':"")+'</h3>'+
     '<div class="seg"><button id="mL" class="'+(logMode==="lesson"?"on":"")+'">Taught</button>'+
     '<button id="mS" class="'+(logMode==="book"?"on":"")+'">Schedule</button>'+
     '<button id="mB" class="'+(logMode==="bundle"?"on":"")+'">Prepay</button></div>'+
@@ -2812,7 +2821,7 @@ function wireLen(inputId,onPick){
   });
 }
 function lessonForm(opts){
-  var ds=selDay?iso(new Date(view.getFullYear(),view.getMonth(),selDay)):iso(new Date());
+  var ds=selDay||iso(new Date());
   var t=nowTime();
   var ranked=rankStudents(ds,t);
   var first=ranked.length?ranked[0].id:"";
@@ -2827,7 +2836,7 @@ function lessonForm(opts){
   '<button class="btn" id="lGo">Log lesson</button>';
 }
 function bookForm(opts){
-  var ds=selDay?iso(new Date(view.getFullYear(),view.getMonth(),selDay)):iso(new Date());
+  var ds=selDay||iso(new Date());
   var ranked=rankStudents(ds,"16:00");
   var first=ranked.length?ranked[0].id:"";
   return '<div class="field"><label>Student <em id="kWhy" style="font-style:normal;float:right;color:var(--muted);font-size:11px"></em></label>'+studentChips("kStu",false,ds,"16:00")+
@@ -2860,7 +2869,7 @@ function wireLog(){
       $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab. You can still log one-off income there once someone exists.</p>';
       return;
     }
-    $("lDate").value = selDay ? iso(new Date(view.getFullYear(),view.getMonth(),selDay)) : today;
+    $("lDate").value = selDay || today;
     $("lTime").value = nowTime();
     var syncHint=function(){
       var sid=$("lStu").value, s=student(sid), c=sid?credits(sid):{lessons:0};
@@ -2943,7 +2952,7 @@ function wireLog(){
       $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab.</p>';
       return;
     }
-    $("kDate").value = selDay ? iso(new Date(view.getFullYear(),view.getMonth(),selDay)) : today;
+    $("kDate").value = selDay || today;
     var kPicked=false;
     var kRerank=function(){
       refreshChips("kStu",false,$("kDate").value,$("kTime").value,function(){kPicked=true},!kPicked);
@@ -2980,7 +2989,8 @@ function wireLog(){
       return;
     }
     wireChips("bStu");
-    $("bDate").value=today;
+    /* prepay honours the picked day too, rather than always snapping to today */
+    $("bDate").value=selDay||today;
     $("bGo").onclick=function(){
       var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=base(parseFloat($("bAmt").value)||0);
       if(!sid||n<1||!amt){toast("Fill in lessons and total");return}
@@ -3744,6 +3754,49 @@ function setTotal(v){
   requestAnimationFrame(step);
 }
 
+/* ---- swiping the card between months ----
+   The arrows were the only way through. This adds the gesture without taking
+   the taps away: it only claims a drag that is clearly sideways, so tapping a
+   day and scrolling the page both still work exactly as before. */
+function wireCalSwipe(){
+  var g=$("grid"); if(!g||g.dataset.swipe)return;
+  g.dataset.swipe="1";
+  var x0=0,y0=0,decided=false,horiz=false;
+  g.addEventListener("touchstart",function(e){
+    if(e.touches.length!==1)return;
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY;
+    decided=false; horiz=false;
+  },{passive:true});
+  g.addEventListener("touchmove",function(e){
+    if(decided)return;
+    var dx=e.touches[0].clientX-x0, dy=e.touches[0].clientY-y0;
+    if(Math.abs(dx)<10&&Math.abs(dy)<10)return;
+    decided=true;
+    horiz=Math.abs(dx)>Math.abs(dy)*1.4;   /* clearly sideways, or it is a scroll */
+  },{passive:true});
+  g.addEventListener("touchend",function(e){
+    if(!horiz)return;
+    var dx=(e.changedTouches[0].clientX-x0);
+    if(Math.abs(dx)<44)return;
+    stepMonth(dx<0?1:-1);
+    /* the tap that would follow this drag is not a tap */
+    var eat=function(ev){ev.stopPropagation();ev.preventDefault()};
+    g.addEventListener("click",eat,{capture:true,once:true});
+  },{passive:true});
+}
+function stepMonth(n){
+  totalAll=false;
+  view=new Date(view.getFullYear(),view.getMonth()+n,1);
+  selDay=null; shown=0;
+  buzz(6);
+  var card=$("grid");
+  if(card){
+    card.classList.remove("slidL","slidR");
+    void card.offsetWidth;
+    card.classList.add(n>0?"slidL":"slidR");
+  }
+  renderAll();
+}
 function renderHome(){
   var y=view.getFullYear(), m=view.getMonth();
   $("mlabel").textContent=totalAll?"All time":(MONTHS[m]+" "+y);
@@ -3793,7 +3846,7 @@ function renderHome(){
   var first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
   var byDay={};
   mine.forEach(function(l){var d=+l.date.slice(8,10);byDay[d]=byDay[d]||{n:0,v:0};byDay[d].n++;byDay[d].v+=l.amount});
-  var g=$("grid"); g.innerHTML="";
+  var g=$("grid"); g.innerHTML=""; wireCalSwipe();
   for(var i=0;i<first;i++){var b=document.createElement("div");b.className="cell blank";g.appendChild(b)}
   var today=iso(new Date());
   for(var d=1;d<=dim;d++){
@@ -3802,12 +3855,12 @@ function renderHome(){
       var c=document.createElement("button");
       c.type="button"; c.className="cell";
       if(ds===today)c.classList.add("today");
-      if(selDay===d)c.classList.add("sel");
+      if(selDay===ds)c.classList.add("sel");
       if(info){c.classList.add("stamped"); if(info.n>1)c.classList.add("multi"); if(fresh===ds)c.classList.add("fresh")}
       else if(db.bookings.some(function(b){return !b.doneId&&b.date===ds}))c.classList.add("booked");
       c.innerHTML='<span class="n">'+d+'</span><span class="mark"></span><span class="badge">'+(info?info.n:"")+'</span>';
       c.setAttribute("aria-label",ds+(info?", "+info.n+" lessons, "+money(info.v):""));
-      c.onclick=function(){selDay=(selDay===d?null:d);renderHome();};
+      c.onclick=function(){selDay=(selDay===ds?null:ds);renderHome();};
       g.appendChild(c);
     })(d);
   }
@@ -3820,9 +3873,8 @@ function renderHome(){
   /* ledger, filtered by selected day */
   var list=mine, lab="This month";
   if(selDay){
-    var ds2=iso(new Date(y,m,selDay));
-    list=mine.filter(function(l){return l.date===ds2});
-    lab=MONTHS[m]+" "+selDay;
+    list=mine.filter(function(l){return l.date===selDay});
+    lab=MONTHS[parseInt(selDay.slice(5,7),10)-1]+" "+parseInt(selDay.slice(8,10),10);
   }
   var led=$("ledger");
   $("ledlab").innerHTML=lab+' <em id="count"></em>';
@@ -4060,14 +4112,48 @@ function fbm(x){
 }
 function ease(x){return x<0.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
 
+/* ---- the bar's colours, taken from the live theme ----
+   Read once per theme change and cached, because getComputedStyle on every
+   frame would be wasteful. Four accents, blended into eleven steps, so the
+   climb still visibly changes colour without ever leaving the theme. */
+var BAR_PAL=null;
+function hexRGB(h){
+  h=String(h||"").trim();
+  var m=/^#?([0-9a-f]{6})$/i.exec(h);
+  if(m){var v=parseInt(m[1],16);return {r:(v>>16)&255,g:(v>>8)&255,b:v&255}}
+  m=/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(h);
+  if(m)return {r:+m[1],g:+m[2],b:+m[3]};
+  return null;
+}
+function mix(a,b,t){
+  return {r:a.r+(b.r-a.r)*t, g:a.g+(b.g-a.g)*t, b:a.b+(b.b-a.b)*t};
+}
+function barPal(){
+  if(BAR_PAL)return BAR_PAL;
+  var cs=getComputedStyle(document.body);
+  var stops=["--shu","--gold","--good","--sky"].map(function(v){
+    return hexRGB(cs.getPropertyValue(v));
+  }).filter(Boolean);
+  if(stops.length<2)stops=[{r:224,g:87,b:76},{r:110,g:155,b:209}];
+  /* eleven steps around the loop, so it comes back to the start smoothly */
+  var out=[], N=11;
+  for(var i=0;i<N;i++){
+    var f=i/N*stops.length;
+    var a=stops[Math.floor(f)%stops.length];
+    var b=stops[(Math.floor(f)+1)%stops.length];
+    out.push(mix(a,b,f-Math.floor(f)));
+  }
+  BAR_PAL=out;
+  return out;
+}
 function makeBar(id,opt){
   opt=opt||{};
   var cv=$(id);
-  if(!cv||!cv.getContext)return {set:function(){},run:function(){},kick:function(){}};
+  if(!cv||!cv.getContext)return {set:function(){},run:function(){},kick:function(){},recolour:function(){}};
   var ctx=cv.getContext("2d");
   var W=0,H=0,dpr=1,t=0,raf=null,alive=false;
   var target=0, fill=0, vel=0, level=0, surge=0, stiff=0.020;
-  var col={r:224,g:87,b:76}, want={r:224,g:87,b:76};
+  var col=pal(0), want=pal(0);
   var seed=Math.random()*500;
 
   /* the evolution: swell where it stands, gather to a ball, roll home, grow
@@ -4082,11 +4168,16 @@ function makeBar(id,opt){
   var pendEvo=-1;                       /* a level that landed mid-pop */
   var TRV_MS=2200;                      /* one unhurried length of the bar */
 
-  var PAL=[
-    [224,87,76],[232,130,60],[216,178,74],[159,201,74],[95,201,140],
-    [67,199,190],[76,163,224],[110,127,216],[169,111,216],[216,111,192],[232,90,127]
-  ];
-  function pal(lv){var c=PAL[((lv%PAL.length)+PAL.length)%PAL.length];return {r:c[0],g:c[1],b:c[2]}}
+  /* The palette is built from the theme rather than baked in, so the creature
+     belongs to whatever you are wearing. It still walks through a range as
+     you level, but the range is that theme's own accents, blended between so
+     eleven steps come out of four colours without repeating. */
+  function pal(lv){
+    var P=barPal();
+    var n=P.length;
+    var i=((lv%n)+n)%n;
+    return P[i];
+  }
   function rgb(c){return "rgb("+(c.r|0)+","+(c.g|0)+","+(c.b|0)+")"}
 
   function size(){
@@ -4282,6 +4373,12 @@ function makeBar(id,opt){
   }
 
   return {
+    /* the theme changed under us: take the new colour for this level now
+       rather than waiting for the next level up */
+    recolour:function(){
+      want=pal(level); col=pal(level);
+      if(!alive)draw();
+    },
     set:function(f,lv,bumped){
       var was=target;
       target=Math.max(0,Math.min(1,f));
@@ -5757,8 +5854,8 @@ function ceremony(){
 function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();gPullToday();ceremony()}
 
 /* ================= actions ================= */
-$("prev").onclick=function(){totalAll=false;view=new Date(view.getFullYear(),view.getMonth()-1,1);selDay=null;shown=0;renderAll()};
-$("next").onclick=function(){totalAll=false;view=new Date(view.getFullYear(),view.getMonth()+1,1);selDay=null;shown=0;renderAll()};
+$("prev").onclick=function(){stepMonth(-1)};
+$("next").onclick=function(){stepMonth(1)};
 /* the whole ledger, and back again */
 $("total").onclick=function(){totalAll=!totalAll;shown=0;renderAll()};
 $("curBtn").onclick=function(){
@@ -7190,6 +7287,77 @@ var THEMES=[
   {id:"chaos",    name:"Chaos",     light:false, blurb:"You asked for weird. It does not sit still.",
    c:["#0A0012","#1A0733","#FF00C8","#F7FF3C","#FF0055","#00F0FF"]}
 ];
+
+/* ================= fonts, when a theme wants them =================
+   Only the two the app itself is set in load at launch. Everything else
+   arrives the first time a theme that uses it is applied, and the browser
+   caches it from then on, so the second time is instant. A face that never
+   arrives changes nothing: every rule names a fallback the app already had. */
+var FONT_Q={
+  "Anton":"Anton",
+  "Archivo Black":"Archivo+Black",
+  "Bebas Neue":"Bebas+Neue",
+  "Bungee":"Bungee",
+  "Chakra Petch":"Chakra+Petch:wght@600;700",
+  "Cinzel":"Cinzel:wght@700;900",
+  "DM Serif Display":"DM+Serif+Display",
+  "Dela Gothic One":"Dela+Gothic+One",
+  "Fredoka":"Fredoka:wght@500;600;700",
+  "IBM Plex Mono":"IBM+Plex+Mono:wght@400;600",
+  "Instrument Serif":"Instrument+Serif",
+  "Kaisei Decol":"Kaisei+Decol:wght@400;700",
+  "Libre Baskerville":"Libre+Baskerville:wght@700",
+  "Lora":"Lora:wght@600;700",
+  "Major Mono Display":"Major+Mono+Display",
+  "Nunito":"Nunito:wght@400;600;700;800",
+  "Orbitron":"Orbitron:wght@700;900",
+  "Oswald":"Oswald:wght@500;700",
+  "Playfair Display":"Playfair+Display:wght@500;700;900",
+  "Rajdhani":"Rajdhani:wght@600;700",
+  "Rampart One":"Rampart+One",
+  "Reggae One":"Reggae+One",
+  "Righteous":"Righteous",
+  "Space Mono":"Space+Mono:wght@400;700",
+  "Syne":"Syne:wght@700;800",
+  "Unbounded":"Unbounded:wght@600;800",
+  "Yuji Syuku":"Yuji+Syuku",
+  "Zen Maru Gothic":"Zen+Maru+Gothic:wght@400;500;700"
+};
+/* which faces each theme actually reaches for, body and number together */
+var THEME_FONTS={
+  "":[], paper:["Libre Baskerville"], mainichi:["Lora"],
+  sakura:["Zen Maru Gothic","Fredoka"], matcha:["Yuji Syuku"],
+  sumi:["Kaisei Decol"], onepiece:["Reggae One"], squid:["Chakra Petch"],
+  sonny:["Syne"], aero:["Nunito","Fredoka"], vapor:["Bebas Neue"],
+  brutalist:["Archivo Black","Anton","Oswald"], blame:["Space Mono"],
+  tower:["Space Mono","Unbounded"], climber:["Playfair Display"],
+  kinkaku:["Kaisei Decol","Cinzel"], hanabi:["Orbitron"],
+  kohaku:["Kaisei Decol","DM Serif Display"],
+  shinkansen:["Archivo Black","Rajdhani"],
+  karesansui:["Playfair Display","Instrument Serif"],
+  kabukicho:["Bebas Neue","Bungee"], genmaicha:["Zen Maru Gothic"],
+  term:["IBM Plex Mono","Major Mono Display"],
+  chaos:["Archivo Black","Space Mono","Rampart One"],
+  hanami:["Zen Maru Gothic"], tamago:["Zen Maru Gothic","Fredoka"],
+  kogane:["Cinzel"], tanabata:["Bebas Neue","Orbitron"],
+  natsu:["Bebas Neue","Dela Gothic One"], obon:[],
+  kouyou:["Bebas Neue","Kaisei Decol"], obake:["Bebas Neue","Bungee"],
+  seiya:["Cinzel"], yuki:["Playfair Display","Instrument Serif"],
+  hatsu:["Playfair Display","DM Serif Display"], choco:["Righteous"]
+};
+var fontsIn={};
+function needFonts(themeId){
+  var want=THEME_FONTS[themeId||""]||[];
+  var missing=want.filter(function(f){return !fontsIn[f]&&FONT_Q[f]});
+  if(!missing.length)return;
+  missing.forEach(function(f){fontsIn[f]=1});
+  var link=document.createElement("link");
+  link.rel="stylesheet";
+  link.href="https://fonts.googleapis.com/css2?"+
+    missing.map(function(f){return "family="+FONT_Q[f]}).join("&")+"&display=swap";
+  document.head.appendChild(link);
+}
+
 function themeOf(id){return THEMES.filter(function(t){return t.id===(id||"")})[0]||THEMES[0]}
 /* A locked theme opens the moment its achievement does. Whatever you are
    already wearing stays wearable no matter what, so nothing can strand you
@@ -7332,6 +7500,8 @@ function themeFreeze(){
 }
 function applyTheme(id){
   themeFreeze();
+  try{needFonts(id||"")}catch(e){}
+  BAR_PAL=null;                 /* the bars re-read their colours from the new theme */
   var t=themeOf(id);
   if(t.id)document.body.setAttribute("data-theme",t.id);
   else document.body.removeAttribute("data-theme");
@@ -7339,6 +7509,8 @@ function applyTheme(id){
   var m=document.querySelector('meta[name="theme-color"]');
   if(m)m.setAttribute("content",t.c[0]);
   if($("themeNow"))$("themeNow").textContent=t.name;
+  /* repaint both bars in the new palette rather than waiting for the next tick */
+  try{expBar.recolour();heroBar.recolour()}catch(e){}
   paintPlus(t.id);
   /* the creature and the confetti are drawn, not styled: force a repaint */
   try{shown=0;renderAll()}catch(e){}
@@ -7855,6 +8027,9 @@ function ctx(){
 function rebuildCtx(){
   try{if(actx)actx.close()}catch(e){}
   actx=null; bufs={}; curSrc=null; curGain=null;
+  /* the till channel belongs to the old context too: its source can never
+     end now, so nothing would ever clear it if we did not do it here */
+  SFX_LIVE=null; SFX_GAIN=null; SFX_AT=0;
   var c=ctx();
   if(!c)return Promise.reject(new Error("no audio"));
   if(c.state==="running")return Promise.resolve(c);
@@ -7892,15 +8067,50 @@ function b64ToBuf(u){
   for(var i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);
   return arr.buffer;
 }
+/* ---- how much decoded audio to keep ----
+   An MP3 in the cache is not the size of the MP3. Decoding a 20 second
+   stereo clip at 48kHz gives roughly 7MB of raw float samples, and bufs kept
+   every one of them for the life of the page. Eight marks with a few tracks
+   each is well over a hundred megabytes of PCM, which is far past the point
+   where iOS throws the whole app out of memory and cold starts it when you
+   come back. That is what the refreshes are.
+
+   So the cache is a small window: the last few clips stay, the rest go, and
+   they simply decode again next time, which takes a moment nobody notices. */
+var BUF_KEEP=3;
+var bufOrder=[];
+function bufTouch(url){
+  var i=bufOrder.indexOf(url);
+  if(i>-1)bufOrder.splice(i,1);
+  bufOrder.push(url);
+  while(bufOrder.length>BUF_KEEP){
+    var old=bufOrder.shift();
+    if(old!==url)delete bufs[old];
+  }
+}
+/* leaving the app is the right moment to hand it all back */
+function dropBufs(){
+  bufs={}; bufOrder.length=0;
+}
 function loadBuf(url){
-  if(bufs[url])return bufs[url];
+  if(bufs[url]){bufTouch(url);return bufs[url]}
   var raw = url.slice(0,5)==="data:"
     ? Promise.resolve(b64ToBuf(url))
     : fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer()});
-  bufs[url]=raw.then(function(ab){
-    return new Promise(function(res,rej){actx.decodeAudioData(ab,res,rej)});
+  var c=actx;
+  var pr=raw.then(function(ab){
+    return new Promise(function(res,rej){
+      try{c.decodeAudioData(ab,res,rej)}catch(e){rej(e)}
+    });
   });
-  return bufs[url];
+  /* Never keep a failure. A decode that fell over because the context was
+     being suspended used to be cached as a rejected promise, and from then
+     on that clip was dead for the whole session. Drop it and the next tap
+     simply tries again. */
+  pr.catch(function(){ if(bufs[url]===pr)delete bufs[url]; });
+  bufs[url]=pr;
+  bufTouch(url);
+  return pr;
 }
 /* ---- the audio bus ----
    Every sound in the app goes through here. There is exactly one slot, and
@@ -7981,7 +8191,9 @@ var SFX_MIN_GAP=0.22;              /* seconds between two clips, hard floor */
 function stopKaching(c,when){
   if(!SFX_LIVE)return;
   var src=SFX_LIVE, g=SFX_GAIN;
+  /* cleared first, so a throw below can never leave the channel jammed */
   SFX_LIVE=null; SFX_GAIN=null;
+  if(!c||!g){try{src.stop()}catch(e){} return}
   try{
     var t=when||c.currentTime;
     g.gain.cancelScheduledValues(t);
@@ -7998,7 +8210,12 @@ function playKaching(){
     /* two calls landing in the same instant: the later one wins, the earlier
        never reaches start() */
     if(mine!==SFX_TOKEN)return null;
-    if(c.currentTime-SFX_AT<SFX_MIN_GAP&&SFX_LIVE)return null;
+    /* A fresh context starts its clock at zero, so a stale SFX_AT from the
+       previous one makes this difference negative. Negative means the clock
+       restarted, not that a sound just played. */
+    var since=c.currentTime-SFX_AT;
+    if(since<0){SFX_LIVE=null;SFX_GAIN=null;SFX_AT=0;}
+    else if(since<SFX_MIN_GAP&&SFX_LIVE)return null;
     return loadBuf(url).then(function(buf){
       if(mine!==SFX_TOKEN)return;
       var t0=c.currentTime+0.01;
@@ -8070,7 +8287,7 @@ function killFx(){
   clearFx();   /* the track keeps playing; only the canvas is reset */
 }
 document.addEventListener("visibilitychange",function(){
-  if(document.hidden){killFx();expBar.run(false);heroBar.run(false)}
+  if(document.hidden){killFx();expBar.run(false);heroBar.run(false);dropBufs()}
   else{sizeFx();ensureCtx().catch(function(){});setTimeout(function(){window.dispatchEvent(new Event("scroll"))},60)}
 });
 window.addEventListener("pagehide",killFx);
