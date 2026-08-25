@@ -2085,7 +2085,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BY</b> · 24 Aug 2026<br>If this does not say BY, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BZ</b> · 24 Aug 2026<br>If this does not say BZ, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
@@ -7906,9 +7906,11 @@ function loadBuf(url){
    Every sound in the app goes through here. There is exactly one slot, and
    claiming it stops whatever was in it. Two players used to run side by side
    with no idea the other existed, which is what you were hearing. */
+/* Songs share one slot: starting one stops whatever song was playing. The
+   till has its own, so the two never fight. Claiming a channel only ever
+   silences that channel. */
 function busClaim(){
   try{stopAudio()}catch(e){}
-  try{if(typeof actx!=="undefined"&&actx)stopKaching(actx)}catch(e){}
 }
 function stopAudio(){
   if(!curSrc)return;
@@ -8000,8 +8002,7 @@ function playKaching(){
     return loadBuf(url).then(function(buf){
       if(mine!==SFX_TOKEN)return;
       var t0=c.currentTime+0.01;
-      stopKaching(c,t0);                     /* whatever is playing, out */
-      try{stopAudio()}catch(e){}             /* including the other player */
+      stopKaching(c,t0);        /* only a previous till, never the song */
       var src=c.createBufferSource(); src.buffer=buf;
       var g=c.createGain();
       src.connect(g); g.connect(c.destination);
@@ -8095,12 +8096,13 @@ function burst(n,from,quiet){
   if(!from){btn.classList.remove("kick"); void btn.offsetWidth; btn.classList.add("kick")}
   n=n||20;
 
-  /* The mark brings its own track. When it does, that IS the sound, and the
-     till noise would only be a second thing playing at the same time. */
+  /* The till, every time. It rides over the mark's track rather than
+     competing with it: they are on separate channels, so the song can never
+     cut the till off and the till can never cut the song. What must never
+     double up is two SONGS, and that is handled in playMark. */
   var pick0=null;
   try{pick0=drawMark()}catch(e){}
-  var hasTrack=!!(pick0&&TRACKS[pick0._name]&&TRACKS[pick0._name].length);
-  if(!quiet&&!hasTrack)playKaching();
+  if(!quiet)playKaching();
 
   /* one mark per tap, drawn fresh each time */
   var pick=pick0||drawMark();
