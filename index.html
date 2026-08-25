@@ -2104,7 +2104,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CI</b> · 24 Aug 2026<br>If this does not say CI, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CJ</b> · 24 Aug 2026<br>If this does not say CJ, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -2579,7 +2579,9 @@ function toast(msg,undo){
 /* something genuinely went wrong and you need to know why */
 function warn(m){
   if(!m)return;
-  openSheet('<h3>'+esc(m)+'</h3><button class="btn alt" id="warnOk">OK</button>');
+  /* a multi-line report should read as lines, not run together */
+  openSheet('<h3 style="white-space:pre-wrap;line-height:1.5">'+esc(m)+'</h3>'+
+            '<button class="btn alt" id="warnOk">OK</button>');
   var b=$("warnOk"); if(b)b.onclick=closeSheet;
 }
 /* you missed a box: point at it rather than talking about it */
@@ -6044,30 +6046,38 @@ $("gcalOut").onclick=function(){
   saveSet();
   $("gcalToday").innerHTML=""; renderGcal(); toast("Disconnected");
 };
+/* ---- a real diagnostic ----
+   Tests the till sound specifically, because that is the one that must work
+   with no signal, and reports exactly what happened at every step rather than
+   just failing quietly. If sound is broken, this says why. */
 $("testSfx").onclick=function(){
-  if(cfg.sfx===false){toast("Sound is switched off");return}
-  var list=TRACKS[ONLY_MARK||"aphex"]||[];
-  if(!list.length){toast("No track set for this mark");return}
-  var f=list[0].file;
+  if(cfg.sfx===false){warn("Sound is switched off. Turn it back on with the button above.");return}
+  var C=window.AudioContext||window.webkitAudioContext;
+  if(!C){warn("This browser has no Web Audio at all. Nothing can play.");return}
+  var steps=[];
   var c=ctx();
-  if(!c){toast("This browser has no Web Audio");return}
-  if(f.slice(0,5)==="data:"){
-    loadBuf(f).then(function(buf){
-      toast("Embedded clip, "+Math.round(buf.duration)+"s · audio "+c.state);
-      playMark(ONLY_MARK||"aphex",function(){});
-    }).catch(function(){warn("That clip would not decode.")});
-    return;
-  }
-  fetch(f).then(function(r){
-    if(!r.ok){toast("Not found ("+r.status+"): "+f);return}
-    return r.arrayBuffer().then(function(ab){
-      return new Promise(function(res,rej){c.decodeAudioData(ab,res,rej)});
-    }).then(function(buf){
-      bufs[f]=Promise.resolve(buf);
-      toast("Loaded "+Math.round(buf.duration)+"s · audio "+c.state);
-      playMark(ONLY_MARK||"aphex",function(){});
-    }).catch(function(){toast("Found the file but could not decode it")});
-  }).catch(function(){toast("Can't reach "+f+" — is it uploaded?")});
+  steps.push("context: "+(c?c.state:"could not be made"));
+  if(!c){warn(steps.join("\n"));return}
+  var url=KACHING[0];
+  steps.push("clip: "+(url.slice(0,5)==="data:"?"built in, no network needed":"file, "+url));
+  var t0=Date.now();
+  ensureCtx().then(function(cc){
+    steps.push("after waking: "+cc.state+" ("+(Date.now()-t0)+"ms)");
+    return loadBuf(url).then(function(buf){
+      steps.push("decoded: "+(Math.round(buf.duration*100)/100)+"s");
+      var src=cc.createBufferSource(); src.buffer=buf;
+      var g=cc.createGain(); src.connect(g); g.connect(cc.destination);
+      g.gain.setValueAtTime(0.95,cc.currentTime);
+      src.start(cc.currentTime+0.01);
+      steps.push(cc.state==="running"
+        ? "played. If you heard nothing, check the silent switch and the volume."
+        : "queued: the context is "+cc.state+", so it will sound the moment iOS lets it.");
+      warn(steps.join("\n"));
+    });
+  }).catch(function(e){
+    steps.push("stopped here: "+((e&&e.message)||e));
+    warn(steps.join("\n"));
+  });
 };
 $("sfxBtn").onclick=function(){
   cfg.sfx=(cfg.sfx===false); saveSet();
@@ -8229,9 +8239,9 @@ function ctx(){
    background iOS leaves the context in a zombie state where resume() resolves,
    or never resolves at all, and nothing is ever audible again. */
 function rebuildCtx(){
-  /* only ever called from inside a gesture now, so the new one can wake */
   try{if(actx)actx.close()}catch(e){}
-  actx=null; bufs={}; curSrc=null; curGain=null;
+  actx=null; curSrc=null; curGain=null;
+  dropBufs();                       /* buffers belong to the old context */
   /* the till channel belongs to the old context too: its source can never
      end now, so nothing would ever clear it if we did not do it here */
   SFX_LIVE=null; SFX_GAIN=null; SFX_AT=0;
@@ -8244,23 +8254,21 @@ function rebuildCtx(){
 /* Resolves with a context that is genuinely running, rebuilding if it has to.
    resume() hanging forever is the bug that made audio stop until an app restart,
    so it races against a timer instead of being awaited blindly. */
+/* Hands back a context to play into. It tries to wake it and gives that a
+   moment, but it NEVER refuses. A suspended context still accepts start():
+   the sound is queued and plays the instant the context wakes, which on iOS
+   is the next time you touch the screen. Declining to try, which is what
+   this used to do, guarantees silence instead of merely risking it. */
 function ensureCtx(){
   var c=ctx();
-  if(!c)return Promise.reject(new Error("no audio"));
+  if(!c)return Promise.reject(new Error("no audio on this device"));
   if(c.state==="running")return Promise.resolve(c);
+  /* only a context iOS has actually closed is worth replacing */
+  if(c.state==="closed")return rebuildCtx();
   var resumed=Promise.resolve(c.resume()).catch(function(){});
-  var timer=new Promise(function(res){setTimeout(res,320)});
+  var timer=new Promise(function(res){setTimeout(res,260)});
   return Promise.race([resumed,timer]).then(function(){
-    if(actx&&actx.state==="running")return actx;
-    /* Rebuilding outside a gesture is worse than doing nothing: the new
-       context is born suspended, cannot be resumed here, and then becomes
-       the one every later tap starts from. Leave the old one alone and let
-       the next real tap unlock it. */
-    if(!inGesture())throw new Error("asleep");
-    return rebuildCtx();
-  }).then(function(cc){
-    if(cc&&cc.state==="running")return cc;
-    throw new Error("asleep");
+    return actx||c;                 /* running or not, play into it */
   });
 }
 
@@ -8290,7 +8298,11 @@ function unlockAudio(){
     s2.buffer=b; s2.connect(c.destination); s2.start(0);
   }catch(e){}
 }
-["touchstart","pointerdown","mousedown"].forEach(function(ev){
+/* Every kind of touch, not just the way down. A swipe ends in touchend with
+   no pointerdown near it, and a long press can be well over a second old by
+   the time anything is played. Waking the context is cheap and idempotent, so
+   there is no reason to be selective about when to do it. */
+["touchstart","touchend","pointerdown","pointerup","mousedown","click"].forEach(function(ev){
   document.addEventListener(ev,unlockAudio,{passive:true,capture:true});
 });
 function b64ToBuf(u){
@@ -8309,9 +8321,15 @@ function b64ToBuf(u){
 
    So the cache is a small window: the last few clips stay, the rest go, and
    they simply decode again next time, which takes a moment nobody notices. */
-var BUF_KEEP=3;
+var BUF_KEEP=4;
 var bufOrder=[];
+/* A data URI is one of the till clips: a second or so, already in the page,
+   no network involved. Those are pinned and never evicted, because they are
+   the sound you actually hear on every log and they must work with no signal.
+   Only the multi-megabyte tracks in sfx/ are ever dropped. */
+function pinned(url){return String(url).slice(0,5)==="data:"}
 function bufTouch(url){
+  if(pinned(url))return;
   var i=bufOrder.indexOf(url);
   if(i>-1)bufOrder.splice(i,1);
   bufOrder.push(url);
@@ -8320,9 +8338,11 @@ function bufTouch(url){
     if(old!==url)delete bufs[old];
   }
 }
-/* leaving the app is the right moment to hand it all back */
+/* Drops the big tracks only. The till survives, so leaving the app and coming
+   back still makes a noise even with no signal at all. */
 function dropBufs(){
-  bufs={}; bufOrder.length=0;
+  Object.keys(bufs).forEach(function(k){if(!pinned(k))delete bufs[k]});
+  bufOrder.length=0;
 }
 function loadBuf(url){
   if(bufs[url]){bufTouch(url);return bufs[url]}
@@ -8446,7 +8466,11 @@ function playKaching(){
        previous one makes this difference negative. Negative means the clock
        restarted, not that a sound just played. */
     var since=c.currentTime-SFX_AT;
-    if(since<0){SFX_LIVE=null;SFX_GAIN=null;SFX_AT=0;}
+    /* A clock that went backwards means a new context, not a recent sound.
+       And a live source older than a few seconds is a stale handle whose
+       onended never fired, not something still playing: either way the
+       channel is free. Nothing here may latch shut. */
+    if(since<0||since>4){SFX_LIVE=null;SFX_GAIN=null;SFX_AT=0;}
     else if(since<SFX_MIN_GAP&&SFX_LIVE)return null;
     return loadBuf(url).then(function(buf){
       if(mine!==SFX_TOKEN)return;
