@@ -2104,7 +2104,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CH</b> · 24 Aug 2026<br>If this does not say CH, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CI</b> · 24 Aug 2026<br>If this does not say CI, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -6871,7 +6871,12 @@ var COLS=[
   /* before amount on purpose: "Prepaid" contains "paid", and the amount
      column would otherwise swallow it. */
   ["prepay", ["prepay","prepaid","bundle","package","pack","credit","前払い","回数券"]],
-  ["amount", ["amount","paid","price","rate","fee","income","total","earned","revenue","cost","金額","料金"]],
+  /* Its own column, and ahead of amount, or a sheet with both has one
+     swallow the other. This is what a student is charged per hour; amount is
+     what actually changed hands on a given row. They are not the same thing
+     and conflating them is how a bundle price became somebody's rate. */
+  ["rate",   ["rate","hourly","perhour","時給"]],
+  ["amount", ["amount","paid","price","fee","income","total","earned","revenue","cost","charge","金額","料金"]],
   ["lessons",["lesson","qty","quantity","count","session","回数"]],
   ["kind",   ["kind","type","category","種類"]],
   ["note",   ["note","memo","comment","description","メモ"]],
@@ -6948,27 +6953,44 @@ function xlsScan(text){
     var preRaw=m.prepay!==undefined?parseInt(String(row[m.prepay]).replace(/[^0-9.\-]/g,""),10):0;
     if(!dt&&who&&preRaw>0)dt=iso(new Date());   /* a bare prepay count is dated today */
     if(!dt||(!who&&!amt)){plan.skipped++;continue}
-    if(who){
-      var key=who.toLowerCase();
-      if(!known[key]&&!plan.students[key]){
-        plan.students[key]={
-          name:who,
-          rate:amt||0,
-          tz:(m.tz!==undefined&&tzOk(String(row[m.tz]).trim()))?String(row[m.tz]).trim():null,
-          status:(m.status!==undefined&&STATUS.indexOf(String(row[m.status]).trim().toLowerCase())>=0)
-            ?String(row[m.status]).trim().toLowerCase():"active"
-        };
-      }
-    }
     var kind=m.kind!==undefined?String(row[m.kind]||"").toLowerCase():"";
     var n=m.lessons!==undefined?parseInt(row[m.lessons],10):0;
     var pre=m.prepay!==undefined?parseInt(String(row[m.prepay]).replace(/[^0-9.\-]/g,""),10):0;
     if(!(pre>0))pre=0;
     var isBundle=pre>0||kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1;
+    var rowRate=m.rate!==undefined?readMoney(row[m.rate]):0;
+
+    if(who){
+      var key=who.toLowerCase();
+      /* Build them up across every row they appear on. One row rarely has
+         everything: the timezone might only be on the row you added them,
+         the status only on the last one. Taking the first row and never
+         looking again is why so little came through. */
+      var rec=plan.students[key];
+      if(!rec&&!known[key]){
+        rec=plan.students[key]={name:who,rate:0,tz:null,status:null};
+      }
+      if(rec){
+        /* an explicit rate column always wins; otherwise a LESSON amount is a
+           reasonable guess. A bundle amount never is: that is the price of
+           ten lessons, not of one hour. */
+        if(rowRate>0)rec.rate=rowRate;
+        else if(!rec.rate&&!isBundle&&amt>0)rec.rate=amt;
+        if(!rec.tz&&m.tz!==undefined&&tzOk(String(row[m.tz]).trim()))
+          rec.tz=String(row[m.tz]).trim();
+        if(!rec.status&&m.status!==undefined&&
+           STATUS.indexOf(String(row[m.status]).trim().toLowerCase())>=0)
+          rec.status=String(row[m.status]).trim().toLowerCase();
+      }
+    }
     if(isBundle){
       plan.bundles.push({date:dt,who:who,lessons:pre>0?pre:(n>0?n:1),amount:amt});
     } else {
-      if(!amt){plan.skipped++;continue}
+      /* A lesson covered by a bundle has nothing in the amount column,
+         because the money changed hands on a different row. Those were being
+         dropped, which is why lessons went missing and the totals looked
+         wrong. Keep them at zero and let the prepay sweep price them. */
+      if(!amt&&!who){plan.skipped++;continue}
       var t=m.time!==undefined?readTime(row[m.time]):"";
       var already=db.lessons.some(function(l){
         return l.date===dt&&Math.abs(num(l.amount)-amt)<0.01&&
@@ -6983,15 +7005,18 @@ function xlsScan(text){
 
   var newNames=Object.keys(plan.students).map(function(k){return plan.students[k].name});
   var total=sum(plan.lessons.map(function(l){return l.amount}));
+  var preTotal=sum(plan.bundles.map(function(b){return b.amount}));
+  var preLessons=plan.bundles.reduce(function(a,b){return a+num(b.lessons)},0);
   var found=Object.keys(m).filter(function(k){return m[k]!==undefined});
   box.innerHTML=
     '<p class="eyebrow" style="margin:18px 0 10px">What it found</p>'+
     '<div class="stats" style="margin-bottom:12px">'+
       '<div class="stat"><b>'+plan.lessons.length+'</b><small>lessons</small></div>'+
-      '<div class="stat"><b>'+money(total)+'</b><small>income</small></div>'+
+      '<div class="stat"><b>'+money(total)+'</b><small>charged on the day</small></div>'+
       '<div class="stat"><b>'+newNames.length+'</b><small>new students</small></div>'+
-      '<div class="stat"><b>'+plan.bundles.length+'</b><small>prepay</small></div>'+
+      '<div class="stat"><b>'+money(preTotal)+'</b><small>'+preLessons+' lessons of prepay</small></div>'+
     '</div>'+
+    (preTotal?'<p class="empty" style="margin:0 0 6px">Prepay is money taken in, not money earned. It is <b style="color:var(--text)">not</b> added to your income: it becomes income a lesson at a time as you teach it, and the lessons it already paid for get moved onto it when this finishes.</p>':"")+
     '<p class="empty" style="margin:0 0 6px">Columns read: '+esc(found.join(", "))+'.</p>'+
     (newNames.length?'<p class="empty" style="margin:0 0 6px">New: '+esc(newNames.slice(0,8).join(", "))+(newNames.length>8?" and "+(newNames.length-8)+" more":"")+'.</p>':"")+
     (plan.dupes?'<p class="empty" style="margin:0 0 6px">'+plan.dupes+' already here, so they will be left alone.</p>':"")+
@@ -7012,7 +7037,7 @@ function xlsCommit(){
   }
   Object.keys(p.students).forEach(function(k){
     var d=p.students[k];
-    var st={id:uid(),name:d.name,rate:d.rate||0,status:d.status};
+    var st={id:uid(),name:d.name,rate:num(d.rate)||0,status:d.status||"active"};
     if(d.tz)st.tz=d.tz;
     db.students.push(st);
   });
