@@ -2085,10 +2085,12 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BX</b> · 24 Aug 2026<br>If this does not say BX, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">BY</b> · 24 Aug 2026<br>If this does not say BY, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Tidy up</p>
+      <button class="btn line" id="sweepPre" style="margin-bottom:9px">Match lessons to prepay</button>
+      <p class="empty" style="margin:0 0 15px">For anything brought in before: goes through every prepay bundle oldest first and moves the lessons it paid for onto it, rewriting their charge to the bundle rate. Only touches lessons on or after the bundle\u2019s own date that are not already on one.</p>
       <button class="btn line" id="dedupe">Remove duplicate lessons</button>
       <p class="empty" style="margin:13px 0 0">Finds lessons with the same student, date and time, keeps one, and deletes the calendar events for the rest.</p>
     </div>
@@ -2982,10 +2984,23 @@ function wireLog(){
     $("bGo").onclick=function(){
       var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=base(parseFloat($("bAmt").value)||0);
       if(!sid||n<1||!amt){toast("Fill in lessons and total");return}
-      db.bundles.push({id:uid(),studentId:sid,date:$("bDate").value||today,lessons:n,amount:amt,used:0});
+      var nb={id:uid(),studentId:sid,date:$("bDate").value||today,lessons:n,amount:amt,used:0};
+      db.bundles.push(nb);
+      /* Only a BACKDATED bundle reaches backward. Money taken today is for
+         lessons from here on: a lesson you already taught and logged this
+         morning was paid for separately, and swallowing it into the pack
+         would be wrong. Dating it earlier is the signal that it is history. */
+      var took=(nb.date<iso(new Date()))?fillBundle(nb):[];
       saveDB(); closeSheet(); renderAll();
       setTimeout(function(){burst(Math.min(20+n*5,52))},170);
-      toast(n+" lessons of credit added");
+      if(took.length){
+        toast(n+" lessons of credit \u00b7 "+took.length+" already-logged lesson"+
+          (took.length===1?"":"s")+" moved onto it",function(){
+            unfillBundle(nb,took);
+            saveDB(); renderAll();
+            toast("Left as they were");
+          });
+      } else toast(n+" lessons of credit added");
     };
   }
 }
@@ -5105,6 +5120,76 @@ function checkBadges(){
   return fresh;
 }
 
+
+/* ================= backdated prepay =================
+   Adding a bundle only ever affected lessons logged after it, which is fine
+   when you take the money in the room and wrong for everything coming out of
+   a spreadsheet. Import a year of lessons, then add the bundle that paid for
+   some of them, and every one of those lessons is still sitting there marked
+   as paid on the day.
+
+   So a bundle now reaches forward and claims what it paid for: that student's
+   lessons on or after its own date, oldest first, that are not already on a
+   bundle, until its credit runs out. Their charge is rewritten to the bundle's
+   rate, because that is what they actually cost.
+
+   It never touches a lesson that is already on another bundle, never claims
+   one dated before the money changed hands, and never overdraws: if the last
+   credit is half an hour and the next lesson is a full one, it stops there
+   rather than covering it. */
+function bundleUnit(b){return b.amount/b.lessons}
+function fillBundle(b,limitDate){
+  if(!b)return [];
+  var left=round2(b.lessons-b.used);
+  if(left<=0.001)return [];
+  var mine=db.lessons.filter(function(l){
+    return l.studentId===b.studentId && !l.bundleId && l.date>=b.date &&
+           (!limitDate||l.date<=limitDate);
+  }).sort(function(x,y){
+    var a=x.date+" "+(x.time||""), c=y.date+" "+(y.time||"");
+    return a<c?-1:a>c?1:0;
+  });
+  var unit=bundleUnit(b), touched=[];
+  for(var i=0;i<mine.length;i++){
+    var l=mine[i], need=hoursOf(l);
+    if(need>left+0.001)break;              /* would overdraw, so leave it alone */
+    touched.push({id:l.id,amount:l.amount,note:l.note,bundleId:l.bundleId});
+    l.bundleId=b.id;
+    l.amount=num(unit*need);
+    l.note="Prepay";
+    left=round2(left-need);
+    b.used=round2(b.used+need);
+    if(left<=0.001)break;
+  }
+  return touched;
+}
+/* put a fill back exactly as it was */
+function unfillBundle(b,touched){
+  touched.forEach(function(t){
+    var l=db.lessons.filter(function(x){return x.id===t.id})[0];
+    if(!l)return;
+    if(l.bundleId===b.id)b.used=round2(Math.max(0,b.used-hoursOf(l)));
+    l.bundleId=t.bundleId;
+    l.amount=t.amount;
+    l.note=t.note;
+  });
+}
+/* every bundle, oldest first, so an earlier one claims the earlier lessons.
+   Used after a spreadsheet import, where the bundles land before the lessons
+   they paid for. */
+function sweepBundles(){
+  var all=[];
+  db.bundles.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0})
+    .forEach(function(b){
+      var t=fillBundle(b);
+      if(t.length)all.push({b:b,t:t});
+    });
+  return all;
+}
+function sweepCount(sw){
+  return sw.reduce(function(n,x){return n+x.t.length},0);
+}
+
 /* ---- how long since you took a copy ----
    All of this lives in one phone's storage. There is a backup button, but a
    button nobody is reminded about is not a backup. This counts the days and
@@ -6697,8 +6782,10 @@ function xlsCommit(){
     if(d.tz)st.tz=d.tz;
     db.students.push(st);
   });
+  var freshBundles=[];
   p.bundles.forEach(function(b){
-    db.bundles.push({id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,used:0});
+    var nb={id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,used:0};
+    db.bundles.push(nb); freshBundles.push(nb);
     made++;
   });
   p.lessons.forEach(function(l){
@@ -6706,10 +6793,20 @@ function xlsCommit(){
       amount:l.amount,bundleId:null,slotId:null,note:l.note||"Imported"});
     made++;
   });
+  /* The bundles landed before the lessons they paid for, so match them up
+     now that both are in: oldest bundle first, each claiming that student's
+     later lessons until its credit runs out. This is the whole point of
+     importing prepay from a spreadsheet. */
+  var sw=sweepBundles(), moved=sweepCount(sw);
   if(!saveDB()){warn("Storage is full. Export a backup, then clear some old sheets.");return}
   xlsPlan=null; $("xlsOut").innerHTML=""; $("xlsBig").value=""; 
   shown=0; renderAll();
-  toast("Brought in "+made+" rows");
+  if(moved){
+    toast("Brought in "+made+" rows \u00b7 "+moved+" put onto prepay",function(){
+      sw.forEach(function(x){unfillBundle(x.b,x.t)});
+      saveDB(); renderAll(); toast("Left as they were");
+    });
+  } else toast("Brought in "+made+" rows");
 }
 /* ---------- currency ---------- */
 function paintFx(){
@@ -6956,6 +7053,7 @@ var BTN_ICON={
   exportJson:'<path d="M9 4.5H6a1.5 1.5 0 0 0-1.5 1.5v3L3 12l1.5 3v3A1.5 1.5 0 0 0 6 19.5h3M15 4.5h3A1.5 1.5 0 0 1 19.5 6v3L21 12l-1.5 3v3a1.5 1.5 0 0 1-1.5 1.5h-3"/>',
   taxGo:    '<path d="M6.5 3.5h11v17l-2.75-2-2.75 2-2.75-2-2.75 2z"/><path d="M9.5 8h5M9.5 12h5"/>',  /* a receipt */
   rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
+  sweepPre: '<path d="M4 7h9M4 12h9M4 17h5"/><path d="M15.5 15.5 18 18l4-4.5"/>',
   dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
   wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
   fxNow:    '<path d="M4 9.5h13l-3-3M20 14.5H7l3 3"/>',                                    /* swap */
@@ -7431,6 +7529,15 @@ $("xlsFile").onchange=function(e){
   fr.readAsText(f); e.target.value="";
 };
 
+$("sweepPre").onclick=function(){
+  var sw=sweepBundles(), moved=sweepCount(sw);
+  if(!moved){toast("Nothing to move. Every bundle already lines up.");return}
+  saveDB(); renderAll();
+  toast(moved+" lesson"+(moved===1?"":"s")+" moved onto prepay",function(){
+    sw.forEach(function(x){unfillBundle(x.b,x.t)});
+    saveDB(); renderAll(); toast("Left as they were");
+  });
+};
 $("dedupe").onclick=function(){
   var seen={}, dupes=[];
   db.lessons.slice().sort(function(a,b){return (a.id>b.id)?1:-1}).forEach(function(l){
