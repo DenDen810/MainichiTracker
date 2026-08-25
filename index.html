@@ -2090,9 +2090,13 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CC</b> · 24 Aug 2026<br>If this does not say CC, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CD</b> · 24 Aug 2026<br>If this does not say CD, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
+      <p class="eyebrow">What the app is carrying</p>
+      <div id="healthBox"></div>
+      <button class="btn line" id="trimGo" style="margin-top:13px">Keep only the last 3 worksheets each</button>
+      <p class="empty" style="margin:11px 0 18px">Every worksheet you have ever made is stored in full and read back on every launch. Old ones are the usual reason the app gets heavy enough that your phone closes it in the background.</p>
       <p class="eyebrow">Tidy up</p>
       <button class="btn line" id="sweepPre" style="margin-bottom:9px">Match lessons to prepay</button>
       <p class="empty" style="margin:0 0 15px">For anything brought in before: goes through every prepay bundle oldest first and moves the lessons it paid for onto it, rewriting their charge to the bundle rate. Only touches lessons on or after the bundle\u2019s own date that are not already on one.</p>
@@ -2934,7 +2938,10 @@ function wireLog(){
       view=new Date(d+"T12:00:00"); view.setDate(1);
       fresh=d; selDay=null;
       closeSheet(); renderAll();
-      setTimeout(function(){burst(Math.min(14+qty*8,48));totalPop(made)},210);
+      /* the sound goes now, inside the tap, or iOS will not let it start;
+         the confetti still waits its 210ms so the sheet can close first */
+      var pop=burstNow();
+      setTimeout(function(){burst(Math.min(14+qty*8,48),null,false,pop);totalPop(made)},210);
       buzz(12);
       var undoIds=db.lessons.slice(-qty).map(function(l){return l.id});
       toast(qty>1 ? qty+" lessons, "+money(made) : "Logged "+money(made)+(drew?" from prepay":""),
@@ -3002,7 +3009,8 @@ function wireLog(){
          would be wrong. Dating it earlier is the signal that it is history. */
       var took=(nb.date<iso(new Date()))?fillBundle(nb):[];
       saveDB(); closeSheet(); renderAll();
-      setTimeout(function(){burst(Math.min(20+n*5,52))},170);
+      var pop2=burstNow();
+      setTimeout(function(){burst(Math.min(20+n*5,52),null,false,pop2)},170);
       if(took.length){
         toast(n+" lessons of credit \u00b7 "+took.length+" already-logged lesson"+
           (took.length===1?"":"s")+" moved onto it",function(){
@@ -5287,6 +5295,68 @@ function sweepCount(sw){
   return sw.reduce(function(n,x){return n+x.t.length},0);
 }
 
+
+/* ================= what the app is carrying =================
+   iOS throws a home-screen web app out of memory when it gets heavy, and
+   coming back is a cold start, which is what looks like a refresh. There is
+   no API that reports memory, but there is one thing that is measurable and
+   is almost always the cause: how much is in storage, because all of it is
+   parsed into live objects on every launch. Photos and homework sheets are
+   the two that grow without you noticing. */
+function bytesOf(o){
+  try{return new Blob([JSON.stringify(o)]).size}
+  catch(e){try{return JSON.stringify(o).length}catch(e2){return 0}}
+}
+function kb(n){
+  if(n<1024)return n+" B";
+  if(n<1024*1024)return Math.round(n/1024)+" KB";
+  return (n/1048576).toFixed(1)+" MB";
+}
+function healthReport(){
+  var total=bytesOf(db);
+  var photos=0, nPhoto=0, sheetB=0, nSheet=0;
+  db.students.forEach(function(s){
+    if(s.photo){photos+=bytesOf(s.photo);nPhoto++}
+    sheets(s).forEach(function(h){sheetB+=bytesOf(h);nSheet++});
+  });
+  return {total:total, photos:photos, nPhoto:nPhoto, sheets:sheetB, nSheet:nSheet,
+    lessons:db.lessons.length, students:db.students.length,
+    rest:Math.max(0,total-photos-sheetB)};
+}
+function paintHealth(){
+  var el=$("healthBox"); if(!el)return;
+  var h=healthReport();
+  var heavy=h.total>3*1024*1024;
+  var warn2=h.total>6*1024*1024;
+  el.innerHTML=
+    '<div class="stats">'+
+      '<div class="stat"><b style="color:'+(warn2?"var(--shu)":heavy?"var(--gold)":"var(--good)")+'">'+
+        kb(h.total)+'</b><small>carried on every launch</small></div>'+
+      '<div class="stat"><b>'+kb(h.photos)+'</b><small>'+h.nPhoto+' photo'+(h.nPhoto===1?"":"s")+'</small></div>'+
+      '<div class="stat"><b>'+kb(h.sheets)+'</b><small>'+h.nSheet+' worksheet'+(h.nSheet===1?"":"s")+'</small></div>'+
+      '<div class="stat"><b>'+kb(h.rest)+'</b><small>'+h.lessons+' lessons, '+h.students+' students</small></div>'+
+    '</div>'+
+    '<p class="empty" style="margin:12px 0 0">'+
+    (warn2
+      ? "This is heavy enough that your phone will start closing the app in the background, which is why it reopens from scratch. Clearing old worksheets is the quickest win."
+      : heavy
+      ? "Getting heavy. Photos and old worksheets are usually most of it."
+      : "Comfortable. Everything here is parsed fresh on every launch, so smaller is faster.")+
+    '</p>'+
+    '<p class="empty" style="margin:9px 0 0">Audio: <b style="color:var(--text)">'+
+      (cfg.sfx===false?"off":(typeof actx!=="undefined"&&actx?actx.state:"not started"))+'</b></p>';
+}
+/* the sheets are almost always the bulk of it, and the old ones are dead weight */
+function trimSheets(keep){
+  var gone=0;
+  db.students.forEach(function(s){
+    var list=sheets(s);
+    if(list.length>keep){gone+=list.length-keep; s.sheets=list.slice(-keep)}
+  });
+  if(gone)saveDB();
+  return gone;
+}
+
 /* ---- how long since you took a copy ----
    All of this lives in one phone's storage. There is a backup button, but a
    button nobody is reminded about is not a backup. This counts the days and
@@ -5851,7 +5921,7 @@ function ceremony(){
       what:"Tap to see all of them.",sym:"\u2726",quiet:true,go:"ach"});
   } else found.forEach(popShow);
 }
-function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();gPullToday();ceremony()}
+function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();paintHealth();gPullToday();ceremony()}
 
 /* ================= actions ================= */
 $("prev").onclick=function(){stepMonth(-1)};
@@ -7150,6 +7220,7 @@ var BTN_ICON={
   exportJson:'<path d="M9 4.5H6a1.5 1.5 0 0 0-1.5 1.5v3L3 12l1.5 3v3A1.5 1.5 0 0 0 6 19.5h3M15 4.5h3A1.5 1.5 0 0 1 19.5 6v3L21 12l-1.5 3v3a1.5 1.5 0 0 1-1.5 1.5h-3"/>',
   taxGo:    '<path d="M6.5 3.5h11v17l-2.75-2-2.75 2-2.75-2-2.75 2z"/><path d="M9.5 8h5M9.5 12h5"/>',  /* a receipt */
   rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
+  trimGo:   '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/>',
   sweepPre: '<path d="M4 7h9M4 12h9M4 17h5"/><path d="M15.5 15.5 18 18l4-4.5"/>',
   dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
   wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
@@ -7701,6 +7772,11 @@ $("xlsFile").onchange=function(e){
   fr.readAsText(f); e.target.value="";
 };
 
+if($("trimGo"))$("trimGo").onclick=function(){
+  var gone=trimSheets(3);
+  paintHealth();
+  toast(gone?gone+" old worksheet"+(gone===1?"":"s")+" cleared":"Nothing old enough to clear");
+};
 $("sweepPre").onclick=function(){
   var sw=sweepBundles(), moved=sweepCount(sw);
   if(!moved){toast("Nothing to move. Every bundle already lines up.");return}
@@ -7946,10 +8022,24 @@ var CONFETTI=[
   {name:"emerald", src:"data:image/png;base64,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"}
 ];
 var MARK_SCALE={aphex:1,emerald:1.05,robux:1.05,snow:1.2,spiky:1.25,skeletrix:1.45,script:1.5,omori:1.6};
+/* Decoded on first use rather than at boot. A data URI costs almost nothing
+   until it becomes a bitmap; a bitmap costs width x height x 4 bytes however
+   small the PNG was. Only the marks you actually see are ever decoded. */
 var fxImgs=CONFETTI.map(function(c){
-  var i=new Image(); i.src=c.src; i._name=c.name; i._scale=MARK_SCALE[c.name]||1;
-  return i;
+  var box={_name:c.name,_scale:MARK_SCALE[c.name]||1,_src:c.src,_img:null,
+    get complete(){return !!(box._img&&box._img.complete)},
+    get width(){return box._img?box._img.width:0},
+    get height(){return box._img?box._img.height:0}};
+  return box;
 });
+function markImg(box){
+  if(!box)return null;
+  if(!box._img){
+    var i=new Image(); i.src=box._src;
+    box._img=i;
+  }
+  return box._img;
+}
 
 /* ---------------------------------------------------------------
    TRACKS: one entry per mark, as many songs as you like inside it.
@@ -8025,6 +8115,7 @@ function ctx(){
    background iOS leaves the context in a zombie state where resume() resolves,
    or never resolves at all, and nothing is ever audible again. */
 function rebuildCtx(){
+  /* only ever called from inside a gesture now, so the new one can wake */
   try{if(actx)actx.close()}catch(e){}
   actx=null; bufs={}; curSrc=null; curGain=null;
   /* the till channel belongs to the old context too: its source can never
@@ -8047,19 +8138,46 @@ function ensureCtx(){
   var timer=new Promise(function(res){setTimeout(res,320)});
   return Promise.race([resumed,timer]).then(function(){
     if(actx&&actx.state==="running")return actx;
+    /* Rebuilding outside a gesture is worse than doing nothing: the new
+       context is born suspended, cannot be resumed here, and then becomes
+       the one every later tap starts from. Leave the old one alone and let
+       the next real tap unlock it. */
+    if(!inGesture())throw new Error("asleep");
     return rebuildCtx();
   }).then(function(cc){
     if(cc&&cc.state==="running")return cc;
-    return rebuildCtx();
+    throw new Error("asleep");
   });
 }
 
-/* iOS only lets audio wake up inside a real user gesture, and a visibility
-   change is not one. Every tap gets a free nudge. */
+/* ---- unlocking audio, properly ----
+   iOS only lets an AudioContext start inside a real user gesture, and it
+   checks at the moment resume() is called, not at the moment you tapped. The
+   old listener called resume() and hoped. Two things were missing: it never
+   created the context if there was not one, and resume() alone does not
+   reliably unlock iOS — you have to actually push a buffer through. One
+   frame of silence does it and is inaudible.
+
+   This runs on the way DOWN, before anything else, so by the time a delayed
+   burst fires the context is already running and nothing has to be resumed
+   outside a gesture. */
+var GESTURE_AT=0;
+function inGesture(){return Date.now()-GESTURE_AT<1500}
+function unlockAudio(){
+  GESTURE_AT=Date.now();
+  if(cfg.sfx===false)return;
+  var c=ctx();
+  if(!c)return;
+  try{if(c.state!=="running")c.resume()}catch(e){}
+  /* the silent frame: this is the part that actually convinces iOS */
+  try{
+    var b=c.createBuffer(1,1,22050);
+    var s2=c.createBufferSource();
+    s2.buffer=b; s2.connect(c.destination); s2.start(0);
+  }catch(e){}
+}
 ["touchstart","pointerdown","mousedown"].forEach(function(ev){
-  document.addEventListener(ev,function(){
-    if(actx&&actx.state!=="running"){try{actx.resume()}catch(e){}}
-  },{passive:true,capture:true});
+  document.addEventListener(ev,unlockAudio,{passive:true,capture:true});
 });
 function b64ToBuf(u){
   var b=atob(u.slice(u.indexOf(",")+1));
@@ -8305,7 +8423,21 @@ function rainDrop(img,alpha){
   });
 }
 
-function burst(n,from,quiet){
+/* Starts the audio for a burst right now, inside the gesture, and hands back
+   the mark it chose so the confetti that follows uses the same one. Splitting
+   it this way is the whole point: the sound cannot wait for a timer. */
+function burstNow(){
+  var pick=null;
+  try{pick=drawMark();markImg(pick)}catch(e){}
+  try{playKaching()}catch(e){}
+  try{
+    busClaim();
+    if(pick)playMark(pick._name,function(ms){ MARK_MS=ms });
+  }catch(e){}
+  return pick;
+}
+var MARK_MS=0;
+function burst(n,from,quiet,pre){
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var btn=$("openLog");
   var src=from||btn, r=src.getBoundingClientRect();
@@ -8317,12 +8449,16 @@ function burst(n,from,quiet){
      competing with it: they are on separate channels, so the song can never
      cut the till off and the till can never cut the song. What must never
      double up is two SONGS, and that is handled in playMark. */
-  var pick0=null;
-  try{pick0=drawMark()}catch(e){}
-  if(!quiet)playKaching();
+  /* if the audio was already started inside the tap, do not start it twice */
+  var pick0=pre||null;
+  if(!pre){
+    try{pick0=drawMark()}catch(e){}
+    if(!quiet)playKaching();
+  }
 
   /* one mark per tap, drawn fresh each time */
   var pick=pick0||drawMark();
+  markImg(pick);              /* decode it now, if it never has been */
   var k=pick._scale;
 
   /* fountain out of the + button, right now */
@@ -8341,7 +8477,6 @@ function burst(n,from,quiet){
   }
 
   /* and a shower that runs as long as the track does */
-  busClaim();
   var shower0=function(ms){
     var now=performance.now();
     shower={img:pick, t0:now, until:now+ms, dens:0.16+Math.min(n,48)/300};
@@ -8349,7 +8484,9 @@ function burst(n,from,quiet){
     startLoop();
   };
   /* a silent burst still gets its confetti, it just does not claim the bus */
-  if(quiet)shower0(FALLBACK_MS); else playMark(pick._name,shower0);
+  if(pre)shower0(MARK_MS||FALLBACK_MS);          /* already playing */
+  else if(quiet)shower0(FALLBACK_MS);
+  else {busClaim(); playMark(pick._name,shower0);}
 
   startLoop();
 }
@@ -8382,7 +8519,8 @@ function tick(now){
     fxc.globalAlpha=p.a;
     fxc.translate(p.x,p.y);
     fxc.rotate(p.rot);
-    if(p.img.complete)fxc.drawImage(p.img,-p.s/2,-p.s/2,p.s,p.s);
+    var bm=p.img&&p.img._img;
+    if(bm&&bm.complete)fxc.drawImage(bm,-p.s/2,-p.s/2,p.s,p.s);
     fxc.restore();
   }
 
