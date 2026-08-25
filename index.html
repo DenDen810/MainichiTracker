@@ -47,6 +47,10 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--void);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{touch-action:manipulation}
+/* Pull-to-refresh is a property of the root element in Safari. Setting it on
+   body alone does nothing, which is why overscrolling at the top of the page
+   still reloaded the whole app. */
+html{overscroll-behavior-y:none;overscroll-behavior-x:none;height:100%}
 body{
   margin:0;background:var(--void);color:var(--text);
   font-family:var(--body);font-size:16px;line-height:1.5;
@@ -2100,9 +2104,13 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CE</b> · 24 Aug 2026<br>If this does not say CE, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CH</b> · 24 Aug 2026<br>If this does not say CH, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
+      <div id="installTip" style="display:none">
+        <p class="eyebrow">Add it to your home screen</p>
+        <p class="empty" style="margin:0 0 13px">You are running this as a Safari tab. That is why the address bar keeps appearing, why the page reloads when you pull down, and why Google Calendar keeps disconnecting: Safari throws background tabs away and every reload loses the connection.<br><br>Tap <b style="color:var(--text)">Share</b>, then <b style="color:var(--text)">Add to Home Screen</b>. Open it from there instead and it runs full screen, keeps its connections, and works with no signal.</p>
+      </div>
       <p class="eyebrow">What the app is carrying</p>
       <div id="healthBox"></div>
       <button class="btn line" id="trimGo" style="margin-top:13px">Keep only the last 3 worksheets each</button>
@@ -5352,7 +5360,13 @@ function healthReport(){
     lessons:db.lessons.length, students:db.students.length,
     rest:Math.max(0,total-photos-sheetB)};
 }
+function standalone(){
+  return !!(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)
+      || navigator.standalone===true;
+}
 function paintHealth(){
+  var tip=$("installTip");
+  if(tip)tip.style.display=standalone()?"none":"";
   var el=$("healthBox"); if(!el)return;
   var h=healthReport();
   var heavy=h.total>3*1024*1024;
@@ -6025,7 +6039,9 @@ $("gcalOut").onclick=function(){
     try{google.accounts.oauth2.revoke(gTok)}catch(e){}
   }
   gTok=null; gExp=0; gCache={t:0,items:[]}; gPushing={};
-  cfg.gcalPull=false; cfg.gcalPush=false; cfg.gcalOk=false; saveSet();
+  cfg.gcalPull=false; cfg.gcalPush=false; cfg.gcalOk=false;
+  cfg.gTok=null; cfg.gExp=0; gTok=null; gExp=0;
+  saveSet();
   $("gcalToday").innerHTML=""; renderGcal(); toast("Disconnected");
 };
 $("testSfx").onclick=function(){
@@ -6532,7 +6548,7 @@ function hwRedoSection(s,cur,i,what,done,fail){
     body:JSON.stringify({model:cfg.aiModel||HW_MODEL,max_tokens:2500,
       messages:[{role:"user",content:prompt}]})
   }).then(function(r){
-    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    if(!r.ok)return r.text().then(function(t){throw new Error(apiError(r.status,t))});
     return r.json();
   }).then(function(j){
     var txt=(j.content||[]).filter(function(b){return b.type==="text"})
@@ -6550,6 +6566,28 @@ function hwRedoSection(s,cur,i,what,done,fail){
    One way in and out for everything that talks to Claude, so the key, the
    model and the error handling live in exactly one place. Everything below
    is optional: with no key on the Data tab none of it appears. */
+/* ---- what the API actually said, in English ----
+   A raw error blob from the API is unreadable on a phone, and every one of
+   these has a different fix. Say which one it is. */
+function apiError(status,text){
+  var t=String(text||"");
+  var low=t.toLowerCase();
+  if(low.indexOf("credit balance")>-1||low.indexOf("insufficient")>-1)
+    return "No credit on the API account. Add some at console.anthropic.com under Billing, then try again.";
+  if(status===401||low.indexOf("invalid x-api-key")>-1||low.indexOf("authentication")>-1)
+    return "That key was not accepted. Check it starts with sk-ant- and was copied whole.";
+  if(status===403)
+    return "The key is valid but not allowed to do this. Check it has not been revoked.";
+  if(status===404||low.indexOf("model")>-1&&low.indexOf("not_found")>-1)
+    return "That model name was not recognised. Clear the Model box to go back to the default.";
+  if(status===429)
+    return "Too many requests just now. Wait a minute and try again.";
+  if(status>=500)
+    return "The API had a problem at their end. Try again in a moment.";
+  if(!status)
+    return "Could not reach the API. Check the phone is online.";
+  return "API error "+status+": "+t.slice(0,120);
+}
 function aiReady(){return !!(cfg.aiKey||"").trim()}
 function aiAsk(prompt,maxTok,done,fail){
   var key=(cfg.aiKey||"").trim();
@@ -6561,7 +6599,7 @@ function aiAsk(prompt,maxTok,done,fail){
     body:JSON.stringify({model:cfg.aiModel||HW_MODEL,max_tokens:maxTok||1400,
       messages:[{role:"user",content:prompt}]})
   }).then(function(r){
-    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    if(!r.ok)return r.text().then(function(t){throw new Error(apiError(r.status,t))});
     return r.json();
   }).then(function(j){
     var txt=(j.content||[]).filter(function(b){return b.type==="text"})
@@ -6744,7 +6782,7 @@ function hwGenerate(s,opts,done,fail){
       messages:[{role:"user",content:hwPrompt(s,opts)}]
     })
   }).then(function(r){
-    if(!r.ok)return r.text().then(function(t){throw new Error(t.slice(0,160))});
+    if(!r.ok)return r.text().then(function(t){throw new Error(apiError(r.status,t))});
     return r.json();
   }).then(function(j){
     var txt=(j.content||[]).filter(function(b){return b.type==="text"})
@@ -7772,6 +7810,7 @@ function paintThemesOld(box,cur){
 }
 applyTheme(cfg.theme);
 try{dropCheckout()}catch(e){}
+try{gWake()}catch(e){}
 paintThemes();
 
 $("aiKey").value=cfg.aiKey||"";
@@ -7837,7 +7876,7 @@ $("wipe").onclick=function(){
 
 /* ================= google calendar ================= */
 var GSCOPE="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
-var gTok=null, gExp=0, gClient=null, gQueue=[], gCache={t:0,items:[]}, gSilent=false, gPushing={};
+var gTok=(cfg.gTok||null), gExp=(Number(cfg.gExp)||0), gClient=null, gQueue=[], gCache={t:0,items:[]}, gSilent=false, gPushing={};
 
 function gConnected(){return !!(cfg.gcalCid && gTok && Date.now()<gExp-30000)}
 
@@ -7861,6 +7900,8 @@ function gReady(cb,interactive){
         if(r&&r.access_token){
           gTok=r.access_token;
           gExp=Date.now()+((r.expires_in||3600)*1000);
+          /* keep it, so relaunching inside the hour needs no sign-in at all */
+          cfg.gTok=gTok; cfg.gExp=gExp; saveSet();
           renderGcal();
           q.forEach(function(f){try{f()}catch(e){}});
         } else if(!gSilent){
@@ -7869,6 +7910,8 @@ function gReady(cb,interactive){
       },
       error_callback:function(){
         gQueue=[];
+        gTok=null; gExp=0; cfg.gTok=null; cfg.gExp=0; saveSet();
+        try{renderGcal()}catch(e){}
         if(!gSilent)warn("Google sign-in failed.");   /* silent refreshes stay quiet */
       }
     });
@@ -7877,6 +7920,23 @@ function gReady(cb,interactive){
   gClient.requestAccessToken({prompt:interactive?"consent":""});
 }
 
+/* On launch: if the stored token has expired but you connected before, ask
+   Google for a new one without any prompt. You are still signed in to Google
+   in the browser, so this needs no tapping. Only if that fails does the
+   button go back to saying Connect. */
+function gWake(){
+  if(!cfg.gcalOk||!cfg.gcalCid)return;
+  if(gTok&&Date.now()<gExp-60000){renderGcal();return}
+  gTok=null; gExp=0;
+  var go=function(){
+    if(window.google&&google.accounts&&google.accounts.oauth2){
+      gReady(function(){},false);
+    }
+  };
+  /* the Google script may not have landed yet on a cold start */
+  if(window.google&&google.accounts)go();
+  else setTimeout(go,1200);
+}
 function gApi(path,opts){
   opts=opts||{};
   return fetch("https://www.googleapis.com/calendar/v3"+path,{
