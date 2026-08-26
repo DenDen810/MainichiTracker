@@ -2109,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CO</b> · 24 Aug 2026<br>If this does not say CO, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CP</b> · 24 Aug 2026<br>If this does not say CP, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -8717,8 +8717,8 @@ function drawMark(){
     if(typeof shower!=="undefined"&&shower)shower=null;
     /* and clear the previous logo off the screen rather than letting it
        finish falling alongside the new one */
-    if(typeof parts!=="undefined")parts.forEach(function(p){
-      if(p.img!==MARK_HOLD)p.fade=0.07;
+    if(typeof parts!=="undefined"&&MARK_HOLD)parts.forEach(function(p){
+      if(p.img!==MARK_HOLD)p.kill=0.07;
     });
   }catch(e){}
   /* the seal is a preview of the next one, so it has to move on too */
@@ -8821,7 +8821,7 @@ function rainDrop(img,alpha){
     s:(22+Math.random()*26)*img._scale,
     rot:Math.random()*Math.PI*2,
     vr:(Math.random()-0.5)*0.16,
-    g:0.11, img:img, a:alpha==null?1:alpha, fade:true
+    g:0.11, img:img, a:alpha==null?1:alpha
   });
 }
 
@@ -8831,6 +8831,9 @@ function rainDrop(img,alpha){
 function burstNow(){
   var pick=null;
   try{pick=drawMark();markImg(pick)}catch(e){}
+  /* the tap starts the audio; the confetti follows on its own timer, so the
+     mark must stay held until it gets there */
+  try{MARK_HOLD_AT=Date.now()}catch(e){}
   try{playKaching()}catch(e){}
   try{
     busClaim();
@@ -8888,17 +8891,31 @@ function burst(n,from,quiet,pre){
     startLoop();
   };
   /* a silent burst still gets its confetti, it just does not claim the bus */
-  /* Joining an episode already running, or one whose audio started inside
-     the tap: extend the shower, do not start a second track over the top. */
-  if(pre||joining)shower0(MARK_MS||FALLBACK_MS);
-  else if(quiet)shower0(FALLBACK_MS);
-  else {busClaim(); playMark(pick._name,shower0);}
+  /* The picture starts NOW, whatever the audio is doing. */
+  shower0(MARK_MS||FALLBACK_MS);
+  /* Joining an episode already running, or one whose audio started inside the
+     tap, must not put a second track over the top. Otherwise start one, and
+     if it turns out to be longer than the shower, stretch the shower to it. */
+  if(!pre&&!joining&&!quiet){
+    busClaim();
+    playMark(pick._name,function(ms){
+      MARK_MS=ms;
+      if(shower&&ms>0){
+        var want=performance.now()+ms;
+        if(want>shower.until)shower.until=want;
+        startLoop();
+      }
+    });
+  }
 
   startLoop();
 }
 
 function tick(now){
-  now=now||performance.now();
+  /* deliberately ignoring whatever was passed in: everything else in here is
+     written with performance.now(), and mixing two clocks kills the shower on
+     its first frame */
+  now=performance.now();
   var dt=Math.min(now-(last||now),50); last=now;
   clearFx();
   var H=innerHeight;
@@ -8919,7 +8936,7 @@ function tick(now){
   for(var i=parts.length-1;i>=0;i--){
     var p=parts[i];
     p.vy+=p.g; p.vx*=0.992; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
-    if(p.fade)p.a=Math.max(0,p.a-p.fade);          /* superseded by a new logo */
+    if(p.kill)p.a=Math.max(0,p.a-p.kill);          /* superseded by a new logo */
     else if(p.g>0.3&&p.y>H*0.72)p.a=Math.max(0,1-(p.y-H*0.72)/(H*0.34));
     if(p.y>H+80||p.a<=0){parts.splice(i,1);continue}
     fxc.save();
