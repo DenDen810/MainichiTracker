@@ -2109,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CP</b> · 24 Aug 2026<br>If this does not say CP, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CQ</b> · 24 Aug 2026<br>If this does not say CQ, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -8573,12 +8573,17 @@ function stopAudio(){
 var MARK_TOKEN=0;
 function playMark(name,cb){
   var list=TRACKS[name]||[];
-  var done=false;
-  function once(ms){
-    if(done)return;
+  var done=false, told=false;
+  /* `real` marks the true length of the clip. It is allowed through even if
+     the fallback cue already fired, because the fallback is a guess and this
+     is the answer. Anything else is ignored once we have spoken. */
+  function once(ms,real){
+    if(done&&!real)return;
+    if(told)return;
     done=true;
+    if(real)told=true;
     setCountPace(ms);
-    cb(ms);
+    cb(ms,real);
   }
   if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
   /* whatever happens to the audio, the confetti still gets its cue */
@@ -8607,7 +8612,7 @@ function playMark(name,cb){
     g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
     src.start(t0,s,dur);
     curSrc=src; curGain=g;
-    once(dur*1000);
+    once(dur*1000,true);
   }).catch(function(){
     delete bufs[t.file];
     once(FALLBACK_MS);
@@ -8710,6 +8715,7 @@ function drawMark(){
   if(!bag.length)fillBag();
   MARK_HOLD=bag.pop();
   MARK_HOLD_AT=Date.now();
+  MARK_MS=0;              /* the last track's length says nothing about this one */
   /* A new episode starting while the old one is still raining: stop the old
      shower so it does not keep making pieces of the previous logo. Whatever
      is already airborne finishes its fall, which is what falling things do. */
@@ -8837,11 +8843,24 @@ function burstNow(){
   try{playKaching()}catch(e){}
   try{
     busClaim();
-    if(pick)playMark(pick._name,function(ms){ MARK_MS=ms });
+    if(pick)playMark(pick._name,extendShower);
   }catch(e){}
   return pick;
 }
 var MARK_MS=0;
+/* The confetti should outlast the music, never the other way round. Whatever
+   length turns up — the fallback guess first, the clip's real length when it
+   finishes loading — the live shower is stretched to cover it. */
+function extendShower(ms){
+  if(!(ms>0))return;
+  MARK_MS=ms;
+  if(!shower)return;
+  var want=performance.now()+ms;
+  if(want>shower.until){
+    shower.until=want;
+    startLoop();          /* it may have wound down while we waited */
+  }
+}
 function burst(n,from,quiet,pre){
   if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   var btn=$("openLog");
@@ -8898,14 +8917,7 @@ function burst(n,from,quiet,pre){
      if it turns out to be longer than the shower, stretch the shower to it. */
   if(!pre&&!joining&&!quiet){
     busClaim();
-    playMark(pick._name,function(ms){
-      MARK_MS=ms;
-      if(shower&&ms>0){
-        var want=performance.now()+ms;
-        if(want>shower.until)shower.until=want;
-        startLoop();
-      }
-    });
+    playMark(pick._name,extendShower);
   }
 
   startLoop();
