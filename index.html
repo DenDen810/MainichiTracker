@@ -507,6 +507,11 @@ button,input,select{font-family:var(--body)}
 .seg button.on{box-shadow:0 1px 0 var(--edge),inset 0 -2px 0 var(--shu)}
 /* and so does the jotter's inline add row */
 .jotadd input{border-left:2.5px solid var(--dim)}
+.tzrow{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:9px 0}
+.tzrow:active{opacity:.7}
+.tzrow.on{color:var(--shu)}
+.tzrow.on .main span{font-weight:700}
+.tzrow .amt{font-size:13px;color:var(--muted)}
 .jotadd input:focus{border-left-color:var(--shu)}
 @keyframes nudge{0%,100%{transform:translateX(0)}22%{transform:translateX(-5px)}62%{transform:translateX(4px)}}
 .nudge{animation:nudge .3s ease;outline:2px solid var(--shu)!important;outline-offset:1px;border-color:transparent!important}
@@ -2104,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CJ</b> · 24 Aug 2026<br>If this does not say CJ, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CM</b> · 24 Aug 2026<br>If this does not say CM, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -2879,11 +2884,18 @@ function bundleForm(opts){
   var first=ranked.length?ranked[0].id:"";
   return '<div class="field"><label>Student</label>'+studentChips("bStu",false,null,null)+
   '<input type="hidden" id="bStu" value="'+first+'"></div>'+
+  '<p class="empty" id="bHave" style="margin:-4px 0 12px"></p>'+
+  '<div class="field"><label>How many lessons</label>'+
+    '<div class="filters lenrail" id="chips-bQty">'+
+      [4,5,8,10,12,20].map(function(n){
+        return '<button type="button" data-qty="'+n+'"'+(n===4?' class="on"':"")+'>'+n+'</button>';
+      }).join("")+'</div>'+
+    '<input type="hidden" id="bQty" value="4"></div>'+
   '<div class="two"><div class="field"><label for="bDate">Date paid</label><input id="bDate" type="date"></div>'+
-  '<div class="field"><label for="bQty">Lessons in bundle</label><input id="bQty" type="number" inputmode="numeric" min="1" value="4"></div></div>'+
-  '<div class="field"><label for="bAmt">Total paid</label><input id="bAmt" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div>'+
+  '<div class="field"><label for="bAmt">Total paid <em id="bWorked" style="font-style:normal;float:right;color:var(--sky);font-size:11px"></em></label><input id="bAmt" type="number" inputmode="decimal" step="0.01" placeholder="0.00"></div></div>'+
+  '<p class="empty" id="bPer" style="margin:-4px 0 12px"></p>'+
   '<button class="btn" id="bGo">Add bundle</button>'+
-  '<p class="empty" style="margin:13px 0 0">This adds lesson credit, not income. Each lesson you log against it moves its share into earnings on the day you teach it.</p>';
+  '<p class="empty" style="margin:13px 0 0">This adds lesson credit, not income. Each lesson you log against it moves its share into earnings on the day you teach it. Backdate it and it will pick up the lessons it already paid for.</p>';
 }
 
 function wireLog(){
@@ -2941,6 +2953,7 @@ function wireLog(){
     lRerank();
     $("lGo").onclick=function(){
       var sid=$("lStu").value, d=$("lDate").value||today;
+      if(!$("lStu")||!$("lQty")||!$("lAmt"))return;   /* sheet already gone */
       var qty=Math.max(1,Math.min(12,parseInt($("lQty").value)||1));
       var mins=Number($("lMins")&&$("lMins").value)||60;
       var manual=base(parseFloat($("lAmt").value)||0);
@@ -2995,6 +3008,7 @@ function wireLog(){
     wireChips("kStu",function(){kPicked=true});
     kRerank();
     $("kGo").onclick=function(){
+      if(!$("kStu")||!$("kDate")||!$("kTime"))return; /* sheet already gone */
       var sid=$("kStu").value, d=$("kDate").value||today, tm=$("kTime").value||"16:00";
       if(!sid){toast("Pick a student");return}
       var reps=Math.max(1,parseInt($("kRepeat").value)||1), made=0;
@@ -3015,12 +3029,47 @@ function wireLog(){
       $("logForm").innerHTML='<p class="empty">Add a student first, over on the students tab.</p>';
       return;
     }
-    wireChips("bStu");
     /* prepay honours the picked day too, rather than always snapping to today */
     $("bDate").value=selDay||today;
+    /* The arithmetic was being left to you. Fill the total from their own
+       rate, say what that works out at per lesson, and show what they still
+       have left so you are not adding a pack on top of one they have not
+       finished. Typing your own figure still wins: a discount is normal. */
+    var bTyped=false;
+    var bRefresh=function(){
+      var sid=$("bStu").value, st=student(sid);
+      var n=parseInt($("bQty").value,10)||1;
+      var rate=st&&st.rate?num(st.rate):0;
+      if(!bTyped&&rate>0)$("bAmt").value=boxVal(rate*n);
+      var amt=base(parseFloat($("bAmt").value)||0);
+      $("bWorked").textContent=rate>0?("their rate is "+money(rate)):"";
+      $("bPer").textContent=amt>0
+        ? money(amt/n)+" a lesson"+(rate>0&&amt<rate*n-0.005?" \u00b7 "+Math.round((1-amt/(rate*n))*100)+"% off":"")
+        : (rate>0?"":"Set a rate for them and this fills itself in.");
+      var c=sid?credits(sid):{lessons:0};
+      $("bHave").textContent=c.lessons>0
+        ? st.name+" still has "+c.lessons+" lesson"+(c.lessons===1?"":"s")+" on an earlier bundle. This adds to that."
+        : "";
+    };
+    $("bAmt").oninput=function(){bTyped=true;bRefresh()};
+    Array.prototype.forEach.call($("chips-bQty").querySelectorAll("[data-qty]"),function(b){
+      b.onclick=function(){
+        $("bQty").value=b.dataset.qty;
+        Array.prototype.forEach.call($("chips-bQty").querySelectorAll("[data-qty]"),function(x){
+          x.classList.toggle("on",x===b);
+        });
+        bTyped=false;              /* a new size means a new suggested price */
+        bRefresh(); buzz(6);
+      };
+    });
+    wireChips("bStu",bRefresh);
+    bRefresh();
     $("bGo").onclick=function(){
+      if(!$("bStu")||!$("bQty")||!$("bAmt"))return;   /* sheet already gone */
       var sid=$("bStu").value, n=parseInt($("bQty").value)||0, amt=base(parseFloat($("bAmt").value)||0);
-      if(!sid||n<1||!amt){toast("Fill in lessons and total");return}
+      if(!sid){toast("Pick a student");return}
+      if(n<1){toast("Choose how many lessons");return}
+      if(!amt){nudge("bAmt");toast("How much did they pay?");return}
       var nb={id:uid(),studentId:sid,date:$("bDate").value||today,lessons:n,amount:amt,used:0};
       db.bundles.push(nb);
       /* Only a BACKDATED bundle reaches backward. Money taken today is for
@@ -3141,6 +3190,120 @@ function openCropper(file,done){
 }
 
 /* ---------- student sheet ---------- */
+
+/* ================= finding a timezone =================
+   Four hundred entries in a dropdown is not a picker, it is a punishment. You
+   know where the student is; you should be able to type it. This matches on
+   the city, the region and a set of common names for places whose IANA zone
+   is not what anyone would guess (nobody looks for Britain under Europe).
+   Each hit shows the time it is there right now, which is the thing you
+   actually want to know. */
+var TZ_ALIAS={
+  "Europe/London":"uk britain england scotland wales london gb",
+  "Europe/Dublin":"ireland dublin eire",
+  "America/New_York":"usa us america east eastern est edt new york boston miami atlanta",
+  "America/Chicago":"usa us america central cst cdt chicago texas dallas houston",
+  "America/Denver":"usa us america mountain mst mdt denver colorado",
+  "America/Los_Angeles":"usa us america west pacific pst pdt california la san francisco seattle",
+  "America/Anchorage":"alaska",
+  "Pacific/Honolulu":"hawaii",
+  "America/Toronto":"canada ontario toronto",
+  "America/Vancouver":"canada vancouver bc",
+  "America/Sao_Paulo":"brazil brasil sao paulo rio",
+  "America/Mexico_City":"mexico",
+  "America/Bogota":"colombia",
+  "America/Argentina/Buenos_Aires":"argentina buenos aires",
+  "Asia/Tokyo":"japan nippon nihon tokyo osaka kyoto jst \u65e5\u672c",
+  "Asia/Seoul":"korea south korea seoul",
+  "Asia/Shanghai":"china beijing shanghai prc",
+  "Asia/Hong_Kong":"hong kong hk",
+  "Asia/Taipei":"taiwan taipei",
+  "Asia/Singapore":"singapore",
+  "Asia/Bangkok":"thailand bangkok",
+  "Asia/Jakarta":"indonesia jakarta",
+  "Asia/Manila":"philippines manila",
+  "Asia/Kolkata":"india mumbai delhi bangalore kolkata calcutta",
+  "Asia/Dubai":"uae emirates dubai abu dhabi",
+  "Asia/Jerusalem":"israel tel aviv jerusalem",
+  "Europe/Paris":"france paris",
+  "Europe/Berlin":"germany berlin munich deutschland",
+  "Europe/Madrid":"spain madrid barcelona espana",
+  "Europe/Rome":"italy rome milan italia",
+  "Europe/Amsterdam":"netherlands holland amsterdam",
+  "Europe/Lisbon":"portugal lisbon",
+  "Europe/Warsaw":"poland warsaw",
+  "Europe/Stockholm":"sweden stockholm",
+  "Europe/Oslo":"norway oslo",
+  "Europe/Helsinki":"finland helsinki",
+  "Europe/Moscow":"russia moscow",
+  "Europe/Istanbul":"turkey istanbul turkiye",
+  "Europe/Kyiv":"ukraine kyiv kiev",
+  "Africa/Lagos":"nigeria lagos abuja",
+  "Africa/Cairo":"egypt cairo",
+  "Africa/Nairobi":"kenya nairobi",
+  "Africa/Johannesburg":"south africa johannesburg cape town",
+  "Australia/Sydney":"australia sydney canberra nsw",
+  "Australia/Melbourne":"australia melbourne victoria",
+  "Australia/Perth":"australia perth",
+  "Australia/Brisbane":"australia brisbane queensland",
+  "Pacific/Auckland":"new zealand auckland nz"
+};
+/* the ones most likely to be wanted, shown before you have typed anything */
+var TZ_COMMON=["Asia/Tokyo","America/New_York","America/Los_Angeles","Europe/London",
+  "Europe/Paris","Africa/Lagos","Asia/Kolkata","Australia/Sydney","America/Chicago",
+  "Asia/Seoul","America/Sao_Paulo","Pacific/Auckland"];
+function tzLabel(z){
+  var p=String(z).split("/");
+  return p[p.length-1].replace(/_/g," ");
+}
+function tzRegion(z){
+  var p=String(z).split("/");
+  return p.length>1?p[0].replace(/_/g," "):"";
+}
+function tzSearch(q,limit){
+  q=String(q||"").trim().toLowerCase();
+  var all=tzList();
+  if(!q){
+    return TZ_COMMON.filter(function(z){return all.indexOf(z)>-1||tzOk(z)});
+  }
+  var hits=[], seen={};
+  var push=function(z){if(!seen[z]){seen[z]=1;hits.push(z)}};
+  /* an alias match is the strongest signal: somebody typing "britain" means
+     Europe/London and nothing else */
+  Object.keys(TZ_ALIAS).forEach(function(z){
+    if(TZ_ALIAS[z].indexOf(q)>-1&&tzOk(z))push(z);
+  });
+  all.forEach(function(z){
+    if(tzLabel(z).toLowerCase().indexOf(q)===0)push(z);
+  });
+  all.forEach(function(z){
+    if(z.toLowerCase().replace(/_/g," ").indexOf(q)>-1)push(z);
+  });
+  return hits.slice(0,limit||8);
+}
+/* the time it is there, right now */
+function tzClock(z){
+  try{
+    return new Intl.DateTimeFormat("en-US",{timeZone:z,hour:"numeric",minute:"2-digit",
+      hour12:true,weekday:"short"}).format(new Date());
+  }catch(e){return ""}
+}
+function paintTzHits(q,cur,onPick){
+  var box=$("tzHits"); if(!box)return;
+  var hits=tzSearch(q,8);
+  box.innerHTML=(q?"":'<p class="empty" style="margin:2px 0 8px;font-size:12px">Common ones. Type to search anywhere.</p>')+
+    (hits.length?hits.map(function(z){
+      return '<div class="row tzrow'+(cur===z?" on":"")+'" data-tz="'+esc(z)+'">'+
+        '<div class="main"><span>'+esc(tzLabel(z))+'</span>'+
+        '<small>'+esc(tzRegion(z))+'</small></div>'+
+        '<div class="amt">'+esc(tzClock(z))+'</div></div>';
+    }).join("")
+    :'<p class="empty" style="margin:2px 0 0">Nothing matching that. Try a city, or the country.</p>');
+  Array.prototype.forEach.call(box.querySelectorAll("[data-tz]"),function(r){
+    r.onclick=function(){onPick(r.dataset.tz)};
+  });
+}
+
 function studentSheet(id){
   var s=student(id); if(!s)return;
   var c=credits(id);
@@ -3195,11 +3358,11 @@ function studentSheet(id){
     '</div>'+
     '<p class="empty" id="stNote" style="font-size:13px;margin:-4px 0 14px"></p>'+
     '<div class="field"><label for="eRate">Rate per hour '+esc(cfg.cur)+'</label><input id="eRate" type="number" inputmode="decimal" value="'+boxVal(s.rate)+'"></div>'+
-    '<div class="field"><label for="eTz">Where they are <em id="tzNow" style="font-style:normal;float:right;color:var(--sky)"></em></label>'+
-      '<select id="eTz"><option value="">Not set</option>'+
-      tzList().map(function(z){
-        return '<option value="'+esc(z)+'"'+(s.tz===z?" selected":"")+'>'+esc(z.replace(/_/g," "))+'</option>';
-      }).join("")+'</select></div>'+
+    '<div class="field"><label for="tzFind">Where they are <em id="tzNow" style="font-style:normal;float:right;color:var(--sky)"></em></label>'+
+      '<div class="jotadd"><input id="tzFind" type="search" autocomplete="off" autocapitalize="off" '+
+        'spellcheck="false" placeholder="Type a city or country"><button type="button" id="tzClear">&times;</button></div>'+
+      '<div id="tzHits"></div>'+
+      '<input type="hidden" id="eTz" value="'+esc(s.tz||"")+'"></div>'+
     '<button class="btn alt" id="mkHw" style="margin-top:6px">Make this week\'s homework</button>'+
     '<div class="two" style="margin-top:9px">'+
       '<button class="btn line" id="aiDriftBtn" style="margin:0">What keeps tripping them</button>'+
@@ -3239,10 +3402,25 @@ function studentSheet(id){
       ? (ck.day+" "+ck.label+(gap?" ("+gap+")":" (same as you)"))
       : "";
   }
-  $("eTz").onchange=function(){
-    if(this.value)s.tz=this.value; else delete s.tz;
+  /* type to search, tap to set; no four hundred item dropdown anywhere */
+  var tzSet=function(z){
+    if(z)s.tz=z; else delete s.tz;
+    $("eTz").value=z||"";
     saveDB(); paintTz(); renderStudents();
+    paintTzHits($("tzFind").value,s.tz||"",tzSet);
+    buzz(6);
+    toast(z?("Set to "+tzLabel(z)+", "+tzClock(z)):"Cleared");
   };
+  if($("tzFind")){
+    $("tzFind").value=s.tz?tzLabel(s.tz):"";
+    $("tzFind").oninput=function(){paintTzHits(this.value,s.tz||"",tzSet)};
+    $("tzClear").onclick=function(){
+      $("tzFind").value="";
+      tzSet("");
+      $("tzFind").focus();
+    };
+    paintTzHits("",s.tz||"",tzSet);
+  }
   paintTz();
 
   /* ---- status ---- */
@@ -4101,23 +4279,27 @@ var KANJI_MONTH=["一月","二月","三月","四月","五月","六月","七月",
 var STEP=101;   /* $100 lands just shy of the far right, not back at zero */
 function updateMini(){
   var bar=$("minibar"); if(!bar)return;
-  var cur=earnedIn(view);
+  /* Always this month, never the month you happen to be browsing. Swiping
+     back through the year used to make the creature level down and change
+     colour on every swipe, which is not what it is for. */
+  var now=new Date();
+  var cur=earnedIn(now);
   var level=Math.floor(cur/STEP);
   var within=(cur%STEP)/STEP;
 
-  $("miniMonth").textContent=KANJI_MONTH[view.getMonth()];
+  $("miniMonth").textContent=KANJI_MONTH[now.getMonth()];
 
   var byM={};
   db.lessons.forEach(function(l){var k=l.date.slice(0,7);byM[k]=(byM[k]||0)+num(l.amount)});
   var best=0;
-  Object.keys(byM).forEach(function(k){if(k!==ym(view)&&byM[k]>best)best=byM[k]});
+  Object.keys(byM).forEach(function(k){if(k!==ym(now)&&byM[k]>best)best=byM[k]});
   var record = cur>0 && cur>=best;
   bar.classList.toggle("record",record);
   $("miniNote").textContent = !cur ? ""
     : record ? (best>0?"新記録":"始まり")
     : Math.round(Math.min(100,cur/best*100))+"% of best";
 
-  var f=cur>0?Math.max(0.06,within):0, live=ym(view)===ym(new Date());
+  var f=cur>0?Math.max(0.06,within):0, live=true;
   expBar.set(f,level,live);
   heroBar.set(f,level,live);
 }
@@ -4211,7 +4393,9 @@ function makeBar(id,opt){
   function size(){
     var r=cv.getBoundingClientRect();
     if(!r.width||!r.height)return false;
-    dpr=Math.min(window.devicePixelRatio||1,2);
+    /* the bar is small and permanent, so full resolution costs very little
+       and it is on screen more than anything else in the app */
+    dpr=Math.min(window.devicePixelRatio||1,3);
     if(cv.width!==Math.round(r.width*dpr)||cv.height!==Math.round(r.height*dpr)){
       cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
       ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -8500,19 +8684,47 @@ function markPool(){
 }
 
 var bag=[];
+function fillBag(){
+  bag=markPool().slice();
+  for(var i=bag.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=bag[i];bag[i]=bag[j];bag[j]=t}
+}
+/* what is coming next, without taking it */
+function peekMark(){
+  if(!bag.length)fillBag();
+  return bag[bag.length-1]||null;
+}
 function drawMark(){
-  if(!bag.length){
-    bag=markPool().slice();
-    for(var i=bag.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=bag[i];bag[i]=bag[j];bag[j]=t}
-  }
-  return bag.pop();
+  if(!bag.length)fillBag();
+  var m=bag.pop();
+  /* the seal is a preview of the next one, so it has to move on too */
+  try{paintSeal()}catch(e){}
+  return m;
+}
+/* Shows whichever mark is genuinely next out of the bag. It used to choose
+   independently at random, which is why the badge and the confetti so rarely
+   agreed. */
+function paintSeal(){
+  var el=document.querySelector(".minibar .seal");
+  if(!el)return;
+  var m=peekMark();
+  if(!m||!m._src)return;
+  if(el.dataset.mk===m._name)return;
+  el.dataset.mk=m._name;
+  el.classList.add("mark");
+  el.style.backgroundImage="url("+m._src+")";
+  el.setAttribute("aria-label",m._name);
 }
 
 var fx=$("fx"), fxc=fx.getContext("2d"), parts=[], running=false, dpr=1;
 var shower=null, acc=0, last=0;
-var CAP=170;
+/* how many pieces can be in the air at once. 170 was a guess made while
+   economising; the loop stops the moment the last one lands, so a fuller
+   burst costs a fraction of a second more, not a permanent overhead */
+var CAP=280;
 
 function clearFx(){
+  /* sharp edges on the marks as they tumble, rather than nearest-neighbour */
+  try{fxc.imageSmoothingEnabled=true;fxc.imageSmoothingQuality="high"}catch(e){}
   fxc.save();
   fxc.setTransform(1,0,0,1,0,0);
   fxc.clearRect(0,0,fx.width,fx.height);
@@ -8525,7 +8737,16 @@ function clearFx(){
    two seconds. Now it is allocated when something is about to be drawn and
    handed straight back afterwards, and capped at 1.5x, which is
    indistinguishable for tumbling shapes. */
-var FX_DPR_CAP=1.5;
+/* Your screen's real pixel ratio. This was capped at 1.5 while I was hunting
+   the refreshes, which made every burst soft. The canvas now only exists
+   while confetti is falling, so the memory is transient and there is no
+   reason to render it blurry. Capped at 3 only because past that is beyond
+   any phone, and dropped to 2 on a device that admits to being short of
+   memory. */
+var FX_DPR_CAP=(function(){
+  var m=navigator.deviceMemory;
+  return (m&&m<4)?2:3;
+})();
 function sizeFx(){
   dpr=Math.min(window.devicePixelRatio||1,FX_DPR_CAP);
   var w=Math.round(innerWidth), hh=Math.round(innerHeight);
@@ -8702,15 +8923,8 @@ if("serviceWorker" in navigator){
 }
 
 /* ================= boot ================= */
-/* a different mark in the seal on every launch */
-(function(){
-  var s=document.querySelector(".minibar .seal");
-  if(!s||typeof CONFETTI==="undefined"||!CONFETTI.length)return;
-  var m=CONFETTI[(Math.random()*CONFETTI.length)|0];
-  s.classList.add("mark");
-  s.style.backgroundImage="url("+m.src+")";
-  s.setAttribute("aria-label",m.name);
-})();
+/* the seal shows whatever is next out of the bag, and keeps up as it moves */
+try{paintSeal()}catch(e){}
 
 $("sfxBtn").textContent="Sound: "+(cfg.sfx===false?"off":"on");
 $("gcalCid").value=cfg.gcalCid||"";
