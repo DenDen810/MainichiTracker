@@ -2109,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CM</b> · 24 Aug 2026<br>If this does not say CM, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CO</b> · 24 Aug 2026<br>If this does not say CO, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -8690,15 +8690,40 @@ function fillBag(){
 }
 /* what is coming next, without taking it */
 function peekMark(){
+  var held=markInPlay();
+  if(held)return held;                 /* what is on screen right now */
   if(!bag.length)fillBag();
   return bag[bag.length-1]||null;
 }
+var MARK_HOLD=null, MARK_HOLD_AT=0;
+var MARK_HOLD_MS=900;   /* long enough for one action, short enough to move on */
+/* A mark is "in play" only for the moment around the action that chose it.
+   Anything bursting inside that window is part of the same event and shares
+   it; anything after is a new event and picks fresh. */
+function markInPlay(){
+  if(!MARK_HOLD)return null;
+  return (Date.now()-MARK_HOLD_AT<MARK_HOLD_MS)?MARK_HOLD:null;
+}
 function drawMark(){
+  var held=markInPlay();
+  if(held)return held;                 /* one logo in the air at a time */
   if(!bag.length)fillBag();
-  var m=bag.pop();
+  MARK_HOLD=bag.pop();
+  MARK_HOLD_AT=Date.now();
+  /* A new episode starting while the old one is still raining: stop the old
+     shower so it does not keep making pieces of the previous logo. Whatever
+     is already airborne finishes its fall, which is what falling things do. */
+  try{
+    if(typeof shower!=="undefined"&&shower)shower=null;
+    /* and clear the previous logo off the screen rather than letting it
+       finish falling alongside the new one */
+    if(typeof parts!=="undefined")parts.forEach(function(p){
+      if(p.img!==MARK_HOLD)p.fade=0.07;
+    });
+  }catch(e){}
   /* the seal is a preview of the next one, so it has to move on too */
   try{paintSeal()}catch(e){}
-  return m;
+  return MARK_HOLD;
 }
 /* Shows whichever mark is genuinely next out of the bag. It used to choose
    independently at random, which is why the badge and the confetti so rarely
@@ -8777,6 +8802,7 @@ function startLoop(){
 /* leaving the app freezes rAF mid-flight, which is what left those smears behind */
 function killFx(){
   parts.length=0; shower=null; running=false; last=0; acc=0;
+  MARK_HOLD=null; MARK_HOLD_AT=0;
   clearFx();   /* the track keeps playing; only the canvas is reset */
   freeFx();    /* and the buffer goes back, which is most of the memory */
 }
@@ -8826,6 +8852,7 @@ function burst(n,from,quiet,pre){
      cut the till off and the till can never cut the song. What must never
      double up is two SONGS, and that is handled in playMark. */
   /* if the audio was already started inside the tap, do not start it twice */
+  var joining=!!markInPlay();          /* something is already in the air */
   var pick0=pre||null;
   if(!pre){
     try{pick0=drawMark()}catch(e){}
@@ -8861,7 +8888,9 @@ function burst(n,from,quiet,pre){
     startLoop();
   };
   /* a silent burst still gets its confetti, it just does not claim the bus */
-  if(pre)shower0(MARK_MS||FALLBACK_MS);          /* already playing */
+  /* Joining an episode already running, or one whose audio started inside
+     the tap: extend the shower, do not start a second track over the top. */
+  if(pre||joining)shower0(MARK_MS||FALLBACK_MS);
   else if(quiet)shower0(FALLBACK_MS);
   else {busClaim(); playMark(pick._name,shower0);}
 
@@ -8890,7 +8919,8 @@ function tick(now){
   for(var i=parts.length-1;i>=0;i--){
     var p=parts[i];
     p.vy+=p.g; p.vx*=0.992; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
-    if(p.g>0.3&&p.y>H*0.72)p.a=Math.max(0,1-(p.y-H*0.72)/(H*0.34));
+    if(p.fade)p.a=Math.max(0,p.a-p.fade);          /* superseded by a new logo */
+    else if(p.g>0.3&&p.y>H*0.72)p.a=Math.max(0,1-(p.y-H*0.72)/(H*0.34));
     if(p.y>H+80||p.a<=0){parts.splice(i,1);continue}
     fxc.save();
     fxc.globalAlpha=p.a;
@@ -8902,7 +8932,11 @@ function tick(now){
   }
 
   if(parts.length||shower)requestAnimationFrame(tick);
-  else{running=false;last=0;clearFx();freeFx()}
+  else{
+    running=false;last=0;clearFx();freeFx();
+    MARK_HOLD=null; MARK_HOLD_AT=0;    /* episode over: a new mark next time */
+    try{paintSeal()}catch(e){}
+  }
 }
 
 /* ---------- rotation / resize recovery ---------- */
