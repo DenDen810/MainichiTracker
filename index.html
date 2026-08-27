@@ -2109,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CQ</b> · 24 Aug 2026<br>If this does not say CQ, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CR</b> · 24 Aug 2026<br>If this does not say CR, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -8405,6 +8405,7 @@ var KACHING=[
 
 /* ---- web audio, so fades actually work on iOS ---- */
 var actx=null, bufs={}, curSrc=null, curGain=null;
+var CTX_HURT=false;
 function ctx(){
   if(actx&&actx.state==="closed")actx=null;   /* iOS can kill it outright */
   if(!actx){
@@ -8412,7 +8413,16 @@ function ctx(){
     if(C)actx=new C();
     try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
     if(actx)actx.onstatechange=function(){
-      if(actx&&actx.state==="interrupted"){try{actx.resume()}catch(e){}}
+      if(!actx)return;
+      /* Remember that it was interrupted. Resuming is worth a try, but if it
+         is still not running by the time something wants to play, the context
+         has to be replaced rather than nursed. */
+      if(actx.state==="interrupted"){
+        CTX_HURT=true;
+        try{actx.resume()}catch(e){}
+      } else if(actx.state==="running"){
+        CTX_HURT=false;
+      }
     };
   }
   if(actx&&actx.state!=="running"){try{actx.resume()}catch(e){}}
@@ -8446,13 +8456,21 @@ function rebuildCtx(){
 function ensureCtx(){
   var c=ctx();
   if(!c)return Promise.reject(new Error("no audio on this device"));
-  if(c.state==="running")return Promise.resolve(c);
-  /* only a context iOS has actually closed is worth replacing */
-  if(c.state==="closed")return rebuildCtx();
+  if(c.state==="running"){CTX_HURT=false;return Promise.resolve(c)}
+  /* closed, or interrupted by another app: nursing these does not work, and
+     a fresh context is the only thing that reliably comes back */
+  if(c.state==="closed"||c.state==="interrupted")return rebuildCtx().then(function(cc){
+    try{if(cc&&cc.state!=="running")cc.resume()}catch(e){}
+    return cc||c;
+  });
   var resumed=Promise.resolve(c.resume()).catch(function(){});
   var timer=new Promise(function(res){setTimeout(res,260)});
   return Promise.race([resumed,timer]).then(function(){
-    return actx||c;                 /* running or not, play into it */
+    /* it said it resumed but did not: that is the zombie, and only a new one
+       gets out of it. Never refuse though — play into whatever we end up with. */
+    if(actx&&actx.state==="running"){CTX_HURT=false;return actx}
+    if(CTX_HURT)return rebuildCtx().then(function(cc){return cc||actx||c});
+    return actx||c;
   });
 }
 
@@ -8505,7 +8523,10 @@ function b64ToBuf(u){
 
    So the cache is a small window: the last few clips stay, the rest go, and
    they simply decode again next time, which takes a moment nobody notices. */
-var BUF_KEEP=4;
+/* Nothing is dropped when you leave the app any more: that meant every return
+   re-fetched several megabytes before anything could play, and memory was
+   never the problem here. A few tracks stay resident. */
+var BUF_KEEP=6;
 var bufOrder=[];
 /* A data URI is one of the till clips: a second or so, already in the page,
    no network involved. Those are pinned and never evicted, because they are
@@ -8813,8 +8834,19 @@ function killFx(){
   freeFx();    /* and the buffer goes back, which is most of the memory */
 }
 document.addEventListener("visibilitychange",function(){
-  if(document.hidden){killFx();expBar.run(false);heroBar.run(false);dropBufs()}
-  else{sizeFx();ensureCtx().catch(function(){});setTimeout(function(){window.dispatchEvent(new Event("scroll"))},60)}
+  if(document.hidden){killFx();expBar.run(false);heroBar.run(false)}
+  else{
+    /* Coming back: wake the audio now rather than on the first tap, and if
+       another app interrupted it while we were away, replace it outright. */
+    try{
+      var c=actx;
+      if(c&&(c.state==="interrupted"||c.state==="closed"))rebuildCtx();
+      else if(c&&c.state!=="running")c.resume();
+    }catch(e){}
+    sizeFx();
+    ensureCtx().catch(function(){});
+    setTimeout(function(){window.dispatchEvent(new Event("scroll"))},60);
+  }
 });
 window.addEventListener("pagehide",killFx);
 
