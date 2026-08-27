@@ -2109,7 +2109,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CR</b> · 24 Aug 2026<br>If this does not say CR, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CS</b> · 24 Aug 2026<br>If this does not say CS, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -5573,7 +5573,7 @@ function paintHealth(){
       : "Comfortable. Everything here is parsed fresh on every launch, so smaller is faster.")+
     '</p>'+
     '<p class="empty" style="margin:9px 0 0">Audio: <b style="color:var(--text)">'+
-      (cfg.sfx===false?"off":(typeof actx!=="undefined"&&actx?actx.state:"not started"))+'</b></p>';
+      (cfg.sfx===false?"off":(AU_READY?"ready":"waiting for your first tap"))+'</b></p>';
 }
 /* the sheets are almost always the bulk of it, and the old ones are dead weight */
 function trimSheets(keep){
@@ -6236,32 +6236,31 @@ $("gcalOut").onclick=function(){
    just failing quietly. If sound is broken, this says why. */
 $("testSfx").onclick=function(){
   if(cfg.sfx===false){warn("Sound is switched off. Turn it back on with the button above.");return}
-  var C=window.AudioContext||window.webkitAudioContext;
-  if(!C){warn("This browser has no Web Audio at all. Nothing can play.");return}
   var steps=[];
-  var c=ctx();
-  steps.push("context: "+(c?c.state:"could not be made"));
-  if(!c){warn(steps.join("\n"));return}
+  auInit();
+  if(!AU_TILL){warn("This browser will not give us an audio player at all.");return}
+  steps.push("unlocked: "+(AU_READY?"yes":"no, tap anywhere first"));
   var url=KACHING[0];
-  steps.push("clip: "+(url.slice(0,5)==="data:"?"built in, no network needed":"file, "+url));
-  var t0=Date.now();
-  ensureCtx().then(function(cc){
-    steps.push("after waking: "+cc.state+" ("+(Date.now()-t0)+"ms)");
-    return loadBuf(url).then(function(buf){
-      steps.push("decoded: "+(Math.round(buf.duration*100)/100)+"s");
-      var src=cc.createBufferSource(); src.buffer=buf;
-      var g=cc.createGain(); src.connect(g); g.connect(cc.destination);
-      g.gain.setValueAtTime(0.95,cc.currentTime);
-      src.start(cc.currentTime+0.01);
-      steps.push(cc.state==="running"
-        ? "played. If you heard nothing, check the silent switch and the volume."
-        : "queued: the context is "+cc.state+", so it will sound the moment iOS lets it.");
-      warn(steps.join("\n"));
-    });
-  }).catch(function(e){
+  steps.push("clip: built in, no network needed");
+  try{
+    AU_TILL.src=url; AU_TILL.volume=0.95; AU_TILL.currentTime=0;
+    var t0=Date.now();
+    var pr=AU_TILL.play();
+    if(pr&&pr.then){
+      pr.then(function(){
+        steps.push("played in "+(Date.now()-t0)+"ms.");
+        steps.push("If you heard nothing: check the ring/silent switch on the side of the phone, and the volume while a sound is playing.");
+        warn(steps.join("\n"));
+      },function(e){
+        steps.push("the phone refused: "+((e&&e.name)||e));
+        steps.push("Tap OK, then tap anywhere on the app and try again.");
+        warn(steps.join("\n"));
+      });
+    } else { steps.push("started"); warn(steps.join("\n")) }
+  }catch(e){
     steps.push("stopped here: "+((e&&e.message)||e));
     warn(steps.join("\n"));
-  });
+  }
 };
 $("sfxBtn").onclick=function(){
   cfg.sfx=(cfg.sfx===false); saveSet();
@@ -8404,200 +8403,137 @@ var KACHING=[
 ];
 
 /* ---- web audio, so fades actually work on iOS ---- */
+/* ================= playback =================
+
+   This used to be built on Web Audio: an AudioContext, decoded buffers, gain
+   envelopes. On a desktop that is the right tool. On an iPhone it is the
+   wrong one, and it is the reason the sound kept dying.
+
+   Three things about iOS make it unworkable here:
+
+     - A page may only ever create FOUR AudioContexts. Not four at once: four,
+       total, for the life of the page. Every interruption I rebuilt through
+       spent one. After a few app switches there were none left and nothing
+       could ever play again, which is exactly the "it just stops working and
+       never comes back" you kept hitting. Each round of fixes made it die
+       sooner, because each one rebuilt more eagerly.
+
+     - When another app takes the audio session, the context enters
+       "interrupted", where resume() resolves and changes nothing. There is no
+       reliable way back other than a new context, which costs one of the four.
+
+     - Decoded buffers belong to their context, so losing one loses all the
+       audio and it must be fetched and decoded again.
+
+   An <audio> element has none of these problems. There is no context and no
+   limit. An interruption pauses it and play() starts it again. The browser
+   caches the file itself, so coming back from another app costs nothing. It
+   needs one gesture to unlock, once, ever.
+
+   What is lost: sample-accurate gain envelopes. The fades are done on .volume
+   instead, which is inaudibly different for a five second sting.
+   ================================================================= */
+
+var AU_TILL=null, AU_TRACK=null, AU_READY=false;
+/* kept so anything still asking about the old machinery gets a sane answer */
 var actx=null, bufs={}, curSrc=null, curGain=null;
-var CTX_HURT=false;
-function ctx(){
-  if(actx&&actx.state==="closed")actx=null;   /* iOS can kill it outright */
-  if(!actx){
-    var C=window.AudioContext||window.webkitAudioContext;
-    if(C)actx=new C();
-    try{if(navigator.audioSession)navigator.audioSession.type="playback"}catch(e){}
-    if(actx)actx.onstatechange=function(){
-      if(!actx)return;
-      /* Remember that it was interrupted. Resuming is worth a try, but if it
-         is still not running by the time something wants to play, the context
-         has to be replaced rather than nursed. */
-      if(actx.state==="interrupted"){
-        CTX_HURT=true;
-        try{actx.resume()}catch(e){}
-      } else if(actx.state==="running"){
-        CTX_HURT=false;
-      }
-    };
-  }
-  if(actx&&actx.state!=="running"){try{actx.resume()}catch(e){}}
-  return actx;
+var BUF_KEEP=6;
+function dropBufs(){ bufs={}; }
+function loadBuf(url){ return Promise.resolve({duration:0,url:url}); }
+function rebuildCtx(){ return Promise.resolve(null); }
+function ensureCtx(){ return Promise.resolve({state:AU_READY?"running":"suspended"}); }
+
+var SILENT="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD/////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQCQAAAAAAAAAEg1jJgLwAAAAAAAAAAAAAAAAAAAAD/84TEAAPAAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEAAAGkAAAAIAAAA";
+
+function auMake(){
+  var el=document.createElement("audio");
+  el.preload="auto";
+  el.setAttribute("playsinline","");
+  el.setAttribute("webkit-playsinline","");
+  el.crossOrigin="anonymous";
+  el.src=SILENT;
+  el.style.display="none";
+  document.body.appendChild(el);
+  return el;
+}
+function auInit(){
+  if(AU_TILL)return;
+  try{ AU_TILL=auMake(); AU_TRACK=auMake(); }catch(e){}
 }
 
-/* Throw the whole thing away and build a fresh one. After a long spell in the
-   background iOS leaves the context in a zombie state where resume() resolves,
-   or never resolves at all, and nothing is ever audible again. */
-function rebuildCtx(){
-  try{if(actx)actx.close()}catch(e){}
-  actx=null; curSrc=null; curGain=null;
-  dropBufs();                       /* buffers belong to the old context */
-  /* the till channel belongs to the old context too: its source can never
-     end now, so nothing would ever clear it if we did not do it here */
-  SFX_LIVE=null; SFX_GAIN=null; SFX_AT=0;
-  var c=ctx();
-  if(!c)return Promise.reject(new Error("no audio"));
-  if(c.state==="running")return Promise.resolve(c);
-  return Promise.resolve(c.resume()).catch(function(){}).then(function(){return actx});
-}
-
-/* Resolves with a context that is genuinely running, rebuilding if it has to.
-   resume() hanging forever is the bug that made audio stop until an app restart,
-   so it races against a timer instead of being awaited blindly. */
-/* Hands back a context to play into. It tries to wake it and gives that a
-   moment, but it NEVER refuses. A suspended context still accepts start():
-   the sound is queued and plays the instant the context wakes, which on iOS
-   is the next time you touch the screen. Declining to try, which is what
-   this used to do, guarantees silence instead of merely risking it. */
-function ensureCtx(){
-  var c=ctx();
-  if(!c)return Promise.reject(new Error("no audio on this device"));
-  if(c.state==="running"){CTX_HURT=false;return Promise.resolve(c)}
-  /* closed, or interrupted by another app: nursing these does not work, and
-     a fresh context is the only thing that reliably comes back */
-  if(c.state==="closed"||c.state==="interrupted")return rebuildCtx().then(function(cc){
-    try{if(cc&&cc.state!=="running")cc.resume()}catch(e){}
-    return cc||c;
-  });
-  var resumed=Promise.resolve(c.resume()).catch(function(){});
-  var timer=new Promise(function(res){setTimeout(res,260)});
-  return Promise.race([resumed,timer]).then(function(){
-    /* it said it resumed but did not: that is the zombie, and only a new one
-       gets out of it. Never refuse though — play into whatever we end up with. */
-    if(actx&&actx.state==="running"){CTX_HURT=false;return actx}
-    if(CTX_HURT)return rebuildCtx().then(function(cc){return cc||actx||c});
-    return actx||c;
-  });
-}
-
-/* ---- unlocking audio, properly ----
-   iOS only lets an AudioContext start inside a real user gesture, and it
-   checks at the moment resume() is called, not at the moment you tapped. The
-   old listener called resume() and hoped. Two things were missing: it never
-   created the context if there was not one, and resume() alone does not
-   reliably unlock iOS — you have to actually push a buffer through. One
-   frame of silence does it and is inaudible.
-
-   This runs on the way DOWN, before anything else, so by the time a delayed
-   burst fires the context is already running and nothing has to be resumed
-   outside a gesture. */
-var GESTURE_AT=0;
-function inGesture(){return Date.now()-GESTURE_AT<1500}
+/* ---- the one gesture it needs, ever ----
+   Playing a moment of silence inside a real touch is what marks an element as
+   allowed. After that it can be played from a timer, a promise, anywhere. */
 function unlockAudio(){
   GESTURE_AT=Date.now();
-  if(cfg.sfx===false)return;
-  var c=ctx();
-  if(!c)return;
-  try{if(c.state!=="running")c.resume()}catch(e){}
-  /* the silent frame: this is the part that actually convinces iOS */
-  try{
-    var b=c.createBuffer(1,1,22050);
-    var s2=c.createBufferSource();
-    s2.buffer=b; s2.connect(c.destination); s2.start(0);
-  }catch(e){}
+  auInit();
+  if(AU_READY||!AU_TILL)return;
+  [AU_TILL,AU_TRACK].forEach(function(el){
+    try{
+      var pr=el.play();
+      if(pr&&pr.then)pr.then(function(){try{el.pause();el.currentTime=0}catch(e){}},function(){});
+      else {try{el.pause()}catch(e){}}
+    }catch(e){}
+  });
+  AU_READY=true;
 }
-/* Every kind of touch, not just the way down. A swipe ends in touchend with
-   no pointerdown near it, and a long press can be well over a second old by
-   the time anything is played. Waking the context is cheap and idempotent, so
-   there is no reason to be selective about when to do it. */
+var GESTURE_AT=0;
+function inGesture(){return Date.now()-GESTURE_AT<1500}
+/* Every kind of touch. Unlocking is cheap and idempotent, and after the first
+   one nothing here does any work at all. */
 ["touchstart","touchend","pointerdown","pointerup","mousedown","click"].forEach(function(ev){
   document.addEventListener(ev,unlockAudio,{passive:true,capture:true});
 });
-function b64ToBuf(u){
-  var b=atob(u.slice(u.indexOf(",")+1));
-  var arr=new Uint8Array(b.length);
-  for(var i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);
-  return arr.buffer;
-}
-/* ---- how much decoded audio to keep ----
-   An MP3 in the cache is not the size of the MP3. Decoding a 20 second
-   stereo clip at 48kHz gives roughly 7MB of raw float samples, and bufs kept
-   every one of them for the life of the page. Eight marks with a few tracks
-   each is well over a hundred megabytes of PCM, which is far past the point
-   where iOS throws the whole app out of memory and cold starts it when you
-   come back. That is what the refreshes are.
+/* and have the elements ready before the first tap arrives */
+if(document.body)auInit(); else document.addEventListener("DOMContentLoaded",auInit);
 
-   So the cache is a small window: the last few clips stay, the rest go, and
-   they simply decode again next time, which takes a moment nobody notices. */
-/* Nothing is dropped when you leave the app any more: that meant every return
-   re-fetched several megabytes before anything could play, and memory was
-   never the problem here. A few tracks stay resident. */
-var BUF_KEEP=6;
-var bufOrder=[];
-/* A data URI is one of the till clips: a second or so, already in the page,
-   no network involved. Those are pinned and never evicted, because they are
-   the sound you actually hear on every log and they must work with no signal.
-   Only the multi-megabyte tracks in sfx/ are ever dropped. */
-function pinned(url){return String(url).slice(0,5)==="data:"}
-function bufTouch(url){
-  if(pinned(url))return;
-  var i=bufOrder.indexOf(url);
-  if(i>-1)bufOrder.splice(i,1);
-  bufOrder.push(url);
-  while(bufOrder.length>BUF_KEEP){
-    var old=bufOrder.shift();
-    if(old!==url)delete bufs[old];
-  }
-}
-/* Drops the big tracks only. The till survives, so leaving the app and coming
-   back still makes a noise even with no signal at all. */
-function dropBufs(){
-  Object.keys(bufs).forEach(function(k){if(!pinned(k))delete bufs[k]});
-  bufOrder.length=0;
-}
-function loadBuf(url){
-  if(bufs[url]){bufTouch(url);return bufs[url]}
-  var raw = url.slice(0,5)==="data:"
-    ? Promise.resolve(b64ToBuf(url))
-    : fetch(url).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer()});
-  var c=actx;
-  var pr=raw.then(function(ab){
-    return new Promise(function(res,rej){
-      try{c.decodeAudioData(ab,res,rej)}catch(e){rej(e)}
-    });
-  });
-  /* Never keep a failure. A decode that fell over because the context was
-     being suspended used to be cached as a rejected promise, and from then
-     on that clip was dead for the whole session. Drop it and the next tap
-     simply tries again. */
-  pr.catch(function(){ if(bufs[url]===pr)delete bufs[url]; });
-  bufs[url]=pr;
-  bufTouch(url);
-  return pr;
-}
-/* ---- the audio bus ----
-   Every sound in the app goes through here. There is exactly one slot, and
-   claiming it stops whatever was in it. Two players used to run side by side
-   with no idea the other existed, which is what you were hearing. */
-/* Songs share one slot: starting one stops whatever song was playing. The
-   till has its own, so the two never fight. Claiming a channel only ever
-   silences that channel. */
-function busClaim(){
-  try{stopAudio()}catch(e){}
-}
-function stopAudio(){
-  if(!curSrc)return;
+/* ---- the till ----
+   Its own element, so a song can never cut it off and it can never cut a
+   song. The clips are data URIs: no network, ever. */
+var SFX_AT=0, SFX_MIN_GAP=220;
+function playKaching(){
+  if(cfg.sfx===false)return;
+  auInit();
+  if(!AU_TILL)return;
+  var now=Date.now();
+  /* two taps in the same instant are one sound, not a flam */
+  if(now-SFX_AT<SFX_MIN_GAP)return;
+  SFX_AT=now;
   try{
-    var t=actx.currentTime;
-    curGain.gain.cancelScheduledValues(t);
-    curGain.gain.setValueAtTime(Math.max(curGain.gain.value,0.0001),t);
-    curGain.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
-    curSrc.stop(t+0.2);
+    AU_TILL.src=KACHING[(Math.random()*KACHING.length)|0];
+    AU_TILL.volume=0.95;
+    AU_TILL.currentTime=0;
+    var pr=AU_TILL.play();
+    if(pr&&pr.catch)pr.catch(function(){});
   }catch(e){}
-  curSrc=null; curGain=null;
 }
-/* calls back with how long the shower should run, in ms */
-var MARK_TOKEN=0;
+function stopKaching(){
+  try{if(AU_TILL){AU_TILL.pause();AU_TILL.currentTime=0}}catch(e){}
+}
+
+/* ---- the track ----
+   One element, so starting a song always replaces the one before it and two
+   can never overlap. */
+var FADE_T=null;
+function stopAudio(){
+  clearInterval(FADE_T); FADE_T=null;
+  try{if(AU_TRACK){AU_TRACK.pause();AU_TRACK.currentTime=0}}catch(e){}
+}
+function busClaim(){ stopAudio(); }
+function fadeTo(el,to,ms,then){
+  clearInterval(FADE_T);
+  var from=el.volume, steps=Math.max(1,Math.round(ms/50)), i=0;
+  FADE_T=setInterval(function(){
+    i++;
+    var v=from+(to-from)*(i/steps);
+    try{el.volume=Math.max(0,Math.min(1,v))}catch(e){}
+    if(i>=steps){clearInterval(FADE_T);FADE_T=null;if(then)then()}
+  },50);
+}
+
 function playMark(name,cb){
   var list=TRACKS[name]||[];
-  var done=false, told=false;
-  /* `real` marks the true length of the clip. It is allowed through even if
-     the fallback cue already fired, because the fallback is a guess and this
-     is the answer. Anything else is ignored once we have spoken. */
+  var told=false, done=false;
   function once(ms,real){
     if(done&&!real)return;
     if(told)return;
@@ -8606,39 +8542,51 @@ function playMark(name,cb){
     setCountPace(ms);
     cb(ms,real);
   }
-  if(cfg.sfx===false||!list.length){once(FALLBACK_MS);return}
-  /* whatever happens to the audio, the confetti still gets its cue */
+  auInit();
+  if(cfg.sfx===false||!list.length||!AU_TRACK){once(FALLBACK_MS);return}
+
+  /* the confetti gets its cue whatever the audio does */
   setTimeout(function(){once(FALLBACK_MS)},2500);
+
   var t=list[(Math.random()*list.length)|0];
   var mine=++MARK_TOKEN;
-  ensureCtx().then(function(c){
-    if(mine!==MARK_TOKEN)return null;        /* a newer mark already claimed it */
-    return loadBuf(t.file).then(function(buf){return [c,buf]});
-  }).then(function(pair){
-    if(!pair||mine!==MARK_TOKEN)return;
-    var c=pair[0], buf=pair[1];
-    busClaim();                              /* nothing else may still be running */
-    var s=Math.max(0,t.start||0);
-    var e=(t.end&&t.end>s)?Math.min(t.end,buf.duration):buf.duration;
-    var dur=Math.max(0.6,e-s);
-    var src=c.createBufferSource(); src.buffer=buf;
-    var g=c.createGain();
-    src.connect(g); g.connect(c.destination);
-    var vol=0.85;
-    var fi=Math.min(1.0,dur*0.22), fo=Math.min(1.6,dur*0.3);
-    var t0=c.currentTime+0.02;
-    g.gain.setValueAtTime(0.0001,t0);
-    g.gain.exponentialRampToValueAtTime(vol,t0+fi);
-    g.gain.setValueAtTime(vol,t0+dur-fo);
-    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    src.start(t0,s,dur);
-    curSrc=src; curGain=g;
+  var el=AU_TRACK;
+  stopAudio();
+
+  var start=Math.max(0,t.start||0);
+  var ended=false;
+  var cleanup=function(){
+    el.ontimeupdate=null; el.onloadedmetadata=null; el.onerror=null; el.oncanplay=null;
+  };
+  el.onerror=function(){ if(mine!==MARK_TOKEN)return; cleanup(); once(FALLBACK_MS) };
+  el.onloadedmetadata=function(){
+    if(mine!==MARK_TOKEN)return;
+    var stop=(t.end&&t.end>start)?Math.min(t.end,el.duration||t.end):(el.duration||0);
+    var dur=Math.max(0.6,(stop||start+4)-start);
+    try{el.currentTime=start}catch(e){}
+    /* the real length, which is allowed through even after the fallback cue */
     once(dur*1000,true);
-  }).catch(function(){
-    delete bufs[t.file];
-    once(FALLBACK_MS);
-  });
+    var fo=Math.min(1.6,dur*0.3);
+    el.ontimeupdate=function(){
+      if(mine!==MARK_TOKEN||ended)return;
+      var left=stop-el.currentTime;
+      if(left<=0){ended=true;cleanup();stopAudio();return}
+      if(left<=fo&&!FADE_T)fadeTo(el,0,left*1000);
+    };
+  };
+  try{
+    el.volume=0;
+    el.src=t.file;
+    el.load();
+    var pr=el.play();
+    if(pr&&pr.then)pr.then(function(){
+      if(mine!==MARK_TOKEN)return;
+      fadeTo(el,0.85,Math.min(1000,600));
+    },function(){ if(mine===MARK_TOKEN)once(FALLBACK_MS) });
+    else fadeTo(el,0.85,600);
+  }catch(e){ once(FALLBACK_MS) }
 }
+var MARK_TOKEN=0;
 
 /* ---- one sound at a time, always ----
    Anything that can fire in a burst (three achievements unlocking together,
@@ -8648,56 +8596,7 @@ function playMark(name,cb){
    over 60ms and takes its place, and requests inside a short window of each
    other are dropped outright rather than queued, because a queue would just
    move the pile-up later. */
-var SFX_LIVE=null, SFX_GAIN=null, SFX_AT=0, SFX_TOKEN=0;
-var SFX_MIN_GAP=0.22;              /* seconds between two clips, hard floor */
-function stopKaching(c,when){
-  if(!SFX_LIVE)return;
-  var src=SFX_LIVE, g=SFX_GAIN;
-  /* cleared first, so a throw below can never leave the channel jammed */
-  SFX_LIVE=null; SFX_GAIN=null;
-  if(!c||!g){try{src.stop()}catch(e){} return}
-  try{
-    var t=when||c.currentTime;
-    g.gain.cancelScheduledValues(t);
-    g.gain.setValueAtTime(Math.max(0.0001,g.gain.value),t);
-    g.gain.exponentialRampToValueAtTime(0.0001,t+0.06);
-    src.stop(t+0.08);
-  }catch(e){}
-}
-function playKaching(){
-  if(cfg.sfx===false)return;
-  var url=KACHING[(Math.random()*KACHING.length)|0];
-  var mine=++SFX_TOKEN;
-  ensureCtx().then(function(c){
-    /* two calls landing in the same instant: the later one wins, the earlier
-       never reaches start() */
-    if(mine!==SFX_TOKEN)return null;
-    /* A fresh context starts its clock at zero, so a stale SFX_AT from the
-       previous one makes this difference negative. Negative means the clock
-       restarted, not that a sound just played. */
-    var since=c.currentTime-SFX_AT;
-    /* A clock that went backwards means a new context, not a recent sound.
-       And a live source older than a few seconds is a stale handle whose
-       onended never fired, not something still playing: either way the
-       channel is free. Nothing here may latch shut. */
-    if(since<0||since>4){SFX_LIVE=null;SFX_GAIN=null;SFX_AT=0;}
-    else if(since<SFX_MIN_GAP&&SFX_LIVE)return null;
-    return loadBuf(url).then(function(buf){
-      if(mine!==SFX_TOKEN)return;
-      var t0=c.currentTime+0.01;
-      stopKaching(c,t0);        /* only a previous till, never the song */
-      var src=c.createBufferSource(); src.buffer=buf;
-      var g=c.createGain();
-      src.connect(g); g.connect(c.destination);
-      g.gain.setValueAtTime(0.95,t0);
-      g.gain.setValueAtTime(0.95,t0+Math.max(0.05,buf.duration-0.12));
-      g.gain.exponentialRampToValueAtTime(0.0001,t0+buf.duration);
-      src.start(t0);
-      SFX_LIVE=src; SFX_GAIN=g; SFX_AT=t0;
-      src.onended=function(){if(SFX_LIVE===src){SFX_LIVE=null;SFX_GAIN=null}};
-    });
-  }).catch(function(){});
-}
+/* the Web Audio till was replaced by the element above */
 
 /* ---- shuffle bag: every mark comes up once per cycle ---- */
 /* TEMP, for testing the audio: only this mark bursts.
@@ -8838,11 +8737,9 @@ document.addEventListener("visibilitychange",function(){
   else{
     /* Coming back: wake the audio now rather than on the first tap, and if
        another app interrupted it while we were away, replace it outright. */
-    try{
-      var c=actx;
-      if(c&&(c.state==="interrupted"||c.state==="closed"))rebuildCtx();
-      else if(c&&c.state!=="running")c.resume();
-    }catch(e){}
+    /* An element that was interrupted by another app is simply paused. There
+       is nothing to rebuild and nothing that can run out. */
+    try{if(AU_TILL&&AU_TILL.paused===false)AU_TILL.pause()}catch(e){}
     sizeFx();
     ensureCtx().catch(function(){});
     setTimeout(function(){window.dispatchEvent(new Event("scroll"))},60);
