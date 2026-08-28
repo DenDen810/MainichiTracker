@@ -2216,10 +2216,12 @@ body.light .toastless{display:none}
       <textarea id="xlsBig" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="Date, Student, Amount&#10;2026-08-01, Melanie, 50"></textarea>
       <button class="btn alt" id="xlsRead" style="margin-top:11px">Read it</button>
       <div id="xlsOut"></div>
+      <button class="btn line" id="xlsCheck" style="margin-top:11px">Check the last import</button>
+      <p class="empty" style="margin:11px 0 0">Shows what your sheet said and what the app now holds, month by month, so you can see them agree rather than take my word for it.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DH</b> · 24 Aug 2026<br>If this does not say DH, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DJ</b> · 24 Aug 2026<br>If this does not say DJ, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -7528,6 +7530,61 @@ function yearReview(yr){
    Plain, printable, and it says what was taught rather than dressing it up.
    Prepaid lessons are listed but not charged again, because they were paid
    for when the bundle was bought. */
+/* Kept from the last import so it can be checked afterwards rather than only
+   in the second the toast is up. */
+var lastImport=null;
+function importReport(){
+  if(!lastImport)return '<div class="inv"><h1>Nothing imported yet</h1>'+
+    '<p class="sub">Bring a sheet in and this will show you the arithmetic.</p></div>';
+  var r=lastImport;
+  var rowsFile={}, rowsApp={};
+  r.fileLessons.forEach(function(l){
+    var m=String(l.date).slice(0,7);
+    rowsFile[m]=(rowsFile[m]||0)+num(l.amount);
+  });
+  db.lessons.forEach(function(l){
+    var m=String(l.date).slice(0,7);
+    if(rowsFile[m]===undefined)return;          /* only months the file covered */
+    rowsApp[m]=(rowsApp[m]||0)+num(l.amount);
+  });
+  var months=Object.keys(rowsFile).sort();
+  var fTot=months.reduce(function(a,m){return a+rowsFile[m]},0);
+  var aTot=months.reduce(function(a,m){return a+(rowsApp[m]||0)},0);
+  var body=months.map(function(m){
+    var f=rowsFile[m]||0, a=rowsApp[m]||0, dd=a-f;
+    var pp=m.split("-");
+    return '<tr><td>'+MONTHS[parseInt(pp[1],10)-1]+" "+pp[0]+'</td>'+
+      '<td class="r">'+money(f)+'</td><td class="r">'+money(a)+'</td>'+
+      '<td class="r"'+(Math.abs(dd)>0.005?' style="color:#c33;font-weight:700"':"")+'>'+
+        (Math.abs(dd)<0.005?"\u2713":money(dd))+'</td></tr>';
+  }).join("");
+  var same=Math.abs(aTot-fTot)<0.005;
+  return '<div class="inv">'+
+    '<h1>Did it come in right?</h1>'+
+    '<p class="sub">'+esc(r.when)+' \u00b7 every month the file touched, as your sheet has it and as the app now has it</p>'+
+    '<table><thead><tr><th>Month</th><th class="r">In your sheet</th>'+
+      '<th class="r">In the app</th><th class="r">Difference</th></tr></thead>'+
+      '<tbody>'+body+'</tbody></table>'+
+    '<p class="tot big"><span>'+(same?"Every month agrees":"They do not agree")+'</span><b>'+
+      (same?money(aTot):money(aTot)+" vs "+money(fTot))+'</b></p>'+
+    '<p class="tot"><span>Rows with a student in the file</span><b>'+r.fileLessons.length+'</b></p>'+
+    '<p class="tot"><span>Lessons now in the app from it</span><b>'+r.added+'</b></p>'+
+    (r.bundles?'<p class="tot"><span>Prepay purchases</span><b>'+r.bundles+'</b></p>':"")+
+    (r.prepaidLessons?'<p class="tot"><span>Lessons marked paid from prepay</span><b>'+r.prepaidLessons+'</b></p>':"")+
+    '<p class="tot"><span>Students created</span><b>'+r.newStudents+'</b></p>'+
+    (r.skipped?'<p class="tot"><span>Rows passed over</span><b>'+r.skipped+'</b></p>':"")+
+    (r.skipped?'<p class="foot">Rows are passed over when they have no date and no name \u2014 the blank ones at the bottom of a sheet. They are not lost; they were never lessons.</p>':"")+
+    (r.noPrice?'<p class="foot" style="color:#c33">'+r.noPrice+' row'+(r.noPrice===1?"":"s")+
+      ' had a student and a date but nothing in the Income column, so they came in at zero. They are listed under Lessons with no price on the stats page.</p>':"")+
+    (r.conflicts&&r.conflicts.length?'<p class="foot" style="color:#c33">'+
+      r.conflicts.length+' row'+(r.conflicts.length===1?"":"s")+' in your sheet did not add up: '+
+      r.conflicts.map(function(c){
+        return esc(c.who)+" "+esc(c.date)+" ("+c.paid+" paid, "+c.used+" used, Remaining "+c.rem+")";
+      }).join("; ")+'. The Remaining column was used.</p>':"")+
+    (r.dupes?'<p class="foot">'+r.dupes+' rows were exact repeats of another row \u2014 same student, same date, same time. They came in as your sheet has them.</p>':"")+
+    '<p class="foot">Nothing is rounded on the way in. If a month disagrees, the difference is real money, in whichever direction it points.</p>'+
+  '</div>';
+}
 function invoiceFor(s,ym2){
   var rows=db.lessons.filter(function(l){
     return l.studentId===s.id && String(l.date).slice(0,7)===ym2;
@@ -8184,7 +8241,16 @@ function xlsScan(text){
            the figure you have been reading. */
         var bought=paidN>0?paidN:((remN>0?remN:0)+(usedN>0?usedN:0));
         var drawn=usedN>0?usedN:0;
-        if(remN===remN&&paidN>0)drawn=Math.max(0,paidN-remN);
+        if(remN===remN&&paidN>0){
+          /* Remaining is the figure being read and acted on, so it wins. But
+             if it does not equal paid minus used, one of the three is wrong
+             and that is worth knowing about. */
+          if(usedN===usedN&&Math.abs((paidN-usedN)-remN)>0.005){
+            plan.conflicts=plan.conflicts||[];
+            plan.conflicts.push({who:who,date:dt,paid:paidN,used:usedN,rem:remN});
+          }
+          drawn=Math.max(0,paidN-remN);
+        }
         plan.bundles.push({date:dt,who:who,
           lessons:Math.max(0.5,bought),
           used:Math.min(Math.max(0,drawn),Math.max(0.5,bought)),
@@ -8224,6 +8290,7 @@ function xlsScan(text){
     var k=(l.who||"").toLowerCase()+"|"+l.date+"|"+(l.time||"");
     if(seenKey[k])dupes++; else seenKey[k]=1;
   });
+  var conf=plan.conflicts||[];
   var withUsed=plan.bundles.filter(function(b){return num(b.used)>0}).length;
   var stillLeft=plan.bundles.reduce(function(a,b){
     return a+Math.max(0,num(b.lessons)-num(b.used));
@@ -8249,6 +8316,13 @@ function xlsScan(text){
       '</b> are not a full hour. Their length comes across, so the money and the hourly rates work out right.</p>':"")+
     (trials?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--text)">'+trials+
       '</b> trial lesson'+(trials===1?" is":"s are")+' marked as such, and the trial price is not used as anybody\u2019s hourly rate.</p>':"")+
+    (conf.length?'<p class="empty" style="margin:0 0 6px;color:var(--shu)"><b>'+conf.length+
+      ' row'+(conf.length===1?" does":"s do")+' not add up in your own sheet.</b> '+
+      conf.slice(0,3).map(function(c){
+        return esc(c.who)+" on "+esc(dayLabel(c.date))+": "+c.paid+" paid minus "+c.used+
+          " used is "+round2(c.paid-c.used)+", but Remaining says "+c.rem;
+      }).join(". ")+'. The Remaining column is used, since that is the one you read. '+
+      'Worth fixing in the sheet.</p>':"")+
     (withUsed?'<p class="empty" style="margin:0 0 6px">This is a prepay sheet: it says how many were bought <b style="color:var(--text)">and</b> how many have been used, so the balances come across as they are. '+
       '<b style="color:var(--text)">'+round2(stillLeft)+'</b> lessons still owed across '+plan.bundles.length+' purchase'+(plan.bundles.length===1?"":"s")+'.</p>':"")+
     (preTotal?'<p class="empty" style="margin:0 0 6px">Prepay is money taken in, not money earned. It is <b style="color:var(--text)">not</b> added to your income: it becomes income a lesson at a time as you teach it, and the lessons it already paid for get moved onto it when this finishes.</p>':"")+
@@ -8297,6 +8371,26 @@ function xlsCommit(){
      importing prepay from a spreadsheet. */
   /* Ticks on individual lessons become real bundles, so an imported year of
      prepay is visible on the student rather than only in a note. */
+  /* keep the file's own figures so they can be checked against afterwards */
+  lastImport={
+    when:iso(new Date()),
+    fileLessons:p.lessons.map(function(l){return {date:l.date,amount:num(l.amount)}}),
+    added:p.lessons.length,
+    bundles:p.bundles.length,
+    prepaidLessons:p.lessons.filter(function(l){return l.prepaid}).length,
+    newStudents:Object.keys(p.students).length,
+    skipped:p.skipped||0,
+    noPrice:p.lessons.filter(function(l){return !(num(l.amount)>0)}).length,
+    conflicts:(p.conflicts||[]).slice(0,6),
+    dupes:(function(){
+      var seen={},n=0;
+      p.lessons.forEach(function(l){
+        var k=(l.who||"").toLowerCase()+"|"+l.date+"|"+(l.time||"");
+        if(seen[k])n++; else seen[k]=1;
+      });
+      return n;
+    })()
+  };
   var rb=rebuildPrepay();
   var sw=sweepBundles(), moved=sweepCount(sw);
   if(!saveDB()){warn("Storage is full. Export a backup, then clear some old sheets.");return}
@@ -8552,6 +8646,7 @@ var BTN_ICON={
   hwGo:     '<path d="M12 4.5 14 9.5l5.5.6-4.1 3.7 1.1 5.4L12 16.5l-4.5 2.7 1.1-5.4L4.5 10.1 10 9.5z"/>',
   /* data */
   xlsRead:  '<path d="M4.5 4.5h10L19.5 9v10.5h-15z"/><path d="M14.5 4.5V9h5M8 16.5 11 13l2 2 3-4"/>',
+  xlsCheck: '<path d="M4.5 12.5 9 17l10.5-10.5"/><path d="M4.5 6.5h6M4.5 9.5h4"/>',
   xlsGo:    '<path d="M12 3.5v11M8.5 11 12 14.5 15.5 11"/><path d="M4.5 16v4.5h15V16"/>',  /* bring it in */
   export:   '<path d="M12 20.5v-11M8.5 13 12 9.5l3.5 3.5"/><path d="M4.5 8V3.5h15V8"/>',   /* send it out */
   exportJson:'<path d="M9 4.5H6a1.5 1.5 0 0 0-1.5 1.5v3L3 12l1.5 3v3A1.5 1.5 0 0 0 6 19.5h3M15 4.5h3A1.5 1.5 0 0 1 19.5 6v3L21 12l-1.5 3v3a1.5 1.5 0 0 1-1.5 1.5h-3"/>',
@@ -9181,6 +9276,10 @@ if($("rebuildPre"))$("rebuildPre").onclick=function(){
       db.bundles=db.bundles.filter(function(b){return b.used>0.005||b.lessons>0.005});
       saveDB(); renderAll(); toast("Left as they were");
     });
+};
+if($("xlsCheck"))$("xlsCheck").onclick=function(){
+  hwCur=null;
+  showPaper(importReport());
 };
 $("sweepPre").onclick=function(){
   var sw=sweepBundles(), moved=sweepCount(sw);
