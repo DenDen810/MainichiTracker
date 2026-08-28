@@ -541,6 +541,42 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
 .seg button{flex:1;border:0;background:none;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--surf2);color:var(--text);font-weight:500}
 
+/* The week, because that is the unit a teaching week is actually planned in.
+   The month is for the accounts; the week is for knowing whether to say yes
+   to one more lesson on Friday. */
+/* ---- a year, one square a day ----
+   Fifty two columns of seven. It is the only view that shows a year of work
+   as a shape rather than a number, and the gaps are as informative as the
+   dense patches. */
+.wall{display:flex;gap:3px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch}
+.wall::-webkit-scrollbar{display:none}
+.wall .col{display:flex;flex-direction:column;gap:3px;flex:0 0 auto}
+.wall i{display:block;width:10px;height:10px;border-radius:2.5px;background:var(--inset)}
+.wall i.w1{background:var(--shu);opacity:.28}
+.wall i.w2{background:var(--shu);opacity:.5}
+.wall i.w3{background:var(--shu);opacity:.75}
+.wall i.w4{background:var(--shu);opacity:1}
+.wall i.today{box-shadow:0 0 0 1.5px var(--text)}
+.wallkey{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:10px;color:var(--muted)}
+.wallkey i{width:9px;height:9px;border-radius:2.5px;background:var(--inset);display:block}
+.wallkey i.w1{background:var(--shu);opacity:.28}
+.wallkey i.w2{background:var(--shu);opacity:.5}
+.wallkey i.w3{background:var(--shu);opacity:.75}
+.wallkey i.w4{background:var(--shu);opacity:1}
+.weekgoal{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px 15px 14px;margin-bottom:12px}
+.weekgoal .wg{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+.weekgoal .wg .lab{flex:0 0 auto;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--muted)}
+.weekgoal .wg b{flex:1;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em}
+.weekgoal .wg em{flex:0 0 auto;font-style:normal;font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums}
+.weekgoal .track{height:7px}
+.weekgoal .wgnote{margin:9px 0 0;font-size:11.5px;color:var(--muted);line-height:1.45}
+.weekgoal.done .wg b{color:var(--good)}
+
 /* the thing you actually opened the app to find out */
 .upnext{display:flex;align-items:center;gap:12px;margin-bottom:12px;
   background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--shu);
@@ -1695,6 +1731,21 @@ body.light .toastless{display:none}
   font-weight:700;margin-top:5px;opacity:.75}
 
 /* ---------- homework generator: the printable sheet ---------- */
+.inv{font-family:var(--body);color:#111;padding:6px 2px}
+.inv h1{font-family:var(--display);font-size:26px;margin:0;letter-spacing:-.02em}
+.inv .sub{margin:3px 0 16px;color:#666;font-size:13px}
+.inv .who{margin:0 0 14px;font-size:15px}
+.inv table{width:100%;border-collapse:collapse;font-size:13.5px}
+.inv th{text-align:left;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:#888;border-bottom:1.5px solid #222;padding:0 0 6px}
+.inv td{padding:7px 0;border-bottom:1px solid #e6e6e6;font-variant-numeric:tabular-nums}
+.inv .r{text-align:right}
+.inv td em{font-style:normal;font-size:10px;color:#888;letter-spacing:.06em}
+.inv .tot{display:flex;justify-content:space-between;margin:10px 0 0;font-size:13.5px;color:#555}
+.inv .tot b{font-variant-numeric:tabular-nums;color:#111}
+.inv .tot.big{margin-top:12px;padding-top:10px;border-top:2px solid #222;font-size:17px;color:#111}
+.inv .tot.big b{font-family:var(--display);font-size:22px}
+.inv .foot{margin:22px 0 0;font-size:12px;color:#888}
 .paper{position:fixed;inset:0;z-index:90;background:#EEF1F5;overflow-y:auto;display:none;
   -webkit-overflow-scrolling:touch;padding:0 0 40px}
 .paper.on{display:block}
@@ -1787,6 +1838,16 @@ body.light .toastless{display:none}
   <!-- ============ TODAY ============ -->
   <section class="view on" id="v-home">
     <div class="upnext" id="upnext" style="display:none"></div>
+    <div class="weekgoal" id="weekGoal" style="display:none">
+      <div class="wg">
+        <span class="lab">This week</span>
+        <b id="wgNow">$0</b>
+        <em id="wgOf"></em>
+      </div>
+      <div class="track"><i id="wgBar" style="width:0%"></i></div>
+      <p class="wgnote" id="wgNote"></p>
+      <button class="btn line" id="wgShare" style="margin-top:11px">Share this week</button>
+    </div>
     <div class="hero">
       <div class="mnav">
         <button id="prev" aria-label="Previous month">‹</button>
@@ -1820,6 +1881,17 @@ body.light .toastless{display:none}
       <div class="cardfoot"><span id="footlab">Days taught</span><b id="daycount">0</b></div>
     </div>
 
+    <div class="panel" id="wallPanel">
+      <p class="eyebrow">The year <em id="wallNote"></em></p>
+      <div class="wall" id="wall"></div>
+      <div class="wallkey"><span>less</span><i class="w0"></i><i class="w1"></i><i class="w2"></i><i class="w3"></i><i class="w4"></i><span>more</span></div>
+      <p class="empty" id="wallFoot" style="margin:11px 0 0"></p>
+    </div>
+    <div class="panel" id="unbookedPanel" style="display:none">
+      <p class="eyebrow">Nothing booked <em id="unbookedNote"></em></p>
+      <p class="empty" style="margin:-6px 0 12px">Still being taught, but with nothing on the calendar from today on. Tap one to put something in.</p>
+      <div id="unbookedList"></div>
+    </div>
     <div class="panel" id="quietPanel" style="display:none">
       <p class="eyebrow">Gone quiet <em id="quietNote"></em></p>
       <div id="quietList"></div>
@@ -1928,6 +2000,9 @@ body.light .toastless{display:none}
       <svg class="chart" id="chPace" viewBox="0 0 320 130" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <div class="panel">
+      <p class="eyebrow">Weekly goal</p>
+      <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
+      <p class="empty" style="margin:-2px 0 18px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
       <p class="eyebrow">Goal <em id="goalname"></em></p>
       <div class="hbar">
         <div class="t"><span id="goalNow">$0</span><b id="goalTgt"></b></div>
@@ -1962,6 +2037,12 @@ body.light .toastless{display:none}
         <div class="stat"><b id="liabV">$0</b><small>not earned yet</small></div>
       </div>
       <p class="empty" id="liabFoot" style="margin:12px 0 0"></p>
+    </div>
+    <div class="panel" id="unpriced" style="display:none">
+      <p class="eyebrow">Lessons with no price</p>
+      <p class="empty" id="unpricedNote" style="margin:0 0 11px"></p>
+      <div id="unpricedList"></div>
+      <p class="empty" style="margin:11px 0 0">Tap one to put a price on it.</p>
     </div>
     <div class="panel">
       <p class="eyebrow">Sticking <em id="retNote"></em></p>
@@ -2050,6 +2131,14 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">Theme <em id="themeNow"></em></p>
+      <div class="seg" id="themeSound" style="margin-bottom:9px">
+        <button type="button" data-snd="1">Theme picks the sound</button>
+        <button type="button" data-snd="0">Shuffle them all</button>
+      </div>
+      <div class="seg" id="autoTheme" style="margin-bottom:13px">
+        <button type="button" data-auto="0">Pick one</button>
+        <button type="button" data-auto="1">Follow the day</button>
+      </div>
       <div id="themePick"></div>
     </div>
     <div class="panel">
@@ -2109,7 +2198,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">CS</b> · 24 Aug 2026<br>If this does not say CS, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DA</b> · 24 Aug 2026<br>If this does not say DA, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -2515,6 +2604,40 @@ function tzGap(tz){
 }
 function trialRate(){var n=num(cfg.trial);return n>0?n:20}
 
+/* ---- what somebody was charged, and when ----
+   A rate is not a fact about a student, it is a fact about a student on a
+   date. Without that, putting your prices up silently rewrites what every
+   past lesson was worth the moment you edit one. s.rates holds the changes,
+   oldest first; s.rate stays as the current one so nothing else has to care. */
+function rateHistory(s){
+  if(!s)return [];
+  if(!Array.isArray(s.rates))s.rates=[];
+  return s.rates.slice().sort(function(a,b){return a.from<b.from?-1:1});
+}
+function rateOn(s,date){
+  if(!s)return 0;
+  var h=rateHistory(s), r=null;
+  if(h.length){
+    /* the last change that had already happened by then */
+    h.forEach(function(x){if(!date||x.from<=date)r=x.rate});
+    if(r!==null)return num(r);
+    /* the lesson predates every recorded change: use the earliest known */
+    return num(h[0].rate);
+  }
+  return num(s.rate)||0;
+}
+function setRate(s,rate,from){
+  if(!s)return;
+  rate=num(rate); from=from||iso(new Date());
+  if(!Array.isArray(s.rates))s.rates=[];
+  /* one entry per date: changing your mind twice in a day is not history */
+  s.rates=s.rates.filter(function(x){return x.from!==from});
+  s.rates.push({from:from,rate:rate});
+  s.rates.sort(function(a,b){return a.from<b.from?-1:1});
+  /* whatever is in effect today is the plain rate everything else reads */
+  s.rate=rateOn(s,iso(new Date()));
+}
+
 function dayLabel(ds){
   var d=new Date(String(ds)+"T12:00:00");
   if(isNaN(d.getTime()))return String(ds);
@@ -2856,6 +2979,11 @@ function lessonForm(opts){
   var first=ranked.length?ranked[0].id:"";
   return '<div class="field"><label>Student <em id="lWhy" style="font-style:normal;float:right;color:var(--muted);font-size:11px"></em></label>'+studentChips("lStu",true,ds,t)+
   '<input type="hidden" id="lStu" value="'+first+'"></div>'+
+  '<div class="filters lenrail" id="dayQuick" style="margin-bottom:9px">'+
+    '<button type="button" data-day="0">Today</button>'+
+    '<button type="button" data-day="1">Yesterday</button>'+
+    '<button type="button" data-day="2">2 days ago</button>'+
+  '</div>'+
   '<div class="two"><div class="field"><label for="lDate">Date</label><input id="lDate" type="date"></div>'+
   '<div class="field"><label for="lTime">Time</label><input id="lTime" type="time"></div></div>'+
   '<div class="field"><label>How long</label>'+lenChips("lMins",defaultLen(first))+
@@ -2925,6 +3053,27 @@ function wireLog(){
     };
     var lPicked=false;
     wireLen("lMins",function(){syncHint()});
+    /* Forgetting to log until the next morning is normal; the date picker is
+       three taps away and this is one. */
+    (function(){
+      var rail=$("dayQuick"); if(!rail)return;
+      var paint=function(){
+        Array.prototype.forEach.call(rail.querySelectorAll("[data-day]"),function(b){
+          var d=new Date(); d.setDate(d.getDate()-parseInt(b.dataset.day,10));
+          b.classList.toggle("on",$("lDate").value===iso(d));
+        });
+      };
+      Array.prototype.forEach.call(rail.querySelectorAll("[data-day]"),function(b){
+        b.onclick=function(){
+          var d=new Date(); d.setDate(d.getDate()-parseInt(b.dataset.day,10));
+          $("lDate").value=iso(d);
+          paint(); buzz(6);
+          if($("lDate").onchange)$("lDate").onchange();
+        };
+      });
+      $("lDate").addEventListener("input",paint);
+      paint();
+    })();
     var lWhy=function(){
       var el=$("lWhy"); if(!el)return;
       var top=rankStudents($("lDate").value,$("lTime").value);
@@ -2974,7 +3123,10 @@ function wireLog(){
       /* the sound goes now, inside the tap, or iOS will not let it start;
          the confetti still waits its 210ms so the sheet can close first */
       var pop=burstNow();
-      setTimeout(function(){burst(Math.min(14+qty*8,48),null,false,pop);totalPop(made)},210);
+      /* how much it was worth, not just how many rows. A prepay bundle or a
+         long day should land differently from a half hour trial. */
+      var weight=Math.min(150,Math.round(14+qty*8+num(made)/4));
+      setTimeout(function(){burst(weight,null,false,pop);totalPop(made)},210);
       buzz(12);
       var undoIds=db.lessons.slice(-qty).map(function(l){return l.id});
       toast(qty>1 ? qty+" lessons, "+money(made) : "Logged "+money(made)+(drew?" from prepay":""),
@@ -3079,7 +3231,8 @@ function wireLog(){
       var took=(nb.date<iso(new Date()))?fillBundle(nb):[];
       saveDB(); closeSheet(); renderAll();
       var pop2=burstNow();
-      setTimeout(function(){burst(Math.min(20+n*5,52),null,false,pop2)},170);
+      var weight2=Math.min(180,Math.round(20+n*5+num(amt)/4));
+      setTimeout(function(){burst(weight2,null,false,pop2)},170);
       if(took.length){
         toast(n+" lessons of credit \u00b7 "+took.length+" already-logged lesson"+
           (took.length===1?"":"s")+" moved onto it",function(){
@@ -3363,7 +3516,17 @@ function studentSheet(id){
         'spellcheck="false" placeholder="Type a city or country"><button type="button" id="tzClear">&times;</button></div>'+
       '<div id="tzHits"></div>'+
       '<input type="hidden" id="eTz" value="'+esc(s.tz||"")+'"></div>'+
-    '<button class="btn alt" id="mkHw" style="margin-top:6px">Make this week\'s homework</button>'+
+    '<p class="eyebrow" style="margin-top:20px">Rate</p>'+
+    '<div class="two"><div class="field" style="margin:0"><label for="rNew">New rate an hour</label>'+
+      '<input id="rNew" type="number" inputmode="decimal" placeholder="'+esc(boxVal(rateOn(s)))+'"></div>'+
+      '<div class="field" style="margin:0"><label for="rFrom">From</label><input id="rFrom" type="date"></div></div>'+
+    '<button class="btn line" id="rGo" style="margin-top:9px">Record a rate change</button>'+
+    '<div id="rList" style="margin-top:11px"></div>'+
+    '<p class="empty" style="margin:9px 0 0">Lessons keep whatever they were worth on the day. Putting your prices up never rewrites the past.</p>'+
+    '<p class="eyebrow" style="margin-top:20px">Invoice</p>'+
+    '<div class="filters lenrail" id="invMon"></div>'+
+    '<button class="btn line" id="invGo" style="margin-top:9px">Make an invoice</button>'+
+    '<button class="btn alt" id="mkHw" style="margin-top:20px">Make this week\'s homework</button>'+
     '<div class="two" style="margin-top:9px">'+
       '<button class="btn line" id="aiDriftBtn" style="margin:0">What keeps tripping them</button>'+
       '<button class="btn line" id="aiNudgeBtn" style="margin:0">Draft a message</button>'+
@@ -3498,6 +3661,62 @@ function studentSheet(id){
       };
     });
   }
+  /* ---- rate changes ---- */
+  function paintRates(){
+    var h=rateHistory(s);
+    $("rList").innerHTML=h.length
+      ? h.slice().reverse().map(function(x){
+          return '<div class="row"><div class="main"><span>'+money(x.rate)+' an hour</span>'+
+            '<small>from '+esc(dayLabel(x.from))+" "+esc(x.from)+'</small></div>'+
+            '<button class="x" data-rate="'+esc(x.from)+'">&times;</button></div>';
+        }).join("")
+      : '<p class="empty" style="margin:0">No changes recorded. Every lesson uses '+money(rateOn(s))+' an hour.</p>';
+    Array.prototype.forEach.call($("rList").querySelectorAll("[data-rate]"),function(b){
+      b.onclick=function(){
+        s.rates=(s.rates||[]).filter(function(x){return x.from!==b.dataset.rate});
+        s.rate=rateOn(s,iso(new Date()));
+        saveDB(); paintRates(); renderStudents();
+      };
+    });
+  }
+  if($("rFrom"))$("rFrom").value=iso(new Date());
+  if($("rGo"))$("rGo").onclick=function(){
+    var v=base(parseFloat($("rNew").value)||0);
+    if(!v){nudge("rNew");toast("What is the new rate?");return}
+    setRate(s,v,$("rFrom").value||iso(new Date()));
+    saveDB(); $("rNew").value=""; paintRates(); renderStudents(); renderHome();
+    toast("From "+dayLabel($("rFrom").value)+", "+money(v)+" an hour");
+  };
+  paintRates();
+
+  /* ---- an invoice for one month ---- */
+  (function(){
+    var rail=$("invMon"); if(!rail)return;
+    var months={};
+    mine.forEach(function(l){months[String(l.date).slice(0,7)]=1});
+    var keys=Object.keys(months).sort().reverse().slice(0,6);
+    if(!keys.length){
+      rail.innerHTML='<span class="empty" style="font-size:12px">No lessons yet.</span>';
+      $("invGo").disabled=true;
+      return;
+    }
+    var pick=keys[0];
+    rail.innerHTML=keys.map(function(k){
+      var pp=k.split("-");
+      return '<button type="button" data-m="'+k+'"'+(k===pick?' class="on"':"")+'>'+
+        MONTHS[parseInt(pp[1],10)-1].slice(0,3)+" "+pp[0].slice(2)+'</button>';
+    }).join("");
+    Array.prototype.forEach.call(rail.querySelectorAll("[data-m]"),function(b){
+      b.onclick=function(){
+        pick=b.dataset.m;
+        Array.prototype.forEach.call(rail.querySelectorAll("[data-m]"),function(x){
+          x.classList.toggle("on",x===b);
+        });
+        buzz(6);
+      };
+    });
+    $("invGo").onclick=function(){ showPaper(invoiceFor(s,pick)) };
+  })();
   $("mkHw").onclick=function(){hwSheet(id)};
   /* the assistant, on this one student */
   var aiBox=function(html){var b=$("aiOut"); if(b)b.innerHTML=html};
@@ -3766,7 +3985,7 @@ function lenLabel(m){
 function hoursIn(list){
   return (list||db.lessons).reduce(function(a,l){return a+hoursOf(l)},0);
 }
-function priceFor(sid,mins){
+function priceFor(sid,mins,onDate){
   var hrs=(Number(mins)>0?Number(mins):defaultLen(sid))/60;
   var nb=sid?nextBundle(sid):null;
   /* a bundle is priced per lesson at its own standard length, so a longer
@@ -3776,7 +3995,8 @@ function priceFor(sid,mins){
   /* a trial student is charged the trial rate, not whatever is in their own
      rate box — that one is waiting for them to sign on properly */
   if(s&&statusOf(s)==="trial")return {amount:trialRate()*hrs,bundle:null,trial:true,hours:hrs};
-  return {amount:(s&&s.rate?s.rate:0)*hrs,bundle:null,hours:hrs};
+  /* the rate that was in force on the day, not whatever it is now */
+  return {amount:rateOn(s,onDate||iso(new Date()))*hrs,bundle:null,hours:hrs};
 }
 function addLesson(sid,dateStr,time,slotId,mins){
   mins=Number(mins)>0?Number(mins):defaultLen(sid);
@@ -5056,17 +5276,30 @@ function streak(){
   if(!weeks[thisWeek])cur.setDate(cur.getDate()-7);
   /* the ceiling is how many weeks you have actually logged, so a bug in the
      key can never again pass itself off as a ten year streak */
-  var cap=Object.keys(weeks).length;
+  var cap=Object.keys(weeks).length+2;
+  /* One missed week does not end a run. You are allowed to be ill, or away,
+     or to have a week where nobody books. A streak you can lose to a single
+     bad week is a streak that punishes you for having a life. */
+  var froze=false, usedAt=-1;
   for(var i=0;i<cap;i++){
-    if(!weeks[weekKey(cur)])break;
+    if(!weeks[weekKey(cur)]){
+      if(froze)break;
+      froze=true; usedAt=n;       /* spend the one allowance and carry on */
+      cur.setDate(cur.getDate()-7);
+      continue;
+    }
     n++; cur.setDate(cur.getDate()-7);
   }
+  /* If nothing was found after the gap then it was not a skipped week at all,
+     it was simply the end of your history. Do not claim a save that was never
+     needed. */
+  if(froze&&n===usedAt)froze=false;
   var best=0, run=0, keys=Object.keys(weeks).sort();
   for(var k=0;k<keys.length;k++){
     if(k&&(new Date(keys[k])-new Date(keys[k-1]))===7*864e5)run++; else run=1;
     if(run>best)best=run;
   }
-  return {now:n,best:best,live:!!weeks[thisWeek]};
+  return {now:n,best:best,live:!!weeks[thisWeek],froze:froze};
 }
 
 /* ---- when your money actually comes from ---- */
@@ -5693,6 +5926,237 @@ function retention(){
   };
 }
 
+/* ---- something you can post ----
+   Draws the week as a square card in whatever theme you are wearing, at a
+   size that survives Instagram, and hands it to the share sheet. Everything
+   comes from the live theme variables, so it always matches the app rather
+   than being a separate design that drifts. */
+function shareCard(){
+  var cv=document.createElement("canvas");
+  var S=1080; cv.width=S; cv.height=S;
+  var g=cv.getContext("2d");
+  var cs=getComputedStyle(document.body);
+  var V=function(n,f){var v=(cs.getPropertyValue(n)||"").trim();return v||f};
+  var bg=V("--void","#0C111A"), card=V("--surf","#151D2A");
+  var ink=V("--text","#EDF1F6"), dim=V("--muted","#7C8AA0"), hot=V("--shu","#E0574C");
+
+  g.fillStyle=bg; g.fillRect(0,0,S,S);
+  /* a soft glow behind the number, in the theme's accent */
+  var rg=g.createRadialGradient(S*0.5,S*0.42,0,S*0.5,S*0.42,S*0.55);
+  rg.addColorStop(0,hot); rg.addColorStop(1,bg);
+  g.globalAlpha=0.16; g.fillStyle=rg; g.fillRect(0,0,S,S); g.globalAlpha=1;
+
+  var pad=96;
+  g.fillStyle=card;
+  if(g.roundRect){g.beginPath();g.roundRect(pad,pad,S-pad*2,S-pad*2,52);g.fill()}
+  else g.fillRect(pad,pad,S-pad*2,S-pad*2);
+
+  var disp=(cs.getPropertyValue("--display")||"sans-serif").trim().replace(/;$/,"");
+  var body=(cs.getPropertyValue("--body")||"sans-serif").trim().replace(/;$/,"");
+
+  g.textAlign="center";
+  g.fillStyle=dim;
+  g.font="600 30px "+body;
+  g.fillText("THIS WEEK", S/2, pad+130);
+
+  var got=weekEarned();
+  g.fillStyle=ink;
+  g.font="700 190px "+disp;
+  g.fillText(money(got), S/2, pad+330);
+
+  var wk=weekStart();
+  var mine=db.lessons.filter(function(l){return l.date>=wk});
+  var days={}; mine.forEach(function(l){days[l.date]=1});
+  g.fillStyle=dim; g.font="400 36px "+body;
+  g.fillText(mine.length+" lessons over "+Object.keys(days).length+" days", S/2, pad+410);
+
+  /* a row of squares for the week, filled for the days you taught */
+  var n=7, sq=74, gap=18, tot=n*sq+(n-1)*gap, x0=(S-tot)/2, y0=pad+490;
+  for(var i=0;i<n;i++){
+    var d=new Date(wk+"T12:00:00"); d.setDate(d.getDate()+i);
+    var on=!!days[iso(d)];
+    g.fillStyle=on?hot:bg;
+    g.globalAlpha=on?1:0.55;
+    if(g.roundRect){g.beginPath();g.roundRect(x0+i*(sq+gap),y0,sq,sq,18);g.fill()}
+    else g.fillRect(x0+i*(sq+gap),y0,sq,sq);
+    g.globalAlpha=1;
+  }
+
+  var tgt=num(cfg.weekGoal)||0;
+  if(tgt>0){
+    var pct=Math.min(1,got/tgt);
+    var bw=S-pad*2-120, bx=pad+60, by=y0+150;
+    g.fillStyle=bg; g.globalAlpha=0.6;
+    if(g.roundRect){g.beginPath();g.roundRect(bx,by,bw,20,10);g.fill()}
+    g.globalAlpha=1;
+    g.fillStyle=hot;
+    if(g.roundRect){g.beginPath();g.roundRect(bx,by,Math.max(20,bw*pct),20,10);g.fill()}
+    g.fillStyle=dim; g.font="400 30px "+body;
+    g.fillText(Math.round(pct*100)+"% of "+money(tgt), S/2, by+70);
+  }
+
+  g.fillStyle=dim; g.font="600 30px "+body;
+  g.fillText(cfg.bizName||"MainichiJP", S/2, S-pad-56);
+  return cv;
+}
+function shareWeek(){
+  var cv;
+  try{cv=shareCard()}catch(e){warn("Could not draw the card.");return}
+  var name="mainichijp-week-"+weekStart()+".png";
+  var done=function(blob){
+    var file=null;
+    try{file=new File([blob],name,{type:"image/png"})}catch(e){}
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file]}).catch(function(){});
+      return;
+    }
+    /* no share sheet: save it instead, which is the same thing with a step */
+    try{
+      var u=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=u; a.download=name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){URL.revokeObjectURL(u)},4000);
+      toast("Saved to your files");
+    }catch(e){warn("Could not save the card.")}
+  };
+  if(cv.toBlob)cv.toBlob(function(b){b?done(b):warn("Could not make the image.")},"image/png");
+  else warn("This browser cannot make the image.");
+}
+
+/* ---- the year, as a shape ---- */
+function paintWall(){
+  var box=$("wall"); if(!box)return;
+  var by={};
+  db.lessons.forEach(function(l){by[l.date]=(by[l.date]||0)+num(l.amount)});
+  var vals=Object.keys(by).map(function(k){return by[k]}).sort(function(a,b){return a-b});
+  /* thresholds from your own days, so a quiet teacher's wall is not all pale
+     and a busy one's is not all solid */
+  var q=function(f){return vals.length?vals[Math.min(vals.length-1,Math.floor(vals.length*f))]:0};
+  var t1=q(0.25), t2=q(0.55), t3=q(0.8);
+  var today=iso(new Date());
+  var end=new Date(); end.setDate(end.getDate()+(6-end.getDay()));
+  var start=new Date(end); start.setDate(start.getDate()-370);
+  start.setDate(start.getDate()-start.getDay());
+  var html="", col="", n=0, days=0, taught=0, total=0;
+  for(var d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    var ds=iso(d), v=by[ds]||0;
+    if(v>0){taught++;total+=v}
+    days++;
+    var lvl=v<=0?0:(v<=t1?1:v<=t2?2:v<=t3?3:4);
+    col+='<i class="w'+lvl+(ds===today?" today":"")+'" title="'+ds+'"></i>';
+    n++;
+    if(n%7===0){html+='<div class="col">'+col+'</div>';col=""}
+  }
+  if(col)html+='<div class="col">'+col+'</div>';
+  box.innerHTML=html;
+  box.scrollLeft=box.scrollWidth;             /* today, on the right */
+  $("wallNote").textContent=taught+" days taught";
+  $("wallFoot").textContent=taught
+    ? taught+" of the last "+days+" days have a lesson on them, "+money(total)+" in all. "+
+      "Busiest day "+money(vals[vals.length-1]||0)+"."
+    : "Nothing on the wall yet. Every day you teach fills a square.";
+}
+
+/* ---- who has nothing on the books ----
+   Gone Quiet is about people who have drifted. This is the opposite and more
+   useful on a Sunday: regulars you are still teaching who have nothing in the
+   diary at all from here on. That is the list you send messages to. */
+function unbooked(){
+  var today=iso(new Date());
+  var future={};
+  db.bookings.forEach(function(b){
+    if(!b.doneId&&b.date>=today)future[b.studentId]=1;
+  });
+  /* a weekly repeat counts as booked: it schedules itself */
+  db.slots.forEach(function(sl){future[sl.studentId]=1});
+  return db.students.filter(function(s){
+    if(statusOf(s)!=="active")return false;
+    if(future[s.id])return false;
+    return db.lessons.some(function(l){return l.studentId===s.id});
+  }).map(function(s){
+    var last=db.lessons.filter(function(l){return l.studentId===s.id})
+      .map(function(l){return l.date}).sort().pop();
+    return {s:s,last:last,
+      gap:last?Math.round((Date.parse(today+"T12:00:00")-Date.parse(last+"T12:00:00"))/864e5):null};
+  }).sort(function(a,b){return (b.gap||0)-(a.gap||0)});
+}
+function paintUnbooked(){
+  var box=$("unbookedPanel"); if(!box)return;
+  var list=unbooked();
+  box.style.display=list.length?"":"none";
+  if(!list.length)return;
+  $("unbookedNote").textContent=list.length===1
+    ? "One regular has nothing in the diary."
+    : list.length+" regulars have nothing in the diary.";
+  $("unbookedList").innerHTML=list.slice(0,10).map(function(x){
+    return '<div class="stu" data-book="'+x.s.id+'">'+avatarHTML(x.s)+
+      '<div class="main"><span style="color:'+colorFor(x.s)+'">'+esc(x.s.name)+'</span>'+
+      '<small>'+(x.gap!=null?'<span class="gap">'+x.gap+' days</span> since '+esc(dayLabel(x.last)):"no lessons yet")+
+      '</small></div></div>';
+  }).join("");
+  Array.prototype.forEach.call($("unbookedList").querySelectorAll("[data-book]"),function(r){
+    r.onclick=function(){
+      selDay=null; logMode="book"; logSheet();
+      var f=$("kStu"); if(f)f.value=r.dataset.book;
+      try{wireChips("kStu")}catch(e){}
+    };
+  });
+}
+
+/* ---- the week ---- */
+function weekEarned(){
+  var from=weekStart();
+  return sum(db.lessons.filter(function(l){return l.date>=from}).map(function(l){return l.amount}));
+}
+function paintWeekGoal(){
+  var box=$("weekGoal"); if(!box)return;
+  var tgt=num(cfg.weekGoal)||0;
+  if(tgt<=0){box.style.display="none";return}
+  var got=weekEarned(), pct=Math.min(100,got/tgt*100);
+  var done=got>=tgt;
+  box.style.display="";
+  box.classList.toggle("done",done);
+  $("wgNow").textContent=money(got);
+  $("wgOf").textContent="of "+money(tgt);
+  $("wgBar").style.width=pct+"%";
+  $("wgBar").className=done?"good":(pct>=60?"gold":"shu");
+  /* days left counts today, because today is still a day you can teach */
+  var left=7-new Date().getDay();
+  $("wgNote").textContent=done
+    ? "Made it, with "+left+" day"+(left===1?"":"s")+" still to go."
+    : Math.round(pct)+"% there. "+money(tgt-got)+" over "+left+" day"+(left===1?"":"s")+
+      " is "+money((tgt-got)/Math.max(1,left))+" a day.";
+}
+
+/* ---- lessons with no price on them ----
+   A lesson logged with nothing in the money column is not free teaching, it
+   is a row you did not finish. Left alone it quietly drags every average you
+   look at downward. */
+function unpriced(){
+  return db.lessons.filter(function(l){return l.studentId&&!(num(l.amount)>0)});
+}
+function paintUnpriced(){
+  var box=$("unpriced"); if(!box)return;
+  var list=unpriced();
+  if(!list.length){box.style.display="none";return}
+  box.style.display="";
+  $("unpricedNote").textContent=list.length===1
+    ? "One lesson has no price on it. It is counting as nothing in every total."
+    : list.length+" lessons have no price on them. They are counting as nothing in every total.";
+  $("unpricedList").innerHTML=list.slice(0,8).sort(function(a,b){return a.date<b.date?1:-1})
+    .map(function(l){
+      var st=student(l.studentId);
+      return '<div class="row" data-fix="'+l.id+'" style="cursor:pointer">'+
+        '<div class="main"><span style="color:'+(st?colorFor(st):"var(--text)")+'">'+
+          esc(st?st.name:"Someone")+'</span>'+
+        '<small>'+esc(dayLabel(l.date))+" "+esc(l.date)+(l.time?" \u00b7 "+esc(ampm(l.time)):"")+'</small></div>'+
+        '<div class="amt" style="color:var(--shu)">\u2014</div></div>';
+    }).join("")+(list.length>8?'<p class="empty" style="margin:9px 0 0">and '+(list.length-8)+' more</p>':"");
+  Array.prototype.forEach.call($("unpricedList").querySelectorAll("[data-fix]"),function(r){
+    r.onclick=function(){editLesson(r.dataset.fix)};
+  });
+}
+
 /* ---- what is next ----
    The next unticked booking today or tomorrow, with a countdown. It is the
    single most common reason to open this thing, and it used to be three
@@ -6026,7 +6490,8 @@ function renderStats(){
   $("streakSub").innerHTML=sk.now
     ? (sk.now===1?"week":"weeks")+" in a row<br>"+(sk.live?"this week counted":"teach this week to keep it")
     : "no run going<br>teach once this week to start one";
-  $("streakNote").textContent=sk.best>1?"best "+sk.best:"";
+  $("streakNote").textContent=sk.froze?"one week skipped, still counting"
+    :(sk.best>1?"best "+sk.best:"");
   var dots="", cur=new Date();
   var taughtWeeks={};
   db.lessons.forEach(function(l){taughtWeeks[weekKey(new Date(l.date+"T12:00:00"))]=1});
@@ -6150,7 +6615,7 @@ function ceremony(){
       what:"Tap to see all of them.",sym:"\u2726",quiet:true,go:"ach"});
   } else found.forEach(popShow);
 }
-function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();paintHealth();gPullToday();ceremony()}
+function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();paintHealth();paintWeekGoal();paintUnpriced();paintUnbooked();paintWall();autoThemeTick();gPullToday();ceremony()}
 
 /* ================= actions ================= */
 $("prev").onclick=function(){stepMonth(-1)};
@@ -6273,6 +6738,13 @@ if($("stuSearch")){
     stuQuery=""; $("stuSearch").value=""; renderStudents(); $("stuSearch").focus();
   };
 }
+if($("wgTgt")){
+  $("wgTgt").value=boxVal(cfg.weekGoal);
+  $("wgTgt").oninput=function(){
+    cfg.weekGoal=base(parseFloat(this.value)||0); saveSet(); paintWeekGoal();
+  };
+}
+if($("wgShare"))$("wgShare").onclick=shareWeek;
 $("gAdd").onclick=function(){
   var n=($("gName").value||"").trim();
   var v=base(parseFloat($("gTgt").value)||0);
@@ -6594,6 +7066,43 @@ function yearReview(yr){
     '<p style="margin:0 0 8px">'+money(total)+' across '+ls.length+' lessons.</p>'+
     '<div class="sig">まいにち、すこしずつ。 · MainichiJP</div></div>';
   return out;
+}
+
+
+/* ---- an invoice for one student, one month ----
+   Plain, printable, and it says what was taught rather than dressing it up.
+   Prepaid lessons are listed but not charged again, because they were paid
+   for when the bundle was bought. */
+function invoiceFor(s,ym2){
+  var rows=db.lessons.filter(function(l){
+    return l.studentId===s.id && String(l.date).slice(0,7)===ym2;
+  }).sort(function(a,b){return (a.date+(a.time||""))<(b.date+(b.time||""))?-1:1});
+  var pp=ym2.split("-");
+  var label=MONTHS[parseInt(pp[1],10)-1]+" "+pp[0];
+  var due=0, prepaid=0;
+  var body=rows.map(function(l){
+    var pre=!!l.bundleId||/prepay/i.test(l.note||"");
+    if(pre)prepaid+=num(l.amount); else due+=num(l.amount);
+    return '<tr><td>'+esc(dayLabel(l.date))+" "+esc(String(l.date).slice(8,10))+'</td>'+
+      '<td>'+esc(l.time?ampm(l.time):"")+'</td>'+
+      '<td>'+esc(lenLabel(lenOf(l)))+'</td>'+
+      '<td class="r">'+money(l.amount)+(pre?' <em>paid</em>':"")+'</td></tr>';
+  }).join("");
+  var hours=rows.reduce(function(a,l){return a+hoursOf(l)},0);
+  return '<div class="inv">'+
+    '<h1>'+esc(cfg.bizName||"MainichiJP")+'</h1>'+
+    '<p class="sub">Japanese lessons \u00b7 '+esc(label)+'</p>'+
+    '<p class="who">For <b>'+esc(s.name)+'</b></p>'+
+    (rows.length
+      ? '<table><thead><tr><th>Date</th><th>Time</th><th>Length</th><th class="r">Amount</th></tr></thead>'+
+        '<tbody>'+body+'</tbody></table>'+
+        '<p class="tot"><span>'+rows.length+' lesson'+(rows.length===1?"":"s")+
+          ' \u00b7 '+(Math.round(hours*10)/10)+' hours</span></p>'+
+        (prepaid?'<p class="tot"><span>Already paid from prepay</span><b>'+money(prepaid)+'</b></p>':"")+
+        '<p class="tot big"><span>'+(prepaid&&!due?"Nothing outstanding":"Due")+'</span><b>'+money(due)+'</b></p>'
+      : '<p class="sub">No lessons in '+esc(label)+'.</p>')+
+    '<p class="foot">Thank you \u2014 '+esc(cfg.bizName||"MainichiJP")+'</p>'+
+  '</div>';
 }
 
 function showPaper(html){
@@ -7068,6 +7577,9 @@ var COLS=[
      swallow the other. This is what a student is charged per hour; amount is
      what actually changed hands on a given row. They are not the same thing
      and conflating them is how a bundle price became somebody's rate. */
+  /* how long the lesson ran. Without this every half hour trial came in as a
+     full hour, and its price came in as an hourly rate. */
+  ["hours",  ["hour","hrs","length","duration","mins","minutes","時間数"]],
   ["rate",   ["rate","hourly","perhour","時給"]],
   ["amount", ["amount","paid","price","fee","income","total","earned","revenue","cost","charge","金額","料金"]],
   ["lessons",["lesson","qty","quantity","count","session","回数"]],
@@ -7148,10 +7660,25 @@ function xlsScan(text){
     if(!dt||(!who&&!amt)){plan.skipped++;continue}
     var kind=m.kind!==undefined?String(row[m.kind]||"").toLowerCase():"";
     var n=m.lessons!==undefined?parseInt(row[m.lessons],10):0;
-    var pre=m.prepay!==undefined?parseInt(String(row[m.prepay]).replace(/[^0-9.\-]/g,""),10):0;
+    /* A Prepay column holds one of two quite different things. A NUMBER is a
+       bundle: somebody handed over money for ten lessons. A YES is a flag on
+       an ordinary lesson meaning that one was drawn from credit. Reading a
+       "Yes" as a count gave NaN and the whole column was silently ignored. */
+    var preRaw=m.prepay!==undefined?String(row[m.prepay]==null?"":row[m.prepay]).trim():"";
+    var pre=parseInt(preRaw.replace(/[^0-9.\-]/g,""),10);
     if(!(pre>0))pre=0;
+    var preYes=/^(y|yes|true|paid|\u2713|\u2714|\u25cf)$/i.test(preRaw);
     var isBundle=pre>0||kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1;
     var rowRate=m.rate!==undefined?readMoney(row[m.rate]):0;
+    /* hours, however it is written: 1, 1.0, 0.5, "90 min", "1h30" */
+    var hrs=1;
+    if(m.hours!==undefined){
+      var hv=String(row[m.hours]==null?"":row[m.hours]).trim();
+      var hn=parseFloat(hv.replace(/[^0-9.]/g,""));
+      if(hn>0)hrs=/min/i.test(hv)||hn>8?hn/60:hn;   /* a big number must be minutes */
+    }
+    var mins=Math.max(5,Math.round(hrs*60));
+    var isTrial=kind.indexOf("trial")>-1;
 
     if(who){
       var key=who.toLowerCase();
@@ -7168,7 +7695,12 @@ function xlsScan(text){
            reasonable guess. A bundle amount never is: that is the price of
            ten lessons, not of one hour. */
         if(rowRate>0)rec.rate=rowRate;
-        else if(!rec.rate&&!isBundle&&amt>0)rec.rate=amt;
+        /* Per HOUR, from a normal lesson only. A trial is charged at its own
+           price and says nothing about what this student pays; and half an
+           hour at twenty dollars is a forty dollar rate, not a twenty. */
+        else if(!rec.rate&&!isBundle&&!isTrial&&amt>0&&hrs>0)rec.rate=Math.round(amt/hrs*100)/100;
+        if(isTrial&&!rec.sawReal)rec.status=rec.status||"trial";
+        if(!isTrial&&!isBundle&&amt>0){rec.sawReal=true;if(rec.status==="trial")rec.status=null}
         if(!rec.tz&&m.tz!==undefined&&tzOk(String(row[m.tz]).trim()))
           rec.tz=String(row[m.tz]).trim();
         if(!rec.status&&m.status!==undefined&&
@@ -7190,7 +7722,8 @@ function xlsScan(text){
           (sName(l.studentId)||"").toLowerCase()===who.toLowerCase();
       });
       if(already){plan.dupes++;continue}
-      plan.lessons.push({date:dt,time:t,who:who,amount:amt,
+      plan.lessons.push({date:dt,time:t,who:who,amount:amt,mins:mins,
+        prepaid:preYes,trial:isTrial,
         note:m.note!==undefined?String(row[m.note]||"").slice(0,60):""});
     }
   }
@@ -7200,6 +7733,18 @@ function xlsScan(text){
   var total=sum(plan.lessons.map(function(l){return l.amount}));
   var preTotal=sum(plan.bundles.map(function(b){return b.amount}));
   var preLessons=plan.bundles.reduce(function(a,b){return a+num(b.lessons)},0);
+  /* Exact repeats: same student, same date, same time. A spreadsheet
+     collects these over a year without anyone noticing, and afterwards they
+     are very hard to spot. Better to say so now than to make you go and
+     find them later. */
+  var seenKey={}, dupes=0;
+  plan.lessons.forEach(function(l){
+    var k=(l.who||"").toLowerCase()+"|"+l.date+"|"+(l.time||"");
+    if(seenKey[k])dupes++; else seenKey[k]=1;
+  });
+  var preFlag=plan.lessons.filter(function(l){return l.prepaid}).length;
+  var trials=plan.lessons.filter(function(l){return l.trial}).length;
+  var shortOnes=plan.lessons.filter(function(l){return l.mins&&l.mins!==60}).length;
   var found=Object.keys(m).filter(function(k){return m[k]!==undefined});
   box.innerHTML=
     '<p class="eyebrow" style="margin:18px 0 10px">What it found</p>'+
@@ -7209,6 +7754,15 @@ function xlsScan(text){
       '<div class="stat"><b>'+newNames.length+'</b><small>new students</small></div>'+
       '<div class="stat"><b>'+money(preTotal)+'</b><small>'+preLessons+' lessons of prepay</small></div>'+
     '</div>'+
+    (dupes?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--shu)">'+dupes+
+      '</b> look like exact repeats \u2014 same student, same date, same time. They will all come in; '+
+      'Match lessons to prepay and Remove duplicate lessons are both on this tab if you want them gone afterwards.</p>':"")+
+    (preFlag?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--text)">'+preFlag+
+      '</b> of these are marked as paid from prepay in your sheet. They come in noted that way, so you can see how each one was paid.</p>':"")+
+    (shortOnes?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--text)">'+shortOnes+
+      '</b> are not a full hour. Their length comes across, so the money and the hourly rates work out right.</p>':"")+
+    (trials?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--text)">'+trials+
+      '</b> trial lesson'+(trials===1?" is":"s are")+' marked as such, and the trial price is not used as anybody\u2019s hourly rate.</p>':"")+
     (preTotal?'<p class="empty" style="margin:0 0 6px">Prepay is money taken in, not money earned. It is <b style="color:var(--text)">not</b> added to your income: it becomes income a lesson at a time as you teach it, and the lessons it already paid for get moved onto it when this finishes.</p>':"")+
     '<p class="empty" style="margin:0 0 6px">Columns read: '+esc(found.join(", "))+'.</p>'+
     (newNames.length?'<p class="empty" style="margin:0 0 6px">New: '+esc(newNames.slice(0,8).join(", "))+(newNames.length>8?" and "+(newNames.length-8)+" more":"")+'.</p>':"")+
@@ -7242,7 +7796,10 @@ function xlsCommit(){
   });
   p.lessons.forEach(function(l){
     db.lessons.push({id:uid(),date:l.date,time:l.time,studentId:find(l.who),
-      amount:l.amount,bundleId:null,slotId:null,note:l.note||"Imported"});
+      amount:l.amount,mins:l.mins||60,bundleId:null,slotId:null,
+      /* the note records how it was paid, which is what the sheet's Prepay
+         column was actually telling us */
+      note:l.note||(l.prepaid?"Prepay":(l.trial?"Trial":"Imported"))});
     made++;
   });
   /* The bundles landed before the lessons they paid for, so match them up
@@ -7511,6 +8068,7 @@ var BTN_ICON={
   wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
   fxNow:    '<path d="M4 9.5h13l-3-3M20 14.5H7l3 3"/>',                                    /* swap */
   achOpen:  '<path d="M12 3.6 14.2 9h5.8l-4.6 3.9 1.7 5.7L12 15.4l-5.1 3.2 1.7-5.7L4 9h5.8z"/>',
+  wgShare:  '<path d="M12 15.5V4M8.5 7.5 12 4l3.5 3.5"/><path d="M5 13v6.5h14V13"/>',
   yirGo:    '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5v5.5l3.5 2"/>',
   /* settings and connections */
   gAdd:     '<path d="M12 5.5v13M5.5 12h13"/>',
@@ -7714,6 +8272,37 @@ function needFonts(themeId){
   document.head.appendChild(link);
 }
 
+/* ---- the app can follow the day ----
+   Morning is not evening. With this on, the theme moves with the clock and
+   the app feels like it is awake at the same times you are. It only ever
+   picks from themes you can actually wear. */
+/* Deliberately all themes that are always yours. Naming a seasonal drop here
+   would mean the clock did nothing for eleven months of the year. */
+var CLOCK_THEMES=[
+  {from:5,  id:"sakura"},      /* first light */
+  {from:8,  id:"mainichi"},    /* the working morning */
+  {from:12, id:"paper"},
+  {from:16, id:"matcha"},      /* late afternoon */
+  {from:19, id:"sonny"},       /* evening */
+  {from:22, id:""}             /* midnight, back to where it started */
+];
+function clockTheme(){
+  var h=hereNow().mins/60, pick="";
+  CLOCK_THEMES.forEach(function(x){if(h>=x.from)pick=x.id});
+  if(h<CLOCK_THEMES[0].from)pick="";
+  var t=THEMES.filter(function(x){return x.id===pick})[0];
+  /* if it is locked or out of season, stay where you are */
+  if(!t||!themeOpen(t))return null;
+  return pick;
+}
+function autoThemeTick(){
+  if(!cfg.autoTheme)return;
+  var want=clockTheme();
+  if(want===null||want===cfg.theme)return;
+  cfg.theme=want; saveSet();
+  applyTheme(want);
+  try{paintThemes()}catch(e){}
+}
 function themeOf(id){return THEMES.filter(function(t){return t.id===(id||"")})[0]||THEMES[0]}
 /* A locked theme opens the moment its achievement does. Whatever you are
    already wearing stays wearable no matter what, so nothing can strand you
@@ -7858,6 +8447,7 @@ function applyTheme(id){
   themeFreeze();
   try{needFonts(id||"")}catch(e){}
   BAR_PAL=null;                 /* the bars re-read their colours from the new theme */
+  try{bag.length=0;paintSeal()}catch(e){}   /* and the sound follows the theme */
   var t=themeOf(id);
   if(t.id)document.body.setAttribute("data-theme",t.id);
   else document.body.removeAttribute("data-theme");
@@ -7948,6 +8538,26 @@ function paintThemes(){
   });
   Array.prototype.forEach.call(box.querySelectorAll("[data-tf]"),function(b){
     b.onclick=function(){themeFilter=b.dataset.tf;paintThemes()};
+  });
+  var sn=$("themeSound");
+  if(sn)Array.prototype.forEach.call(sn.querySelectorAll("[data-snd]"),function(b){
+    b.classList.toggle("on",(b.dataset.snd==="1")===(cfg.themeSound!==false));
+    b.onclick=function(){
+      cfg.themeSound=(b.dataset.snd==="1"); saveSet();
+      bag.length=0;                 /* deal again under the new rule */
+      try{paintSeal()}catch(e){}
+      paintThemes(); buzz(6);
+    };
+  });
+  var au=$("autoTheme");
+  if(au)Array.prototype.forEach.call(au.querySelectorAll("[data-auto]"),function(b){
+    b.classList.toggle("on",(b.dataset.auto==="1")===!!cfg.autoTheme);
+    b.onclick=function(){
+      cfg.autoTheme=(b.dataset.auto==="1"); saveSet();
+      if(cfg.autoTheme)autoThemeTick();
+      paintThemes(); buzz(6);
+      toast(cfg.autoTheme?"The theme will move with the clock":"Staying on this one");
+    };
   });
   /* On a genuine rebuild, open on the one you are already wearing, but only
      for a rail that had not been scrolled yet, so it never overrides where
@@ -8467,7 +9077,8 @@ function auInit(){
 function unlockAudio(){
   GESTURE_AT=Date.now();
   auInit();
-  if(AU_READY||!AU_TILL)return;
+  if(AU_READY){auWake();return}
+  if(!AU_TILL)return;
   [AU_TILL,AU_TRACK].forEach(function(el){
     try{
       var pr=el.play();
@@ -8476,11 +9087,14 @@ function unlockAudio(){
     }catch(e){}
   });
   AU_READY=true;
+  /* build the graph here, inside the gesture, so the context can start */
+  auGraph(); auWake();
 }
 var GESTURE_AT=0;
 function inGesture(){return Date.now()-GESTURE_AT<1500}
 /* Every kind of touch. Unlocking is cheap and idempotent, and after the first
-   one nothing here does any work at all. */
+   one all it does is nudge the one context awake, which is how it survives
+   another app taking the audio session. */
 ["touchstart","touchend","pointerdown","pointerup","mousedown","click"].forEach(function(ev){
   document.addEventListener(ev,unlockAudio,{passive:true,capture:true});
 });
@@ -8514,14 +9128,56 @@ function stopKaching(){
 /* ---- the track ----
    One element, so starting a song always replaces the one before it and two
    can never overlap. */
+var AU_CTX=null, AU_SRC=null, AU_GAIN=null;
+/* one context, ever */
+function auGraph(){
+  if(AU_CTX)return AU_CTX;
+  if(!AU_TRACK)return null;
+  try{
+    var C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return null;
+    AU_CTX=new C();
+    AU_SRC=AU_CTX.createMediaElementSource(AU_TRACK);
+    AU_GAIN=AU_CTX.createGain();
+    AU_GAIN.gain.value=0;
+    AU_SRC.connect(AU_GAIN);
+    AU_GAIN.connect(AU_CTX.destination);
+  }catch(e){ AU_CTX=null; AU_SRC=null; AU_GAIN=null }
+  return AU_CTX;
+}
+function auWake(){
+  if(!AU_CTX)return;
+  try{if(AU_CTX.state!=="running")AU_CTX.resume()}catch(e){}
+}
 var FADE_T=null;
 function stopAudio(){
-  clearInterval(FADE_T); FADE_T=null;
+  clearInterval(FADE_T); clearTimeout(FADE_T); FADE_T=null;
+  try{if(AU_GAIN&&AU_CTX){
+    var t=AU_CTX.currentTime;
+    AU_GAIN.gain.cancelScheduledValues(t);
+    AU_GAIN.gain.setValueAtTime(0,t);
+  }}catch(e){}
   try{if(AU_TRACK){AU_TRACK.pause();AU_TRACK.currentTime=0}}catch(e){}
 }
 function busClaim(){ stopAudio(); }
+/* Through the gain node where we have one, which is the only thing that
+   works on a phone. The .volume path is the desktop fallback. */
 function fadeTo(el,to,ms,then){
-  clearInterval(FADE_T);
+  clearInterval(FADE_T); FADE_T=null;
+  if(AU_GAIN&&AU_CTX){
+    try{
+      auWake();
+      var t=AU_CTX.currentTime;
+      var g=AU_GAIN.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(Math.max(0.0001,g.value),t);
+      /* exponential sounds like a fade; linear sounds like a slider */
+      g.exponentialRampToValueAtTime(Math.max(0.0001,to),t+Math.max(0.02,ms/1000));
+      if(to<=0.0001)g.linearRampToValueAtTime(0,t+Math.max(0.03,ms/1000)+0.02);
+      if(then)FADE_T=setTimeout(function(){FADE_T=null;then()},ms);
+      return;
+    }catch(e){}
+  }
   var from=el.volume, steps=Math.max(1,Math.round(ms/50)), i=0;
   FADE_T=setInterval(function(){
     i++;
@@ -8566,12 +9222,14 @@ function playMark(name,cb){
     try{el.currentTime=start}catch(e){}
     /* the real length, which is allowed through even after the fallback cue */
     once(dur*1000,true);
-    var fo=Math.min(1.6,dur*0.3);
+    var fo=Math.min(1.8,dur*0.3), fading=false;
     el.ontimeupdate=function(){
       if(mine!==MARK_TOKEN||ended)return;
       var left=stop-el.currentTime;
-      if(left<=0){ended=true;cleanup();stopAudio();return}
-      if(left<=fo&&!FADE_T)fadeTo(el,0,left*1000);
+      if(left<=0.02){ended=true;cleanup();stopAudio();return}
+      /* its own flag rather than FADE_T, which the fade IN was still holding
+         on a short clip, so the fade out never started */
+      if(left<=fo&&!fading){fading=true;fadeTo(el,0,left*1000)}
     };
   };
   try{
@@ -8581,9 +9239,9 @@ function playMark(name,cb){
     var pr=el.play();
     if(pr&&pr.then)pr.then(function(){
       if(mine!==MARK_TOKEN)return;
-      fadeTo(el,0.85,Math.min(1000,600));
+      fadeTo(el,0.85,700);                 /* in */
     },function(){ if(mine===MARK_TOKEN)once(FALLBACK_MS) });
-    else fadeTo(el,0.85,600);
+    else fadeTo(el,0.85,700);
   }catch(e){ once(FALLBACK_MS) }
 }
 var MARK_TOKEN=0;
@@ -8602,6 +9260,20 @@ var MARK_TOKEN=0;
 /* TEMP, for testing the audio: only this mark bursts.
    Set ONLY_MARK to null to bring all eight back. */
 var ONLY_MARK=null;
+/* ---- a theme can claim a sound ----
+   The eight marks each come with their own music. Letting a theme name one
+   ties the two systems together: wearing Tower should sound like Tower. Any
+   theme without a preference keeps the full shuffle. */
+var THEME_MARK={
+  tower:"aphex", blame:"aphex", brutalist:"aphex",
+  term:"script", chaos:"spiky", vapor:"robux",
+  kabukicho:"robux", hanabi:"robux",
+  sumi:"omori", kinkaku:"omori", karesansui:"omori", matcha:"omori",
+  climber:"snow", yuki:"snow", hatsu:"snow", kohaku:"snow",
+  onepiece:"skeletrix", squid:"skeletrix",
+  sakura:"emerald", hanami:"emerald", tamago:"emerald", genmaicha:"emerald",
+  seiya:"snow", obake:"spiky", natsu:"robux", tanabata:"robux"
+};
 function markPool(){
   if(!ONLY_MARK)return fxImgs;
   var f=fxImgs.filter(function(i){return i._name===ONLY_MARK});
@@ -8610,6 +9282,11 @@ function markPool(){
 
 var bag=[];
 function fillBag(){
+  var want=THEME_MARK[cfg.theme||""];
+  if(want&&cfg.themeSound!==false){
+    var only=markPool().filter(function(m){return m._name===want});
+    if(only.length){bag=only.slice();return}
+  }
   bag=markPool().slice();
   for(var i=bag.length-1;i>0;i--){var j=(Math.random()*(i+1))|0,t=bag[i];bag[i]=bag[j];bag[j]=t}
 }
