@@ -2198,7 +2198,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DA</b> · 24 Aug 2026<br>If this does not say DA, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DC</b> · 24 Aug 2026<br>If this does not say DC, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -2210,6 +2210,8 @@ body.light .toastless{display:none}
       <button class="btn line" id="trimGo" style="margin-top:13px">Keep only the last 3 worksheets each</button>
       <p class="empty" style="margin:11px 0 18px">Every worksheet you have ever made is stored in full and read back on every launch. Old ones are the usual reason the app gets heavy enough that your phone closes it in the background.</p>
       <p class="eyebrow">Tidy up</p>
+      <button class="btn line" id="rebuildPre" style="margin-bottom:9px">Rebuild prepay from notes</button>
+      <p class="empty" style="margin:0 0 15px">For a sheet that ticks prepay on each lesson rather than recording bundles. Turns those ticks into real prepay history on each student.</p>
       <button class="btn line" id="sweepPre" style="margin-bottom:9px">Match lessons to prepay</button>
       <p class="empty" style="margin:0 0 15px">For anything brought in before: goes through every prepay bundle oldest first and moves the lessons it paid for onto it, rewriting their charge to the bundle rate. Only touches lessons on or after the bundle\u2019s own date that are not already on one.</p>
       <button class="btn line" id="dedupe">Remove duplicate lessons</button>
@@ -3516,6 +3518,12 @@ function studentSheet(id){
         'spellcheck="false" placeholder="Type a city or country"><button type="button" id="tzClear">&times;</button></div>'+
       '<div id="tzHits"></div>'+
       '<input type="hidden" id="eTz" value="'+esc(s.tz||"")+'"></div>'+
+    '<p class="eyebrow" style="margin-top:20px">Prepaid lessons</p>'+
+    '<div class="two"><div class="field" style="margin:0"><label for="cLeft">They have this many left</label>'+
+      '<input id="cLeft" type="number" inputmode="decimal" step="0.5" min="0"></div>'+
+      '<div class="field" style="margin:0"><label>&nbsp;</label>'+
+      '<button class="btn line" id="cGo" style="margin:0">Set it</button></div></div>'+
+    '<p class="empty" id="cNote" style="margin:2px 0 0"></p>'+
     '<p class="eyebrow" style="margin-top:20px">Rate</p>'+
     '<div class="two"><div class="field" style="margin:0"><label for="rNew">New rate an hour</label>'+
       '<input id="rNew" type="number" inputmode="decimal" placeholder="'+esc(boxVal(rateOn(s)))+'"></div>'+
@@ -3661,6 +3669,29 @@ function studentSheet(id){
       };
     });
   }
+  /* ---- how many they have left, typed in ---- */
+  function paintCredits(){
+    var c=credits(id);
+    if($("cLeft")&&document.activeElement!==$("cLeft"))$("cLeft").value=c.lessons||"";
+    if($("cNote"))$("cNote").textContent=c.lessons>0
+      ? c.lessons+" lesson"+(c.lessons===1?"":"s")+" left, worth "+money(c.value)+
+        ". Every lesson you log comes off this first."
+      : "None left. Lessons will be charged at their rate.";
+  }
+  if($("cGo"))$("cGo").onclick=function(){
+    var v=parseFloat($("cLeft").value);
+    if(!(v>=0)){nudge("cLeft");toast("How many should they have?");return}
+    var before=credits(id).lessons;
+    var r=setCredits(id,v);
+    paintCredits(); renderStudents(); renderStats();
+    toast(r.change>0?("Added "+round2(r.change)+", now "+r.left)
+        :r.change<0?("Took back "+round2(-r.change)+", now "+r.left)
+        :"Already "+r.left,
+      function(){ setCredits(id,before); paintCredits(); renderStudents(); renderStats();
+                  toast("Put back to "+before) });
+  };
+  paintCredits();
+
   /* ---- rate changes ---- */
   function paintRates(){
     var h=rateHistory(s);
@@ -4080,6 +4111,10 @@ function editLesson(id){
     '<div class="field"><label for="eAmt">Charge <span id="eHint" style="color:var(--sky)"></span></label>'+
       '<input id="eAmt" type="number" inputmode="decimal" step="0.01" value="'+boxVal(l.amount)+'"></div>'+
     '<div class="field"><label for="eNote">Note</label><input id="eNote" type="text" value="'+esc(l.note||"")+'" autocomplete="off"></div>'+
+    (l.bundleId
+      ? '<p class="empty" style="margin:-4px 0 11px">Paid from prepay. Taking it off puts the credit back and charges it at their rate for that day.</p>'+
+        '<button class="btn line" id="eUnpre" style="margin-bottom:9px">Take off prepay</button>'
+      : "")+
     '<button class="btn" id="eGo">Save changes</button>'+
     '<button class="btn line" id="eDel" style="margin-top:9px">Delete this lesson</button>'
   );
@@ -4095,6 +4130,17 @@ function editLesson(id){
   }
   $("eAmt").oninput=function(){this.dataset.typed="1"};
   reprice();
+  if($("eUnpre"))$("eUnpre").onclick=function(){
+    var was=unPrepay(l.id);
+    if(!was){toast("That one is not on prepay");return}
+    closeSheet(); renderAll();
+    toast("Off prepay, credit returned",function(){
+      var b2=db.bundles.filter(function(x){return x.id===was.bundleId})[0];
+      l.bundleId=was.bundleId; l.amount=was.amount; l.note=was.note;
+      if(b2)b2.used=round2(b2.used+hoursOf(l));
+      saveDB(); renderAll(); toast("Back on prepay");
+    });
+  };
   $("eDel").onclick=function(){closeSheet();delLesson(l)};
   $("eGo").onclick=function(){
     var was={sid:l.studentId,date:l.date,time:l.time,mins:lenOf(l),amount:l.amount,note:l.note};
@@ -6057,6 +6103,94 @@ function paintWall(){
     : "Nothing on the wall yet. Every day you teach fills a square.";
 }
 
+
+/* ================= prepay, made workable =================
+
+   A spreadsheet records prepay as a tick on each lesson: this one was paid
+   from credit. The app records it as a bundle you draw down. Both are right,
+   and the import used to leave the tick as a note nobody could see: no
+   bundle, no balance, nothing on the student's page.
+
+   These three close that gap.
+     - rebuildPrepay turns those ticks into real, fully-used bundles, so the
+       history is visible and counted.
+     - setCredits lets you simply say how many lessons somebody has left,
+       without doing any arithmetic about bundles.
+     - unPrepay takes one lesson back off prepay and returns the credit.
+   ================================================================= */
+
+/* Ticks into bundles. One bundle per student per run of prepaid lessons, at
+   what those lessons actually cost, and marked fully used because they have
+   already been taught. Nothing is invented: the money is the money that is
+   already on those rows. */
+function rebuildPrepay(){
+  var made=0, touched=[];
+  db.students.forEach(function(st){
+    var flagged=db.lessons.filter(function(l){
+      return l.studentId===st.id && !l.bundleId && /prepay/i.test(l.note||"");
+    }).sort(function(a,b){return a.date<b.date?-1:1});
+    if(!flagged.length)return;
+    var amt=sum(flagged.map(function(l){return l.amount}));
+    var hrs=flagged.reduce(function(a,l){return a+hoursOf(l)},0);
+    var b={id:uid(),studentId:st.id,date:flagged[0].date,
+           lessons:Math.max(1,Math.round(hrs)),amount:amt,
+           used:Math.max(1,Math.round(hrs))};
+    db.bundles.push(b);
+    flagged.forEach(function(l){l.bundleId=b.id;touched.push(l.id)});
+    made++;
+  });
+  if(made)saveDB();
+  return {bundles:made,lessons:touched.length,ids:touched};
+}
+
+/* Say how many they have left and the app works out the rest. If they have
+   too few it tops them up; too many and it takes some back. Priced at their
+   own rate, because that is what a lesson of theirs is worth. */
+function setCredits(sid,want){
+  var st=student(sid); if(!st)return null;
+  want=Math.max(0,Math.round(num(want)*100)/100);
+  var have=credits(sid).lessons;
+  var diff=round2(want-have);
+  if(Math.abs(diff)<0.005)return {change:0,left:have};
+  if(diff>0){
+    var rate=rateOn(st)||0;
+    db.bundles.push({id:uid(),studentId:sid,date:iso(new Date()),
+      lessons:diff,amount:num(rate*diff),used:0});
+  } else {
+    /* take it back off the newest bundles first, and never below what has
+       actually been taught from them */
+    var need=-diff;
+    db.bundles.slice().sort(function(a,b){return a.date<b.date?1:-1}).forEach(function(b){
+      if(need<=0.005||b.studentId!==sid)return;
+      var spare=round2(b.lessons-b.used);
+      if(spare<=0)return;
+      var take=Math.min(spare,need);
+      b.lessons=round2(b.lessons-take);
+      b.amount=num(b.amount*(b.lessons/(b.lessons+take)||0));
+      need=round2(need-take);
+    });
+    db.bundles=db.bundles.filter(function(b){return b.lessons>0.005});
+  }
+  saveDB();
+  return {change:diff,left:credits(sid).lessons};
+}
+
+/* One lesson off prepay: the credit goes back and the lesson is priced at
+   what that student was charged on that day. */
+function unPrepay(id){
+  var l=db.lessons.filter(function(x){return x.id===id})[0];
+  if(!l||!l.bundleId)return false;
+  var b=db.bundles.filter(function(x){return x.id===l.bundleId})[0];
+  var was={bundleId:l.bundleId,amount:l.amount,note:l.note};
+  if(b)b.used=round2(Math.max(0,b.used-hoursOf(l)));
+  l.bundleId=null;
+  l.note=(l.note||"").replace(/prepay/i,"").trim()||"Direct";
+  var st=student(l.studentId);
+  if(st)l.amount=num(rateOn(st,l.date)*hoursOf(l));
+  saveDB();
+  return was;
+}
+
 /* ---- who has nothing on the books ----
    Gone Quiet is about people who have drifted. This is the opposite and more
    useful on a Sunday: regulars you are still teaching who have nothing in the
@@ -7806,11 +7940,17 @@ function xlsCommit(){
      now that both are in: oldest bundle first, each claiming that student's
      later lessons until its credit runs out. This is the whole point of
      importing prepay from a spreadsheet. */
+  /* Ticks on individual lessons become real bundles, so an imported year of
+     prepay is visible on the student rather than only in a note. */
+  var rb=rebuildPrepay();
   var sw=sweepBundles(), moved=sweepCount(sw);
   if(!saveDB()){warn("Storage is full. Export a backup, then clear some old sheets.");return}
   xlsPlan=null; $("xlsOut").innerHTML=""; $("xlsBig").value=""; 
   shown=0; renderAll();
-  if(moved){
+  if(rb.lessons){
+    toast("Brought in "+made+" rows \u00b7 "+rb.lessons+" prepaid lessons on "+
+      rb.bundles+" bundle"+(rb.bundles===1?"":"s"));
+  } else if(moved){
     toast("Brought in "+made+" rows \u00b7 "+moved+" put onto prepay",function(){
       sw.forEach(function(x){unfillBundle(x.b,x.t)});
       saveDB(); renderAll(); toast("Left as they were");
@@ -8063,6 +8203,7 @@ var BTN_ICON={
   taxGo:    '<path d="M6.5 3.5h11v17l-2.75-2-2.75 2-2.75-2-2.75 2z"/><path d="M9.5 8h5M9.5 12h5"/>',  /* a receipt */
   rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
   trimGo:   '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/>',
+  rebuildPre:'<path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.5v3.5H14M6.5 20.5V17H10"/>',
   sweepPre: '<path d="M4 7h9M4 12h9M4 17h5"/><path d="M15.5 15.5 18 18l4-4.5"/>',
   dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
   wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
@@ -8673,6 +8814,17 @@ if($("trimGo"))$("trimGo").onclick=function(){
   paintHealth();
   toast(gone?gone+" old worksheet"+(gone===1?"":"s")+" cleared":"Nothing old enough to clear");
 };
+if($("rebuildPre"))$("rebuildPre").onclick=function(){
+  var r=rebuildPrepay();
+  if(!r.lessons){toast("Nothing to rebuild. No lessons are noted as prepay.");return}
+  renderAll();
+  toast(r.lessons+" lesson"+(r.lessons===1?"":"s")+" now on "+r.bundles+
+    " prepay bundle"+(r.bundles===1?"":"s"),function(){
+      r.ids.forEach(function(x){unPrepay(x)});
+      db.bundles=db.bundles.filter(function(b){return b.used>0.005||b.lessons>0.005});
+      saveDB(); renderAll(); toast("Left as they were");
+    });
+};
 $("sweepPre").onclick=function(){
   var sw=sweepBundles(), moved=sweepCount(sw);
   if(!moved){toast("Nothing to move. Every bundle already lines up.");return}
@@ -9060,7 +9212,6 @@ function auMake(){
   el.preload="auto";
   el.setAttribute("playsinline","");
   el.setAttribute("webkit-playsinline","");
-  el.crossOrigin="anonymous";
   el.src=SILENT;
   el.style.display="none";
   document.body.appendChild(el);
@@ -9152,12 +9303,28 @@ function auWake(){
 var FADE_T=null;
 function stopAudio(){
   clearInterval(FADE_T); clearTimeout(FADE_T); FADE_T=null;
-  try{if(AU_GAIN&&AU_CTX){
-    var t=AU_CTX.currentTime;
-    AU_GAIN.gain.cancelScheduledValues(t);
-    AU_GAIN.gain.setValueAtTime(0,t);
-  }}catch(e){}
-  try{if(AU_TRACK){AU_TRACK.pause();AU_TRACK.currentTime=0}}catch(e){}
+  /* Cutting a waveform off mid-cycle is a click, every time. Ride it down
+     over 60ms first, then pause. Inaudible as a fade, and it removes the
+     pop entirely. */
+  var kill=function(){
+    try{if(AU_TRACK){AU_TRACK.pause();AU_TRACK.currentTime=0}}catch(e){}
+  };
+  try{
+    if(AU_GAIN&&AU_CTX&&AU_TRACK&&!AU_TRACK.paused){
+      var t=AU_CTX.currentTime;
+      AU_GAIN.gain.cancelScheduledValues(t);
+      AU_GAIN.gain.setValueAtTime(AU_GAIN.gain.value,t);
+      AU_GAIN.gain.linearRampToValueAtTime(0,t+0.06);
+      setTimeout(kill,80);
+      return;
+    }
+    if(AU_GAIN&&AU_CTX){
+      var t2=AU_CTX.currentTime;
+      AU_GAIN.gain.cancelScheduledValues(t2);
+      AU_GAIN.gain.setValueAtTime(0,t2);
+    }
+  }catch(e){}
+  kill();
 }
 function busClaim(){ stopAudio(); }
 /* Through the gain node where we have one, which is the only thing that
@@ -9169,11 +9336,20 @@ function fadeTo(el,to,ms,then){
       auWake();
       var t=AU_CTX.currentTime;
       var g=AU_GAIN.gain;
+      var dur=Math.max(0.03,ms/1000);
       g.cancelScheduledValues(t);
-      g.setValueAtTime(Math.max(0.0001,g.value),t);
-      /* exponential sounds like a fade; linear sounds like a slider */
-      g.exponentialRampToValueAtTime(Math.max(0.0001,to),t+Math.max(0.02,ms/1000));
-      if(to<=0.0001)g.linearRampToValueAtTime(0,t+Math.max(0.03,ms/1000)+0.02);
+      g.setValueAtTime(g.value,t);
+      if(to>0.0005){
+        /* exponential going up sounds like a fade rather than a slider, but
+           it cannot start from zero */
+        g.setValueAtTime(Math.max(0.0008,g.value),t);
+        g.exponentialRampToValueAtTime(to,t+dur);
+      } else {
+        /* and it can never REACH zero, so a downward exponential always ends
+           with a step to silence. That step is the click. Linear all the way
+           down instead. */
+        g.linearRampToValueAtTime(0,t+dur);
+      }
       if(then)FADE_T=setTimeout(function(){FADE_T=null;then()},ms);
       return;
     }catch(e){}
@@ -9219,7 +9395,8 @@ function playMark(name,cb){
     if(mine!==MARK_TOKEN)return;
     var stop=(t.end&&t.end>start)?Math.min(t.end,el.duration||t.end):(el.duration||0);
     var dur=Math.max(0.6,(stop||start+4)-start);
-    try{el.currentTime=start}catch(e){}
+    /* seek while the gain is still down, so the jump is never heard */
+    try{if(Math.abs(el.currentTime-start)>0.05)el.currentTime=start}catch(e){}
     /* the real length, which is allowed through even after the fallback cue */
     once(dur*1000,true);
     var fo=Math.min(1.8,dur*0.3), fading=false;
@@ -9233,7 +9410,11 @@ function playMark(name,cb){
     };
   };
   try{
-    el.volume=0;
+    /* Level is the gain node's job. Setting volume as well meant the element
+       was silent wherever volume is honoured, and the fades were shaping
+       nothing at all. */
+    el.volume=1;
+    try{el.pause()}catch(e){}      /* swapping src mid-play is what clicks */
     el.src=t.file;
     el.load();
     var pr=el.play();
