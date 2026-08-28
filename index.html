@@ -2171,7 +2171,7 @@ body.light .toastless{display:none}
     <div class="panel">
       <p class="eyebrow">Backup</p>
       <p class="empty" id="backupAge" style="margin:0 0 11px"></p>
-      <button class="btn alt" id="export" style="margin-bottom:9px">Export CSV</button>
+      <button class="btn alt" id="export" style="margin-bottom:9px">Export everything (CSV)</button>
       <label class="btn line" for="import" style="display:block;text-align:center;margin-bottom:9px">Import CSV<input id="import" type="file" accept=".csv,text/csv" style="display:none"></label>
       <button class="btn line" id="exportJson">Export full backup (JSON)</button>
       <p class="eyebrow" style="margin:18px 0 9px">Tax year</p>
@@ -2219,7 +2219,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DG</b> · 24 Aug 2026<br>If this does not say DG, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DH</b> · 24 Aug 2026<br>If this does not say DH, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -7116,19 +7116,122 @@ function download(name,text,type){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){URL.revokeObjectURL(url)},1000);
 }
-$("export").onclick=function(){
-  if(!db.lessons.length&&!db.bundles.length){toast("Nothing to export yet");return}
-  var rows=[["date","time","kind","student","amount","source"]];
-  db.lessons.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(l){
-    rows.push([l.date,l.time||"","lesson",sName(l.studentId),l.amount,l.bundleId?"prepay":"direct"]);
+/* ---- everything, in one file ----
+   The old export was lessons and bundle prices and nothing else: no lengths,
+   no notes, no rates, no balances, no students table. Anyone opening it in
+   Excel was missing most of what the app knows.
+
+   This writes every table the app holds, one after another with a blank line
+   between, which is exactly how a spreadsheet wants to receive several tables
+   in one CSV. Numbers are written plain, without currency symbols, so Excel
+   treats them as numbers and can sum them. */
+function csvCell(c){
+  return '"'+String(c==null?"":c).replace(/"/g,'""')+'"';
+}
+function csvOf(rows){
+  return rows.map(function(r){return r.map(csvCell).join(",")}).join("\n");
+}
+function exportEverything(){
+  if(!db.lessons.length&&!db.bundles.length&&!db.students.length){
+    toast("Nothing to export yet");return;
+  }
+  var R=[];
+  var money2=function(n){return (Math.round(num(n)*100)/100).toFixed(2)};
+
+  /* ---- 1. every lesson ---- */
+  R.push(["LESSONS"]);
+  R.push(["date","time","student","minutes","hours","amount","paid from","note"]);
+  db.lessons.slice().sort(function(a,b){
+    return (a.date+(a.time||""))<(b.date+(b.time||""))?-1:1;
+  }).forEach(function(l){
+    R.push([l.date,l.time||"",sName(l.studentId),lenOf(l),round2(hoursOf(l)),
+      money2(l.amount),l.bundleId?"prepay":"paid on the day",l.note||""]);
   });
+  R.push([]);
+
+  /* ---- 2. every prepay purchase, with what is left ---- */
+  R.push(["PREPAY PURCHASES"]);
+  R.push(["date paid","student","lessons paid","lessons used","remaining",
+          "amount paid","per lesson","value remaining"]);
   db.bundles.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(b){
-    rows.push([b.date,"","bundle purchase",sName(b.studentId),b.amount,b.lessons+" lessons"]);
+    var left=round2(b.lessons-(b.used||0));
+    R.push([b.date,sName(b.studentId),round2(b.lessons),round2(b.used||0),left,
+      money2(b.amount),money2(b.amount/b.lessons),money2(b.amount/b.lessons*Math.max(0,left))]);
   });
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
-  download("mainichi-tracker-"+iso(new Date())+".csv",csv,"text/csv");
-  toast("Exported");
-};
+  R.push([]);
+
+  /* ---- 3. the students themselves ---- */
+  R.push(["STUDENTS"]);
+  R.push(["name","status","rate now","usual length","timezone","first lesson",
+          "last lesson","lessons taught","hours taught","earned","prepaid left","value owed"]);
+  db.students.slice().sort(function(a,b){return a.name.localeCompare(b.name)}).forEach(function(s){
+    var mine=db.lessons.filter(function(l){return l.studentId===s.id});
+    var ds=mine.map(function(l){return l.date}).sort();
+    var c=credits(s.id);
+    R.push([s.name,statusOf(s),money2(rateOn(s)),lenLabel(defaultLen(s.id)),s.tz||"",
+      ds[0]||"",ds[ds.length-1]||"",mine.length,
+      round2(mine.reduce(function(a,l){return a+hoursOf(l)},0)),
+      money2(sum(mine.map(function(l){return l.amount}))),
+      round2(c.lessons),money2(c.value)]);
+  });
+  R.push([]);
+
+  /* ---- 4. rate changes, so past prices can be explained ---- */
+  var anyRates=db.students.some(function(s){return rateHistory(s).length});
+  if(anyRates){
+    R.push(["RATE CHANGES"]);
+    R.push(["student","from","rate an hour"]);
+    db.students.forEach(function(s){
+      rateHistory(s).forEach(function(x){R.push([s.name,x.from,money2(x.rate)])});
+    });
+    R.push([]);
+  }
+
+  /* ---- 5. what is on the calendar ---- */
+  if(db.bookings.length){
+    R.push(["SCHEDULED"]);
+    R.push(["date","time","student","taught yet"]);
+    db.bookings.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(k){
+      R.push([k.date,k.time||"",sName(k.studentId),k.doneId?"yes":"no"]);
+    });
+    R.push([]);
+  }
+
+  /* ---- 6. weekly and monthly totals, already added up ---- */
+  var byW={}, byM={};
+  db.lessons.forEach(function(l){
+    var w=weekKeyOf(l.date), m=String(l.date).slice(0,7);
+    byW[w]=(byW[w]||0)+num(l.amount);
+    byM[m]=(byM[m]||0)+num(l.amount);
+  });
+  R.push(["BY MONTH"]);
+  R.push(["month","earned","lessons"]);
+  Object.keys(byM).sort().forEach(function(m){
+    R.push([m,money2(byM[m]),db.lessons.filter(function(l){return String(l.date).slice(0,7)===m}).length]);
+  });
+  R.push([]);
+  R.push(["BY WEEK"]);
+  R.push(["week beginning","earned"]);
+  Object.keys(byW).sort().forEach(function(k){R.push([k,money2(byW[k])])});
+  R.push([]);
+
+  /* ---- 7. the totals you would otherwise work out by hand ---- */
+  var ob=outstanding();
+  R.push(["TOTALS"]);
+  R.push(["lessons taught",db.lessons.length]);
+  R.push(["hours taught",round2(hoursIn())]);
+  R.push(["earned by teaching",money2(sum(db.lessons.map(function(l){return l.amount})))]);
+  R.push(["prepay taken in, all time",money2(db.bundles.reduce(function(a,b){return a+num(b.amount)},0))]);
+  R.push(["lessons still owed",round2(ob.n)]);
+  R.push(["value still owed",money2(ob.v)]);
+  R.push(["students",db.students.length]);
+  R.push(["exported",iso(new Date())]);
+  R.push(["currency","USD, written plain so Excel can add it up"]);
+
+  download("mainichijp-everything-"+iso(new Date())+".csv",csvOf(R),"text/csv");
+  toast("Every table exported");
+}
+$("export").onclick=exportEverything;
 /* One tax year at a time, with the prepay split out, because money taken in
    a bundle and money earned teaching it are not the same year's income. */
 $("taxGo").onclick=function(){
