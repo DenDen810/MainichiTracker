@@ -508,6 +508,18 @@ button,input,select{font-family:var(--body)}
 .seg button.on{box-shadow:0 1px 0 var(--edge),inset 0 -2px 0 var(--shu)}
 /* and so does the jotter's inline add row */
 .jotadd input{border-left:2.5px solid var(--dim)}
+.plist{max-height:46vh;overflow-y:auto;overscroll-behavior:contain;
+  border:1px solid var(--line);border-radius:var(--r);padding:4px 12px}
+.prow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow .pn{flex:1;min-width:0}
+.prow .pn span{display:block;font-size:15.5px;font-weight:600;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.prow .pn small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.prow .pin{flex:0 0 84px;width:84px;font-size:16px;color:var(--text);padding:9px 10px;
+  border:1px solid var(--edge);border-left:2.5px solid var(--dim);border-radius:9px;
+  background:var(--inset);text-align:center;font-variant-numeric:tabular-nums}
+.prow .pin:focus{outline:none;border-left-color:var(--shu)}
 .tzrow{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:9px 0}
 .tzrow:active{opacity:.7}
 .tzrow.on{color:var(--shu)}
@@ -2003,7 +2015,15 @@ body.light .toastless{display:none}
     <div class="panel">
       <p class="eyebrow">Weekly goal</p>
       <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
-      <p class="empty" style="margin:-2px 0 18px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
+      <p class="empty" style="margin:-2px 0 13px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
+      <p class="eyebrow" style="margin:0 0 8px">On the app icon</p>
+      <div class="seg" id="badgeMode">
+        <button type="button" data-badge="goal">% of goal</button>
+        <button type="button" data-badge="lessons">Lessons</button>
+        <button type="button" data-badge="owed">Owed</button>
+        <button type="button" data-badge="off">Off</button>
+      </div>
+      <p class="empty" id="badgeNote" style="margin:9px 0 18px"></p>
       <p class="eyebrow">Goal <em id="goalname"></em></p>
       <div class="hbar">
         <div class="t"><span id="goalNow">$0</span><b id="goalTgt"></b></div>
@@ -2199,7 +2219,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DD</b> · 24 Aug 2026<br>If this does not say DD, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DG</b> · 24 Aug 2026<br>If this does not say DG, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -2211,6 +2231,8 @@ body.light .toastless{display:none}
       <button class="btn line" id="trimGo" style="margin-top:13px">Keep only the last 3 worksheets each</button>
       <p class="empty" style="margin:11px 0 18px">Every worksheet you have ever made is stored in full and read back on every launch. Old ones are the usual reason the app gets heavy enough that your phone closes it in the background.</p>
       <p class="eyebrow">Tidy up</p>
+      <button class="btn alt" id="prepayAll" style="margin-bottom:9px">Set prepay for everyone</button>
+      <p class="empty" style="margin:0 0 15px">A tracker sheet records which lessons were paid from prepay, never how many were bought or when. So the number each student has left has to be entered once. This is every student on one screen.</p>
       <button class="btn line" id="rebuildPre" style="margin-bottom:9px">Rebuild prepay from notes</button>
       <p class="empty" style="margin:0 0 15px">For a sheet that ticks prepay on each lesson rather than recording bundles. Turns those ticks into real prepay history on each student.</p>
       <button class="btn line" id="sweepPre" style="margin-bottom:9px">Match lessons to prepay</button>
@@ -6219,15 +6241,16 @@ function rebuildPrepay(){
 /* Say how many they have left and the app works out the rest. If they have
    too few it tops them up; too many and it takes some back. Priced at their
    own rate, because that is what a lesson of theirs is worth. */
-function setCredits(sid,want){
+function setCredits(sid,want,when){
   var st=student(sid); if(!st)return null;
+  when=when||iso(new Date());
   want=Math.max(0,Math.round(num(want)*100)/100);
   var have=credits(sid).lessons;
   var diff=round2(want-have);
   if(Math.abs(diff)<0.005)return {change:0,left:have};
   if(diff>0){
     var rate=rateOn(st)||0;
-    db.bundles.push({id:uid(),studentId:sid,date:iso(new Date()),
+    db.bundles.push({id:uid(),studentId:sid,date:when,
       lessons:diff,amount:num(rate*diff),used:0});
   } else {
     /* take it back off the newest bundles first, and never below what has
@@ -6262,6 +6285,83 @@ function unPrepay(id){
   if(st)l.amount=num(rateOn(st,l.date)*hoursOf(l));
   saveDB();
   return was;
+}
+
+
+/* ================= entering prepay for everyone at once =================
+
+   A tracker sheet ticks "was this lesson prepaid?" on each row. It records
+   what was USED. It does not record what was BOUGHT: not how many, not when,
+   not for how much. So no importer can work out how many lessons anybody has
+   left, because that number is not in the file. It has to be said once.
+
+   This is the place to say it: every student on one screen, one box each.
+   Not seventeen student pages.
+   ================================================================= */
+function prepayBulk(){
+  /* everyone worth asking about: anyone still being taught, plus anyone who
+     has ever had a lesson come off prepay */
+  var seen={};
+  db.lessons.forEach(function(l){
+    if(l.bundleId||/prepay/i.test(l.note||""))seen[l.studentId]=1;
+  });
+  var list=db.students.filter(function(s){
+    return teaching(s)||seen[s.id];
+  }).sort(function(a,b){
+    var pa=seen[a.id]?0:1, pb=seen[b.id]?0:1;
+    if(pa!==pb)return pa-pb;
+    return a.name.localeCompare(b.name);
+  });
+  if(!list.length){warn("No students yet.");return}
+
+  var rows=list.map(function(s){
+    var c=credits(s.id);
+    var took=db.lessons.filter(function(l){
+      return l.studentId===s.id&&(l.bundleId||/prepay/i.test(l.note||""));
+    }).length;
+    return '<div class="prow">'+
+      '<div class="pn"><span style="color:'+colorFor(s)+'">'+esc(s.name)+'</span>'+
+      '<small>'+(took?took+' taught from prepay':'no prepay yet')+'</small></div>'+
+      '<input class="pin" type="number" inputmode="decimal" step="0.5" min="0" '+
+        'data-sid="'+s.id+'" value="'+(c.lessons||"")+'" placeholder="0">'+
+      '</div>';
+  }).join("");
+
+  openSheet(
+    '<h3>How many prepaid lessons is everyone owed?</h3>'+
+    '<p class="empty" style="margin:-4px 0 14px">Your sheet records which lessons <b style="color:var(--text)">were</b> '+
+    'paid from prepay, but never how many were bought or when \u2014 so the number left cannot be worked out from it. '+
+    'Put it in once here and the app takes it from there.</p>'+
+    '<div class="field" style="margin-bottom:14px"><label for="pbDate">Count these as bought on</label>'+
+      '<input id="pbDate" type="date"></div>'+
+    '<div class="plist">'+rows+'</div>'+
+    '<button class="btn" id="pbGo" style="margin-top:14px">Save them all</button>'+
+    '<p class="empty" style="margin:11px 0 0">Anything you leave blank is left exactly as it is. '+
+    'A bundle dated in the past only ever claims lessons from that day onward, never before it.</p>'
+  );
+  $("pbDate").value=iso(new Date());
+  $("pbGo").onclick=function(){
+    var when=$("pbDate").value||iso(new Date());
+    var before=[], n=0, tot=0;
+    Array.prototype.forEach.call(document.querySelectorAll(".pin"),function(inp){
+      var v=inp.value.trim();
+      if(v==="")return;                        /* untouched means untouched */
+      var want=parseFloat(v);
+      if(!(want>=0))return;
+      var sid=inp.dataset.sid;
+      var was=credits(sid).lessons;
+      if(Math.abs(was-want)<0.005)return;
+      before.push({sid:sid,was:was});
+      setCredits(sid,want,when);
+      n++; tot+=want;
+    });
+    if(!n){toast("Nothing changed");return}
+    closeSheet(); renderAll();
+    toast(n+" student"+(n===1?"":"s")+" set, "+round2(tot)+" lessons owed",function(){
+      before.forEach(function(x){setCredits(x.sid,x.was,when)});
+      renderAll(); toast("Put back");
+    });
+  };
 }
 
 /* ---- who has nothing on the books ----
@@ -6308,6 +6408,34 @@ function paintUnbooked(){
       try{wireChips("kStu")}catch(e){}
     };
   });
+}
+
+/* ---- the number on the app icon ----
+   iOS will not let a web app draw a Home Screen widget; that needs a native
+   extension. It will let an installed one badge its own icon, which is the
+   nearest thing available and is genuinely useful: the icon carries the week
+   without opening anything. */
+function badgeValue(){
+  var mode=cfg.badge||"goal";
+  if(mode==="off")return null;
+  if(mode==="owed")return Math.round(outstanding().n);
+  if(mode==="lessons"){
+    var wk=weekStart();
+    return db.lessons.filter(function(l){return l.date>=wk}).length;
+  }
+  /* the default: how far through the week's goal you are, as a percentage,
+     because that is the one number that says whether to take another lesson */
+  var tgt=num(cfg.weekGoal)||0;
+  if(tgt<=0)return null;
+  return Math.min(999,Math.round(weekEarned()/tgt*100));
+}
+function paintBadge(){
+  try{
+    if(!navigator.setAppBadge)return;
+    var v=badgeValue();
+    if(v===null||!(v>0))navigator.clearAppBadge();
+    else navigator.setAppBadge(v);
+  }catch(e){}
 }
 
 /* ---- the week ---- */
@@ -6822,7 +6950,7 @@ function ceremony(){
       what:"Tap to see all of them.",sym:"\u2726",quiet:true,go:"ach"});
   } else found.forEach(popShow);
 }
-function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();paintHealth();paintWeekGoal();paintUnpriced();paintUnbooked();paintWall();autoThemeTick();gPullToday();ceremony()}
+function renderAll(){renderToday();renderQuiet();renderUpcoming();renderHome();renderStudents();renderStats();updateMini();paintBackupAge();paintHomeTz();paintHealth();paintWeekGoal();paintUnpriced();paintUnbooked();paintWall();autoThemeTick();paintBadge();gPullToday();ceremony()}
 
 /* ================= actions ================= */
 $("prev").onclick=function(){stepMonth(-1)};
@@ -6950,6 +7078,23 @@ if($("wgTgt")){
   $("wgTgt").oninput=function(){
     cfg.weekGoal=base(parseFloat(this.value)||0); saveSet(); paintWeekGoal();
   };
+}
+if($("badgeMode")){
+  var paintBadgeUI=function(){
+    Array.prototype.forEach.call($("badgeMode").querySelectorAll("[data-badge]"),function(b){
+      b.classList.toggle("on",b.dataset.badge===(cfg.badge||"goal"));
+    });
+    var v=badgeValue();
+    $("badgeNote").textContent=!navigator.setAppBadge
+      ? "Your phone will not let a web app badge its icon. Add the app to your Home Screen and it usually can."
+      : (v===null||!(v>0)
+        ? "Nothing to show yet. The number appears on the icon once there is one."
+        : "The icon will show "+v+". It updates every time you open the app.");
+  };
+  Array.prototype.forEach.call($("badgeMode").querySelectorAll("[data-badge]"),function(b){
+    b.onclick=function(){cfg.badge=b.dataset.badge;saveSet();paintBadge();paintBadgeUI();buzz(6)};
+  });
+  paintBadgeUI();
 }
 if($("wgShare"))$("wgShare").onclick=shareWeek;
 $("gAdd").onclick=function(){
@@ -7789,7 +7934,12 @@ var COLS=[
   ["hours",  ["hour","hrs","length","duration","mins","minutes","時間数"]],
   ["rate",   ["rate","hourly","perhour","時給"]],
   ["amount", ["amount","paid","price","fee","income","total","earned","revenue","cost","charge","金額","料金"]],
-  ["lessons",["lesson","qty","quantity","count","session","回数"]],
+  /* "$ / Lesson" contains the word lesson and would otherwise be read as a
+     COUNT of lessons. It has to be claimed first so it cannot. */
+  ["perles", ["$lesson","perlesson","alesson","eachlesson","unitprice","rateeach"]],
+  ["used",   ["lessonsused","used","taught","drawn"]],
+  ["remain", ["remaining","remain","left","balance","unused"]],
+  ["lessons",["lessonspaid","lessonsbought","lessonsin","lesson","qty","quantity","count","session","回数"]],
   ["kind",   ["kind","type","category","種類"]],
   ["note",   ["note","memo","comment","description","メモ"]],
   ["status", ["status","state"]]
@@ -7875,7 +8025,14 @@ function xlsScan(text){
     var pre=parseInt(preRaw.replace(/[^0-9.\-]/g,""),10);
     if(!(pre>0))pre=0;
     var preYes=/^(y|yes|true|paid|\u2713|\u2714|\u25cf)$/i.test(preRaw);
-    var isBundle=pre>0||kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1;
+    /* A row from a prepay tracker: it says how many were bought and how many
+       have been used. That is a purchase, whatever the Package column says. */
+    var paidN=m.lessons!==undefined?parseFloat(String(row[m.lessons]).replace(/[^0-9.\-]/g,"")):NaN;
+    var usedN=m.used!==undefined?parseFloat(String(row[m.used]).replace(/[^0-9.\-]/g,"")):NaN;
+    var remN =m.remain!==undefined?parseFloat(String(row[m.remain]).replace(/[^0-9.\-]/g,"")):NaN;
+    var isPurchase=(m.used!==undefined||m.remain!==undefined)&&
+                   (paidN>0||remN>0||usedN>0);
+    var isBundle=isPurchase||pre>0||kind.indexOf("bundle")>-1||kind.indexOf("prepay")>-1||kind.indexOf("pack")>-1;
     var rowRate=m.rate!==undefined?readMoney(row[m.rate]):0;
     /* hours, however it is written: 1, 1.0, 0.5, "90 min", "1h30" */
     var hrs=1;
@@ -7916,7 +8073,22 @@ function xlsScan(text){
       }
     }
     if(isBundle){
-      plan.bundles.push({date:dt,who:who,lessons:pre>0?pre:(n>0?n:1),amount:amt});
+      if(isPurchase){
+        /* Take the numbers as written. Lessons Used can exceed Lessons Paid in
+           a spreadsheet — that just means they ran over and owe you — so it is
+           clamped rather than left to make a negative balance. Remaining is
+           trusted over the subtraction when both are given, because that is
+           the figure you have been reading. */
+        var bought=paidN>0?paidN:((remN>0?remN:0)+(usedN>0?usedN:0));
+        var drawn=usedN>0?usedN:0;
+        if(remN===remN&&paidN>0)drawn=Math.max(0,paidN-remN);
+        plan.bundles.push({date:dt,who:who,
+          lessons:Math.max(0.5,bought),
+          used:Math.min(Math.max(0,drawn),Math.max(0.5,bought)),
+          amount:amt});
+      } else {
+        plan.bundles.push({date:dt,who:who,lessons:pre>0?pre:(n>0?n:1),amount:amt});
+      }
     } else {
       /* A lesson covered by a bundle has nothing in the amount column,
          because the money changed hands on a different row. Those were being
@@ -7949,6 +8121,10 @@ function xlsScan(text){
     var k=(l.who||"").toLowerCase()+"|"+l.date+"|"+(l.time||"");
     if(seenKey[k])dupes++; else seenKey[k]=1;
   });
+  var withUsed=plan.bundles.filter(function(b){return num(b.used)>0}).length;
+  var stillLeft=plan.bundles.reduce(function(a,b){
+    return a+Math.max(0,num(b.lessons)-num(b.used));
+  },0);
   var preFlag=plan.lessons.filter(function(l){return l.prepaid}).length;
   var trials=plan.lessons.filter(function(l){return l.trial}).length;
   var shortOnes=plan.lessons.filter(function(l){return l.mins&&l.mins!==60}).length;
@@ -7970,6 +8146,8 @@ function xlsScan(text){
       '</b> are not a full hour. Their length comes across, so the money and the hourly rates work out right.</p>':"")+
     (trials?'<p class="empty" style="margin:0 0 6px"><b style="color:var(--text)">'+trials+
       '</b> trial lesson'+(trials===1?" is":"s are")+' marked as such, and the trial price is not used as anybody\u2019s hourly rate.</p>':"")+
+    (withUsed?'<p class="empty" style="margin:0 0 6px">This is a prepay sheet: it says how many were bought <b style="color:var(--text)">and</b> how many have been used, so the balances come across as they are. '+
+      '<b style="color:var(--text)">'+round2(stillLeft)+'</b> lessons still owed across '+plan.bundles.length+' purchase'+(plan.bundles.length===1?"":"s")+'.</p>':"")+
     (preTotal?'<p class="empty" style="margin:0 0 6px">Prepay is money taken in, not money earned. It is <b style="color:var(--text)">not</b> added to your income: it becomes income a lesson at a time as you teach it, and the lessons it already paid for get moved onto it when this finishes.</p>':"")+
     '<p class="empty" style="margin:0 0 6px">Columns read: '+esc(found.join(", "))+'.</p>'+
     (newNames.length?'<p class="empty" style="margin:0 0 6px">New: '+esc(newNames.slice(0,8).join(", "))+(newNames.length>8?" and "+(newNames.length-8)+" more":"")+'.</p>':"")+
@@ -7997,7 +8175,8 @@ function xlsCommit(){
   });
   var freshBundles=[];
   p.bundles.forEach(function(b){
-    var nb={id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,used:0};
+    var nb={id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,
+            used:num(b.used)||0};
     db.bundles.push(nb); freshBundles.push(nb);
     made++;
   });
@@ -8276,6 +8455,7 @@ var BTN_ICON={
   taxGo:    '<path d="M6.5 3.5h11v17l-2.75-2-2.75 2-2.75-2-2.75 2z"/><path d="M9.5 8h5M9.5 12h5"/>',  /* a receipt */
   rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
   trimGo:   '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/>',
+  prepayAll:'<rect x="3" y="6.5" width="18" height="12" rx="2.5"/><path d="M3 10.5h18M7 15h3"/><path d="M16.5 15h2"/>',
   rebuildPre:'<path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.5v3.5H14M6.5 20.5V17H10"/>',
   sweepPre: '<path d="M4 7h9M4 12h9M4 17h5"/><path d="M15.5 15.5 18 18l4-4.5"/>',
   dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
@@ -8887,6 +9067,7 @@ if($("trimGo"))$("trimGo").onclick=function(){
   paintHealth();
   toast(gone?gone+" old worksheet"+(gone===1?"":"s")+" cleared":"Nothing old enough to clear");
 };
+if($("prepayAll"))$("prepayAll").onclick=prepayBulk;
 if($("rebuildPre"))$("rebuildPre").onclick=function(){
   var r=rebuildPrepay();
   if(!r.lessons){toast("Nothing to rebuild. No lessons are noted as prepay.");return}
