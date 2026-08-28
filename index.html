@@ -351,6 +351,7 @@ button,input,select{font-family:var(--body)}
 .stu .pre{font-size:10.5px;font-weight:600;letter-spacing:.01em;line-height:1.15;color:var(--sky);white-space:nowrap;
   flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .stu .pre.low{color:var(--shu)}
+.stu .pre.spent{color:var(--dim)}
 .stu .sheets{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;
   flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .row.shelf{cursor:pointer}
@@ -2198,7 +2199,7 @@ body.light .toastless{display:none}
     </div>
     <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DC</b> · 24 Aug 2026<br>If this does not say DC, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DD</b> · 24 Aug 2026<br>If this does not say DD, your phone is still serving a cached copy.</p>
     </div>
     <div class="panel">
       <div id="installTip" style="display:none">
@@ -3683,11 +3684,11 @@ function studentSheet(id){
     if(!(v>=0)){nudge("cLeft");toast("How many should they have?");return}
     var before=credits(id).lessons;
     var r=setCredits(id,v);
-    paintCredits(); renderStudents(); renderStats();
+    paintCredits(); paintBurn(); renderStudents(); renderStats();
     toast(r.change>0?("Added "+round2(r.change)+", now "+r.left)
         :r.change<0?("Took back "+round2(-r.change)+", now "+r.left)
         :"Already "+r.left,
-      function(){ setCredits(id,before); paintCredits(); renderStudents(); renderStats();
+      function(){ setCredits(id,before); paintCredits(); paintBurn(); renderStudents(); renderStats();
                   toast("Put back to "+before) });
   };
   paintCredits();
@@ -3829,17 +3830,87 @@ function studentSheet(id){
   }
   function paintBurn(){
     var box=$("burnBox"); if(!box)return;
-    var bs=burn(id);
-    if(!bs.length){box.innerHTML="";return}
-    box.innerHTML='<p class="eyebrow" style="margin:18px 0 4px">Prepay</p>'+
-      bs.map(function(x){
-        return '<div class="burn"><div class="t"><span>'+x.used+' of '+x.b.lessons+' used</span>'+
-          '<b>'+money(x.b.amount/x.b.lessons*x.left)+' left</b></div>'+
-          '<div class="track"><i class="'+burnTone(x.left)+'" style="width:'+x.pct.toFixed(0)+'%"></i></div>'+
-          '<p class="out">'+(x.runsOut
-            ? "At their recent pace ("+x.perWeek.toFixed(1).replace(/\.0$/,"")+" a week) this runs out around "+esc(dayLabel(x.runsOut))+"."
-            : "Not enough recent lessons to guess when this runs out.")+'</p></div>';
-      }).join("");
+    var live=burn(id);                          /* the ones with credit left */
+    var all=db.bundles.filter(function(b){return b.studentId===id})
+      .sort(function(a,b){return a.date<b.date?1:-1});
+    var drawn=db.lessons.filter(function(l){
+      return l.studentId===id&&l.bundleId;
+    });
+    if(!all.length&&!drawn.length){box.innerHTML="";return}
+
+    var c=credits(id);
+    var everLessons=all.reduce(function(a,b){return a+num(b.lessons)},0);
+    var everMoney=all.reduce(function(a,b){return a+num(b.amount)},0);
+    var taught=drawn.length;
+
+    var html='<p class="eyebrow" style="margin:18px 0 8px">Prepay</p>'+
+      '<div class="stats" style="margin-bottom:4px">'+
+        '<div class="stat"><b style="color:'+(c.lessons>0?"var(--good)":"var(--muted)")+'">'+
+          (c.lessons||0)+'</b><small>left to teach</small></div>'+
+        '<div class="stat"><b>'+money(c.value)+'</b><small>still owed as lessons</small></div>'+
+        '<div class="stat"><b>'+taught+'</b><small>taught from prepay</small></div>'+
+        '<div class="stat"><b>'+money(everMoney)+'</b><small>'+round2(everLessons)+' bought, all time</small></div>'+
+      '</div>';
+
+    /* the bar, and when it runs out, only for credit that still exists */
+    html+=live.map(function(x){
+      return '<div class="burn"><div class="t"><span>'+round2(x.used)+' of '+x.b.lessons+' used</span>'+
+        '<b>'+money(x.b.amount/x.b.lessons*x.left)+' left</b></div>'+
+        '<div class="track"><i class="'+burnTone(x.left)+'" style="width:'+x.pct.toFixed(0)+'%"></i></div>'+
+        '<p class="out">'+(x.runsOut
+          ? "At their recent pace ("+x.perWeek.toFixed(1).replace(/\.0$/,"")+" a week) this runs out around "+esc(dayLabel(x.runsOut))+"."
+          : "Not enough recent lessons to guess when this runs out.")+'</p></div>';
+    }).join("");
+
+    /* and every bundle they have ever bought, finished or not, because a
+       spent one is still part of how much they have paid you */
+    if(all.length){
+      html+='<p class="eyebrow" style="margin:16px 0 2px">Every bundle</p>'+
+        all.map(function(b){
+          var left=round2(b.lessons-(b.used||0));
+          var spent=left<=0.005;
+          return '<div class="row"><div class="main">'+
+            '<span'+(spent?' style="color:var(--muted)"':"")+'>'+b.lessons+' lessons'+
+              (spent?' \u00b7 finished':' \u00b7 '+left+' left')+'</span>'+
+            '<small>bought '+esc(dayLabel(b.date))+" "+esc(b.date)+'</small></div>'+
+            '<div class="amt">'+money(b.amount)+'</div>'+
+            '<button class="x" data-delb="'+b.id+'">&times;</button></div>';
+        }).join("");
+    }
+
+    /* and which lessons were paid out of it */
+    if(taught){
+      html+='<p class="eyebrow" style="margin:16px 0 2px">Taught from prepay <em>'+taught+'</em></p>'+
+        drawn.slice().sort(function(a,b){return a.date<b.date?1:-1}).slice(0,10).map(function(l){
+          return '<div class="row" data-unpre="'+l.id+'" style="cursor:pointer">'+
+            '<div class="main"><span>'+esc(dayLabel(l.date))+" "+esc(l.date)+'</span>'+
+            '<small>'+esc(lenLabel(lenOf(l)))+(l.time?" \u00b7 "+esc(ampm(l.time)):"")+'</small></div>'+
+            '<div class="amt">'+money(l.amount)+'</div></div>';
+        }).join("")+
+        (taught>10?'<p class="empty" style="margin:8px 0 0">and '+(taught-10)+' more</p>':"")+
+        '<p class="empty" style="margin:8px 0 0">Tap one to take it off prepay and put the credit back.</p>';
+    }
+    box.innerHTML=html;
+
+    Array.prototype.forEach.call(box.querySelectorAll("[data-delb]"),function(b){
+      b.onclick=function(){
+        var bun=db.bundles.filter(function(x){return x.id===b.dataset.delb})[0];
+        if(!bun)return;
+        /* anything drawn from it goes back to being charged normally */
+        var freed=db.lessons.filter(function(l){return l.bundleId===bun.id});
+        freed.forEach(function(l){unPrepay(l.id)});
+        db.bundles=db.bundles.filter(function(x){return x.id!==bun.id});
+        saveDB(); paintBurn(); paintCredits(); renderStudents(); renderStats();
+        toast("Bundle removed"+(freed.length?", "+freed.length+" lessons charged normally":""));
+      };
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-unpre]"),function(r){
+      r.onclick=function(){
+        if(!unPrepay(r.dataset.unpre)){toast("Not on prepay");return}
+        paintBurn(); paintCredits(); renderStudents(); renderStats();
+        toast("Off prepay, credit returned");
+      };
+    });
   }
   paintBurn();
 
@@ -5196,6 +5267,8 @@ function renderStudents(){
          tap away, and this line has to stay readable at a glance. */
       var bits=['<span class="pill '+st+'">'+STATUS_LABEL[st]+'</span>'];
       if(c.lessons>0)bits.push('<span class="pre'+(c.lessons<=1?" low":"")+'">Prepaid: '+c.lessons+' left</span>');
+      else if(db.bundles.some(function(b){return b.studentId===s.id}))
+        bits.push('<span class="pre spent">Prepay: none left</span>');
       var ck=clockIn(s.tz);
       var nsh=sheets(s).length;
       if(nsh)bits.push('<span class="sheets">'+nsh+' sheet'+(nsh===1?"":"s")+'</span>');
