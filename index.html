@@ -520,6 +520,22 @@ button,input,select{font-family:var(--body)}
   border:1px solid var(--edge);border-left:2.5px solid var(--dim);border-radius:9px;
   background:var(--inset);text-align:center;font-variant-numeric:tabular-nums}
 .prow .pin:focus{outline:none;border-left-color:var(--shu)}
+/* The data tab had grown to fourteen panels in a row. Each one is now a
+   section you open, so the page is a short list of headings until you want
+   something. */
+.sec{border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.sechead{display:flex;align-items:center;gap:11px;width:100%;background:var(--surf);
+  border:0;padding:15px 16px;cursor:pointer;color:inherit;text-align:left;
+  font-family:var(--body);-webkit-tap-highlight-color:transparent}
+.sechead:active{opacity:.75}
+.sechead b{flex:1;min-width:0;font-size:15.5px;font-weight:600}
+.sechead small{flex:0 0 auto;font-size:11.5px;color:var(--muted)}
+.sechead .chev{flex:0 0 auto;width:8px;height:8px;border-right:2px solid var(--muted);
+  border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
+.sec.open .sechead .chev{transform:rotate(-135deg)}
+.secbody{display:none;padding:2px 16px 16px;border-top:1px solid var(--line)}
+.sec.open .secbody{display:block}
+.sec .panel{background:none;border:0;padding:0;margin:0 0 4px}
 .tzrow{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:9px 0}
 .tzrow:active{opacity:.7}
 .tzrow.on{color:var(--shu)}
@@ -561,6 +577,25 @@ button:focus-visible,.stu:focus-visible{outline:2px solid var(--sky);outline-off
    Fifty two columns of seven. It is the only view that shows a year of work
    as a shape rather than a number, and the gaps are as informative as the
    dense patches. */
+/* Pick one student and the whole screen narrows to them: the calendar, the
+   count under it, and the list below. Tap them again to come back out. */
+.whorail{display:flex;gap:7px;overflow-x:auto;margin:0 -16px 11px;padding:0 16px 3px;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.whorail::-webkit-scrollbar{display:none}
+.whorail button{flex:0 0 auto;border:1px solid var(--line);background:var(--inset);
+  color:var(--muted);border-radius:100px;padding:6px 12px;font-size:12.5px;
+  font-family:var(--body);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  display:flex;align-items:center;gap:6px;white-space:nowrap}
+.whorail button i{width:8px;height:8px;border-radius:50%;display:block;flex:0 0 auto}
+.whorail button.on{color:var(--text);border-color:currentColor;background:var(--surf)}
+.whorail button:active{opacity:.7}
+.onlyone{display:flex;align-items:center;gap:9px;margin:0 0 11px;padding:9px 12px;
+  background:var(--inset);border-left:3px solid var(--shu);border-radius:var(--r);
+  font-size:12.5px;color:var(--muted)}
+.onlyone b{color:var(--text)}
+.onlyone button{margin-left:auto;flex:0 0 auto;background:none;border:1px solid var(--line);
+  color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;
+  font-family:var(--body)}
 .wall{display:flex;gap:3px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;
   -webkit-overflow-scrolling:touch}
 .wall::-webkit-scrollbar{display:none}
@@ -1889,6 +1924,7 @@ body.light .toastless{display:none}
 
     <div class="panel">
       <p class="eyebrow">Attendance card <em id="cardnote"></em></p>
+      <div class="whorail" id="whoRail"></div>
       <div class="dow"><i>日</i><i>月</i><i>火</i><i>水</i><i>木</i><i>金</i><i>土</i></div>
       <div class="grid" id="grid"></div>
       <div class="cardfoot"><span id="footlab">Days taught</span><b id="daycount">0</b></div>
@@ -2110,7 +2146,11 @@ body.light .toastless{display:none}
 
   <!-- ============ DATA ============ -->
   <section class="view" id="v-data">
-    <div class="panel">
+
+    <div class="sec" data-sec="Goals and money">
+      <button type="button" class="sechead"><b>Goals and money</b><small>what you are aiming for</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
       <p class="eyebrow">Saving for</p>
       <div class="two">
         <div class="field" style="margin:0"><label for="gName">What</label><input id="gName" type="text" placeholder="Japan trip" autocomplete="off"></div>
@@ -2120,55 +2160,28 @@ body.light .toastless{display:none}
       <div id="gList" style="margin-top:13px"></div>
       <p class="empty" style="margin:12px 0 0">Add as many as you like. The bar on the stats page runs to the furthest one, with every other one marked along it.</p>
     </div>
-    <div class="panel">
-      <p class="eyebrow">Google Calendar <em id="gcalState">not connected</em></p>
-      <div class="field"><label for="gcalCid">OAuth client ID</label><input id="gcalCid" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="....apps.googleusercontent.com"></div>
-      <button class="btn alt" id="gcalConnect">Connect</button>
-      <div id="gcalOpts" style="display:none">
-        <div class="field" style="margin-top:13px"><label for="gcalCal">Calendar</label><select id="gcalCal"></select></div>
-        <button class="btn line" id="gcalPullBtn" style="margin-bottom:9px">Pull events into today: off</button>
-        <button class="btn line" id="gcalPushBtn" style="margin-bottom:9px">Push logged lessons: off</button>
-        <div class="field" style="margin-bottom:9px"><label for="gcalRemind">Remind me before each lesson</label><select id="gcalRemind">
-          <option value="0">No reminder</option>
-          <option value="10">10 minutes before</option>
-          <option value="30">30 minutes before</option>
-          <option value="60">1 hour before</option>
-          <option value="1440">1 day before</option>
-        </select></div>
-        <button class="btn line" id="gcalOut" style="color:var(--shu)">Disconnect</button>
-      </div>
-      <p class="empty" style="margin:13px 0 0">Pull shows today's calendar events in the checklist so you can tick them off. Push writes each lesson you log back as an event. Setup instructions are in the README.</p>
-    </div>
-    <div class="panel">
-      <p class="eyebrow">Where you are</p>
-      <p class="empty" style="margin:0 0 11px">Everything on the home screen is worked out from your phone\u2019s clock. If you are teaching from somewhere else for a while, set it here and the schedule, the countdown and every student\u2019s clock stay honest.</p>
-      <div class="field"><label for="homeTz">Teaching from</label><select id="homeTz"></select></div>
-      <p class="empty" id="homeTzNote" style="margin:0 0 0"></p>
-    </div>
-    <div class="panel">
+<div class="panel">
       <p class="eyebrow">Currency <em id="fxNote"></em></p>
       <p class="empty" style="margin:0 0 11px">Tap USD/JPY at the top of any screen to switch. Everything is kept in dollars underneath and converted for the screen, so nothing drifts when you switch back.</p>
       <button class="btn line" id="fxNow">Refresh the rate</button>
     </div>
-    <div class="panel">
-      <p class="eyebrow">Theme <em id="themeNow"></em></p>
-      <div class="seg" id="themeSound" style="margin-bottom:9px">
-        <button type="button" data-snd="1">Theme picks the sound</button>
-        <button type="button" data-snd="0">Shuffle them all</button>
       </div>
-      <div class="seg" id="autoTheme" style="margin-bottom:13px">
-        <button type="button" data-auto="0">Pick one</button>
-        <button type="button" data-auto="1">Follow the day</button>
-      </div>
-      <div id="themePick"></div>
     </div>
-    <div class="panel">
-      <p class="eyebrow">Effects</p>
-      <button class="btn alt" id="sfxBtn" style="margin-bottom:9px">Sound: on</button>
-      <button class="btn line" id="testSfx">Test sound</button>
-      <p class="empty" style="margin:13px 0 0">A mark bursts out of the button every time you log a payment. Add an mp3 to a folder called sfx next to this file, named after the mark, and it plays with it.</p>
+    <div class="sec" data-sec="Your spreadsheet">
+      <button type="button" class="sechead"><b>Your spreadsheet</b><small>bring it in, send it out</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
+      <p class="eyebrow">Bring in a spreadsheet</p>
+      <p class="empty" style="margin:0 0 13px">For a sheet that was never exported from here. In Excel, save the sheet as CSV, then pick it below — or just copy the rows and paste them in. Column order does not matter; it reads the headers.</p>
+      <label class="btn alt" for="xlsFile" style="display:block;text-align:center;margin-bottom:9px">Choose a CSV file<input id="xlsFile" type="file" accept=".csv,.tsv,text/csv,text/plain" style="display:none"></label>
+      <div class="field"><label for="xlsPaste">…or paste rows here</label><input id="xlsPaste" type="text" placeholder="Tap, then paste" autocomplete="off"></div>
+      <textarea id="xlsBig" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="Date, Student, Amount&#10;2026-08-01, Melanie, 50"></textarea>
+      <button class="btn alt" id="xlsRead" style="margin-top:11px">Read it</button>
+      <div id="xlsOut"></div>
+      <button class="btn line" id="xlsCheck" style="margin-top:11px">Check the last import</button>
+      <p class="empty" style="margin:11px 0 0">Shows what your sheet said and what the app now holds, month by month, so you can see them agree rather than take my word for it.</p>
     </div>
-    <div class="panel">
+<div class="panel">
       <p class="eyebrow">Backup</p>
       <p class="empty" id="backupAge" style="margin:0 0 11px"></p>
       <button class="btn alt" id="export" style="margin-bottom:9px">Export everything (CSV)</button>
@@ -2188,7 +2201,71 @@ body.light .toastless{display:none}
       <p class="empty" style="margin:11px 0 0">Lessons taught in the year, with prepay you took in listed separately underneath. Those two are different money and your accountant will want them apart.</p>
       <p class="empty" style="margin:13px 0 0">Everything lives on this device only. Export now and then so a wiped phone doesn't take the year with it.</p>
     </div>
-    <div class="panel">
+      </div>
+    </div>
+    <div class="sec" data-sec="Prepay tools">
+      <button type="button" class="sechead"><b>Prepay tools</b><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel" id="prepaySlot"></div>
+      </div>
+    </div>
+    <div class="sec" data-sec="Connections">
+      <button type="button" class="sechead"><b>Connections</b><small>calendar, timezone</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
+      <p class="eyebrow">Google Calendar <em id="gcalState">not connected</em></p>
+      <div class="field"><label for="gcalCid">OAuth client ID</label><input id="gcalCid" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="....apps.googleusercontent.com"></div>
+      <button class="btn alt" id="gcalConnect">Connect</button>
+      <div id="gcalOpts" style="display:none">
+        <div class="field" style="margin-top:13px"><label for="gcalCal">Calendar</label><select id="gcalCal"></select></div>
+        <button class="btn line" id="gcalPullBtn" style="margin-bottom:9px">Pull events into today: off</button>
+        <button class="btn line" id="gcalPushBtn" style="margin-bottom:9px">Push logged lessons: off</button>
+        <div class="field" style="margin-bottom:9px"><label for="gcalRemind">Remind me before each lesson</label><select id="gcalRemind">
+          <option value="0">No reminder</option>
+          <option value="10">10 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+          <option value="1440">1 day before</option>
+        </select></div>
+        <button class="btn line" id="gcalOut" style="color:var(--shu)">Disconnect</button>
+      </div>
+      <p class="empty" style="margin:13px 0 0">Pull shows today's calendar events in the checklist so you can tick them off. Push writes each lesson you log back as an event. Setup instructions are in the README.</p>
+    </div>
+<div class="panel">
+      <p class="eyebrow">Where you are</p>
+      <p class="empty" style="margin:0 0 11px">Everything on the home screen is worked out from your phone\u2019s clock. If you are teaching from somewhere else for a while, set it here and the schedule, the countdown and every student\u2019s clock stay honest.</p>
+      <div class="field"><label for="homeTz">Teaching from</label><select id="homeTz"></select></div>
+      <p class="empty" id="homeTzNote" style="margin:0 0 0"></p>
+    </div>
+      </div>
+    </div>
+    <div class="sec" data-sec="Look and sound">
+      <button type="button" class="sechead"><b>Look and sound</b><small>themes, effects, the icon</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
+      <p class="eyebrow">Theme <em id="themeNow"></em></p>
+      <div class="seg" id="themeSound" style="margin-bottom:9px">
+        <button type="button" data-snd="1">Theme picks the sound</button>
+        <button type="button" data-snd="0">Shuffle them all</button>
+      </div>
+      <div class="seg" id="autoTheme" style="margin-bottom:13px">
+        <button type="button" data-auto="0">Pick one</button>
+        <button type="button" data-auto="1">Follow the day</button>
+      </div>
+      <div id="themePick"></div>
+    </div>
+<div class="panel">
+      <p class="eyebrow">Effects</p>
+      <button class="btn alt" id="sfxBtn" style="margin-bottom:9px">Sound: on</button>
+      <button class="btn line" id="testSfx">Test sound</button>
+      <p class="empty" style="margin:13px 0 0">A mark bursts out of the button every time you log a payment. Add an mp3 to a folder called sfx next to this file, named after the mark, and it plays with it.</p>
+    </div>
+      </div>
+    </div>
+    <div class="sec" data-sec="The assistant">
+      <button type="button" class="sechead"><b>The assistant</b><small>worksheets and the digest</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
       <p class="eyebrow">Homework generator <em id="aiState"></em></p>
       <p class="empty" style="margin:0 0 13px">Open a student, tap <b style="color:var(--text)">Make this week's homework</b>, and Claude writes a sheet from their plan, goals and notes. It needs your own Anthropic API key, from console.anthropic.com. Usage is billed to you, a few cents a sheet.</p>
       <div class="field"><label for="aiKey">API key</label><input id="aiKey" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="sk-ant-..."></div>
@@ -2199,7 +2276,7 @@ body.light .toastless{display:none}
       <textarea id="hwRules" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="furigana on every kanji above N4&#10;no romaji anywhere&#10;keep vocabulary lists under 20 words"></textarea>
       <p class="empty" style="margin:8px 0 0">Every correction you tick "remember" on lands here, and goes into every sheet from then on. This is the part that stops you fixing the same thing twice.</p>
     </div>
-    <div class="panel" id="digestPanel">
+<div class="panel" id="digestPanel">
       <p class="eyebrow">Weekly digest</p>
       <p class="empty" style="margin:0 0 13px">Reads this week's teaching and every student's jotter, and tells you who is drifting and who is ready to be pushed. It sees names, notes and dates. It does not see money.</p>
       <button class="btn alt" id="digestGo">Look over the week</button>
@@ -2208,22 +2285,16 @@ body.light .toastless{display:none}
       <textarea id="voiceNote" rows="3" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="short, warm, a bit dry&#10;never salesy&#10;sign off with just my name"></textarea>
       <p class="empty" style="margin:8px 0 0">Used whenever it drafts a message for you, so the nudges sound like you rather than like a business.</p>
     </div>
-    <div class="panel">
-      <p class="eyebrow">Bring in a spreadsheet</p>
-      <p class="empty" style="margin:0 0 13px">For a sheet that was never exported from here. In Excel, save the sheet as CSV, then pick it below — or just copy the rows and paste them in. Column order does not matter; it reads the headers.</p>
-      <label class="btn alt" for="xlsFile" style="display:block;text-align:center;margin-bottom:9px">Choose a CSV file<input id="xlsFile" type="file" accept=".csv,.tsv,text/csv,text/plain" style="display:none"></label>
-      <div class="field"><label for="xlsPaste">…or paste rows here</label><input id="xlsPaste" type="text" placeholder="Tap, then paste" autocomplete="off"></div>
-      <textarea id="xlsBig" rows="4" style="width:100%;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#111925;font-family:var(--body)" placeholder="Date, Student, Amount&#10;2026-08-01, Melanie, 50"></textarea>
-      <button class="btn alt" id="xlsRead" style="margin-top:11px">Read it</button>
-      <div id="xlsOut"></div>
-      <button class="btn line" id="xlsCheck" style="margin-top:11px">Check the last import</button>
-      <p class="empty" style="margin:11px 0 0">Shows what your sheet said and what the app now holds, month by month, so you can see them agree rather than take my word for it.</p>
+      </div>
     </div>
-    <div class="panel">
+    <div class="sec" data-sec="This app">
+      <button type="button" class="sechead"><b>This app</b><small>storage, version, install</small><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DJ</b> · 24 Aug 2026<br>If this does not say DJ, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DN</b> · 24 Aug 2026<br>If this does not say DN, your phone is still serving a cached copy.</p>
     </div>
-    <div class="panel">
+<div class="panel">
       <div id="installTip" style="display:none">
         <p class="eyebrow">Add it to your home screen</p>
         <p class="empty" style="margin:0 0 13px">You are running this as a Safari tab. That is why the address bar keeps appearing, why the page reloads when you pull down, and why Google Calendar keeps disconnecting: Safari throws background tabs away and every reload loses the connection.<br><br>Tap <b style="color:var(--text)">Share</b>, then <b style="color:var(--text)">Add to Home Screen</b>. Open it from there instead and it runs full screen, keeps its connections, and works with no signal.</p>
@@ -2235,17 +2306,26 @@ body.light .toastless{display:none}
       <p class="eyebrow">Tidy up</p>
       <button class="btn alt" id="prepayAll" style="margin-bottom:9px">Set prepay for everyone</button>
       <p class="empty" style="margin:0 0 15px">A tracker sheet records which lessons were paid from prepay, never how many were bought or when. So the number each student has left has to be entered once. This is every student on one screen.</p>
-      <button class="btn line" id="rebuildPre" style="margin-bottom:9px">Rebuild prepay from notes</button>
-      <p class="empty" style="margin:0 0 15px">For a sheet that ticks prepay on each lesson rather than recording bundles. Turns those ticks into real prepay history on each student.</p>
+      <button class="btn line" id="rebuildPre" style="margin-bottom:9px">Work out prepay from ticks</button>
+      <p class="empty" style="margin:0 0 11px">Only for someone with <b style="color:var(--text)">no</b> prepay sheet to import. It guesses purchases from lessons ticked as prepaid. If you have a Prepay tab, import that instead \u2014 it has the real dates and amounts. Students who already have a recorded purchase are left alone.</p>
+      <button class="btn line" id="clearAuto" style="margin-bottom:15px">Remove worked-out prepay</button>
       <button class="btn line" id="sweepPre" style="margin-bottom:9px">Match lessons to prepay</button>
       <p class="empty" style="margin:0 0 15px">For anything brought in before: goes through every prepay bundle oldest first and moves the lessons it paid for onto it, rewriting their charge to the bundle rate. Only touches lessons on or after the bundle\u2019s own date that are not already on one.</p>
       <button class="btn line" id="dedupe">Remove duplicate lessons</button>
       <p class="empty" style="margin:13px 0 0">Finds lessons with the same student, date and time, keeps one, and deletes the calendar events for the rest.</p>
     </div>
-    <div class="panel">
+      </div>
+    </div>
+    <div class="sec" data-sec="Danger">
+      <button type="button" class="sechead"><b>Danger</b><span class="chev"></span></button>
+      <div class="secbody">
+<div class="panel">
       <p class="eyebrow">Danger</p>
       <button class="btn line" id="wipe" style="color:var(--shu)">Erase all data</button>
     </div>
+      </div>
+    </div>
+
   </section>
 </div>
 
@@ -3895,7 +3975,8 @@ function studentSheet(id){
           var spent=left<=0.005;
           return '<div class="row"><div class="main">'+
             '<span'+(spent?' style="color:var(--muted)"':"")+'>'+b.lessons+' lessons'+
-              (spent?' \u00b7 finished':' \u00b7 '+left+' left')+'</span>'+
+              (spent?' \u00b7 finished':' \u00b7 '+left+' left')+
+              (b.sealed?' \u00b7 from your sheet':(b.auto?' \u00b7 worked out':""))+'</span>'+
             '<small>bought '+esc(dayLabel(b.date))+" "+esc(b.date)+'</small></div>'+
             '<div class="amt">'+money(b.amount)+'</div>'+
             '<button class="x" data-delb="'+b.id+'">&times;</button></div>';
@@ -4367,9 +4448,9 @@ function stepMonth(n){
 function renderHome(){
   var y=view.getFullYear(), m=view.getMonth();
   $("mlabel").textContent=totalAll?"All time":(MONTHS[m]+" "+y);
-  var mine=monthLessons(view);
+  var mine=onlyLessons(monthLessons(view));
   mine.forEach(function(l){var a=num(l.amount); if(a!==l.amount){l.amount=a; saveDB()}});
-  var allL=totalAll?db.lessons.slice():null;
+  var allL=totalAll?onlyLessons(db.lessons.slice()):null;
   if(allL)allL.forEach(function(l){var a=num(l.amount); if(a!==l.amount){l.amount=a; saveDB()}});
   var sumv=num(sum((allL||mine).map(function(l){return l.amount})));
   setTotal(sumv);
@@ -4413,7 +4494,7 @@ function renderHome(){
   var first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
   var byDay={};
   mine.forEach(function(l){var d=+l.date.slice(8,10);byDay[d]=byDay[d]||{n:0,v:0};byDay[d].n++;byDay[d].v+=l.amount});
-  var g=$("grid"); g.innerHTML=""; wireCalSwipe();
+  var g=$("grid"); g.innerHTML=""; wireCalSwipe(); paintWhoRail();
   for(var i=0;i<first;i++){var b=document.createElement("div");b.className="cell blank";g.appendChild(b)}
   var today=iso(new Date());
   for(var d=1;d<=dim;d++){
@@ -5844,6 +5925,9 @@ function checkBadges(){
 function bundleUnit(b){return b.amount/b.lessons}
 function fillBundle(b,limitDate){
   if(!b)return [];
+  /* Its used count came from your own sheet, so it is already accounted for.
+     Claiming more lessons against it would draw it down a second time. */
+  if(b.sealed)return [];
   var left=round2(b.lessons-b.used);
   if(left<=0.001)return [];
   var mine=db.lessons.filter(function(l){
@@ -6166,6 +6250,41 @@ function shareWeek(){
   else warn("This browser cannot make the image.");
 }
 
+/* ---- looking at one student ----
+   The calendar, the ledger and the totals under it all narrow to whoever is
+   picked. It is the quickest way to answer "when do I actually see Peter?"
+   without opening anything. */
+var onlyWho=null;
+function onlyLessons(list){
+  if(!onlyWho)return list;
+  return list.filter(function(l){return l.studentId===onlyWho});
+}
+function paintWhoRail(){
+  var box=$("whoRail"); if(!box)return;
+  /* whoever has actually been taught in the month on screen, so the rail is
+     short and about what you are looking at */
+  var seen={};
+  monthLessons(view).forEach(function(l){if(l.studentId)seen[l.studentId]=1});
+  if(onlyWho)seen[onlyWho]=1;
+  var list=db.students.filter(function(s){return seen[s.id]})
+    .sort(function(a,b){return a.name.localeCompare(b.name)});
+  if(list.length<2){box.innerHTML="";box.style.display="none";return}
+  box.style.display="";
+  box.innerHTML='<button type="button" data-who=""'+(onlyWho?"":' class="on"')+'>Everyone</button>'+
+    list.map(function(s){
+      return '<button type="button" data-who="'+s.id+'"'+(onlyWho===s.id?' class="on"':"")+
+        ' style="'+(onlyWho===s.id?"color:"+colorFor(s):"")+'">'+
+        '<i style="background:'+colorFor(s)+'"></i>'+esc(s.name)+'</button>';
+    }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("[data-who]"),function(b){
+    b.onclick=function(){
+      onlyWho=b.dataset.who||null;
+      selDay=null; shown=0;
+      buzz(6); renderHome();
+    };
+  });
+}
+
 /* ---- the year, as a shape ---- */
 function paintWall(){
   var box=$("wall"); if(!box)return;
@@ -6221,8 +6340,12 @@ function paintWall(){
    already been taught. Nothing is invented: the money is the money that is
    already on those rows. */
 function rebuildPrepay(){
-  var made=0, touched=[];
+  var made=0, touched=[], skipped=0;
   db.students.forEach(function(st){
+    /* If they already have a purchase you recorded, their prepay history is
+       known. Inventing another from the ticks would double it, which is
+       exactly how $3,200 of prepay became $6,150. */
+    if(db.bundles.some(function(b){return b.studentId===st.id&&!b.auto})){skipped++;return}
     var flagged=db.lessons.filter(function(l){
       return l.studentId===st.id && !l.bundleId && /prepay/i.test(l.note||"");
     }).sort(function(a,b){return a.date<b.date?-1:1});
@@ -6231,13 +6354,14 @@ function rebuildPrepay(){
     var hrs=flagged.reduce(function(a,l){return a+hoursOf(l)},0);
     var b={id:uid(),studentId:st.id,date:flagged[0].date,
            lessons:Math.max(1,Math.round(hrs)),amount:amt,
-           used:Math.max(1,Math.round(hrs))};
+           used:Math.max(1,Math.round(hrs)),
+           auto:true};        /* worked out from ticks, not a purchase you recorded */
     db.bundles.push(b);
     flagged.forEach(function(l){l.bundleId=b.id;touched.push(l.id)});
     made++;
   });
   if(made)saveDB();
-  return {bundles:made,lessons:touched.length,ids:touched};
+  return {bundles:made,lessons:touched.length,ids:touched,skipped:skipped};
 }
 
 /* Say how many they have left and the app works out the rest. If they have
@@ -8354,6 +8478,8 @@ function xlsCommit(){
   p.bundles.forEach(function(b){
     var nb={id:uid(),studentId:find(b.who),date:b.date,lessons:b.lessons,amount:b.amount,
             used:num(b.used)||0};
+    /* the sheet told us how much of it is gone: take that as final */
+    if(b.used!==undefined&&b.used!==null)nb.sealed=true;
     db.bundles.push(nb); freshBundles.push(nb);
     made++;
   });
@@ -8391,7 +8517,11 @@ function xlsCommit(){
       return n;
     })()
   };
-  var rb=rebuildPrepay();
+  /* Deliberately NOT working prepay out from ticks here. Doing it on every
+     import meant bringing in the income tab invented a purchase per student,
+     and importing the real prepay tab then added the genuine one on top. The
+     button on this tab does it on demand, for anyone with no prepay sheet. */
+  var rb={bundles:0,lessons:0,ids:[]};
   var sw=sweepBundles(), moved=sweepCount(sw);
   if(!saveDB()){warn("Storage is full. Export a backup, then clear some old sheets.");return}
   xlsPlan=null; $("xlsOut").innerHTML=""; $("xlsBig").value=""; 
@@ -8654,6 +8784,7 @@ var BTN_ICON={
   rdGo:     '<path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M3.5 7.5v4.5H8"/>',          /* rebuild */
   trimGo:   '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/>',
   prepayAll:'<rect x="3" y="6.5" width="18" height="12" rx="2.5"/><path d="M3 10.5h18M7 15h3"/><path d="M16.5 15h2"/>',
+  clearAuto:'<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
   rebuildPre:'<path d="M4.5 12a7.5 7.5 0 0 1 12.8-5.3M19.5 12a7.5 7.5 0 0 1-12.8 5.3"/><path d="M17.5 3.5v3.5H14M6.5 20.5V17H10"/>',
   sweepPre: '<path d="M4 7h9M4 12h9M4 17h5"/><path d="M15.5 15.5 18 18l4-4.5"/>',
   dedupe:   '<rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 20h9a2 2 0 0 0 2-2V9"/>',
@@ -9265,7 +9396,53 @@ if($("trimGo"))$("trimGo").onclick=function(){
   paintHealth();
   toast(gone?gone+" old worksheet"+(gone===1?"":"s")+" cleared":"Nothing old enough to clear");
 };
+/* ---- the data tab, one section at a time ----
+   Fourteen panels in a row is a wall. Now it is a short list of headings and
+   you open the one you want. The choice is remembered, so the section you use
+   is the one that is open next time. */
+(function(){
+  var secs=document.querySelectorAll("#v-data .sec");
+  if(!secs.length)return;
+  /* the prepay buttons live in their own section */
+  var slot=$("prepaySlot");
+  if(slot){
+    ["prepayAll","rebuildPre","clearAuto","sweepPre"].forEach(function(id){
+      var b=$(id); if(!b)return;
+      var note=b.nextElementSibling;
+      slot.appendChild(b);
+      if(note&&note.classList&&note.classList.contains("empty"))slot.appendChild(note);
+    });
+  }
+  Array.prototype.forEach.call(secs,function(sec){
+    var head=sec.querySelector(".sechead");
+    var name=sec.dataset.sec;
+    if(cfg.openSec===name)sec.classList.add("open");
+    head.onclick=function(){
+      var was=sec.classList.contains("open");
+      Array.prototype.forEach.call(secs,function(x){x.classList.remove("open")});
+      if(!was){
+        sec.classList.add("open");
+        cfg.openSec=name;
+        setTimeout(function(){
+          try{sec.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}
+        },60);
+      } else cfg.openSec=null;
+      saveSet(); buzz(6);
+    };
+  });
+})();
 if($("prepayAll"))$("prepayAll").onclick=prepayBulk;
+if($("clearAuto"))$("clearAuto").onclick=function(){
+  var auto=db.bundles.filter(function(b){return b.auto});
+  if(!auto.length){toast("There are none. Every purchase here is one you recorded.");return}
+  var ids={}, freed=0;
+  auto.forEach(function(b){ids[b.id]=1});
+  db.lessons.forEach(function(l){ if(l.bundleId&&ids[l.bundleId]){l.bundleId=null;freed++} });
+  db.bundles=db.bundles.filter(function(b){return !b.auto});
+  saveDB(); renderAll();
+  toast(auto.length+" worked-out purchase"+(auto.length===1?"":"s")+" removed"+
+    (freed?", "+freed+" lessons freed":""));
+};
 if($("rebuildPre"))$("rebuildPre").onclick=function(){
   var r=rebuildPrepay();
   if(!r.lessons){toast("Nothing to rebuild. No lessons are noted as prepay.");return}
