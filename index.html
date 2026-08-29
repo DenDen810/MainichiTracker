@@ -2295,7 +2295,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DO</b> · 24 Aug 2026<br>If this does not say DO, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DP</b> · 24 Aug 2026<br>If this does not say DP, your phone is still serving a cached copy.</p>
     </div>
 <div class="panel">
       <div id="installTip" style="display:none">
@@ -6275,6 +6275,9 @@ function widgetSnapshot(){
   return {
     v:1,
     at:new Date().toISOString(),
+    /* Where this app actually lives, taken from the address bar rather than
+       guessed, so tapping the widget always opens the right thing. */
+    url:location.origin+location.pathname.replace(/[^\/]*$/,""),
     cur:inYen()?"\u00a5":"$",
     week:{earned:round2(got),goal:round2(tgt),
           pct:tgt>0?Math.min(999,Math.round(got/tgt*100)):null,
