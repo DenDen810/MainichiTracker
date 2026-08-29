@@ -2052,6 +2052,9 @@ body.light .toastless{display:none}
       <p class="eyebrow">Weekly goal</p>
       <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
       <p class="empty" style="margin:-2px 0 13px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
+      <p class="eyebrow" style="margin:0 0 8px">Home Screen widget</p>
+      <button class="btn line" id="wgFile">Save the widget file</button>
+      <p class="empty" style="margin:9px 0 18px">iOS will not let a web app draw a widget itself, but it can write a small file that one can read. Save this into <b style="color:var(--text)">iCloud Drive \u2192 Scriptable</b>, then set up the widget once. Tap this again whenever you want the widget to catch up.</p>
       <p class="eyebrow" style="margin:0 0 8px">On the app icon</p>
       <div class="seg" id="badgeMode">
         <button type="button" data-badge="goal">% of goal</button>
@@ -2292,7 +2295,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DN</b> · 24 Aug 2026<br>If this does not say DN, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DO</b> · 24 Aug 2026<br>If this does not say DO, your phone is still serving a cached copy.</p>
     </div>
 <div class="panel">
       <div id="installTip" style="display:none">
@@ -6250,6 +6253,52 @@ function shareWeek(){
   else warn("This browser cannot make the image.");
 }
 
+/* ---- the file a Home Screen widget can read ----
+   iOS will not let a web app draw a widget, and nothing outside the app can
+   see its storage. A file in iCloud Drive is the one thing both sides can
+   reach: the app writes it, a Scriptable widget reads it. Deliberately tiny
+   and flat, so the widget code stays a few lines. */
+function widgetSnapshot(){
+  var tgt=num(cfg.weekGoal)||0, got=weekEarned();
+  var wk=weekStart();
+  var mine=db.lessons.filter(function(l){return l.date>=wk});
+  var days={}; mine.forEach(function(l){days[l.date]=1});
+  var h=hereNow(), today=h.date, mins=h.mins;
+  var next=db.bookings.filter(function(b){
+    if(b.doneId||b.date<today)return false;
+    if(b.date===today){var t=tmin(b.time);return t===null||t>=mins-15}
+    return true;
+  }).sort(function(a,b){return (a.date+(a.time||""))<(b.date+(b.time||""))?-1:1})[0];
+  var ns=next?student(next.studentId):null;
+  var ob=outstanding();
+  var se=seasonStats(seasonIndex(today));
+  return {
+    v:1,
+    at:new Date().toISOString(),
+    cur:inYen()?"\u00a5":"$",
+    week:{earned:round2(got),goal:round2(tgt),
+          pct:tgt>0?Math.min(999,Math.round(got/tgt*100)):null,
+          lessons:mine.length,days:Object.keys(days).length,
+          daysLeft:7-new Date().getDay()},
+    month:{earned:round2(earnedIn(new Date())),lessons:monthLessons(new Date()).length},
+    next:next?{who:ns?ns.name:"Someone",date:next.date,time:next.time||"",
+               colour:ns?colorFor(ns):"#E0574C"}:null,
+    owed:{lessons:round2(ob.n),value:round2(ob.v)},
+    streak:streak().now,
+    rank:se.rank.en,
+    theme:{bg:(getComputedStyle(document.body).getPropertyValue("--void")||"#0C111A").trim(),
+           card:(getComputedStyle(document.body).getPropertyValue("--surf")||"#151D2A").trim(),
+           ink:(getComputedStyle(document.body).getPropertyValue("--text")||"#EDF1F6").trim(),
+           dim:(getComputedStyle(document.body).getPropertyValue("--muted")||"#7C8AA0").trim(),
+           hot:(getComputedStyle(document.body).getPropertyValue("--shu")||"#E0574C").trim()}
+  };
+}
+function saveWidgetFile(){
+  var j=JSON.stringify(widgetSnapshot(),null,1);
+  download("mainichijp-widget.json",j,"application/json");
+  toast("Save it into Scriptable in iCloud Drive");
+}
+
 /* ---- looking at one student ----
    The calendar, the ledger and the totals under it all narrow to whoever is
    picked. It is the quickest way to answer "when do I actually see Peter?"
@@ -7205,6 +7254,7 @@ if($("wgTgt")){
     cfg.weekGoal=base(parseFloat(this.value)||0); saveSet(); paintWeekGoal();
   };
 }
+if($("wgFile"))$("wgFile").onclick=saveWidgetFile;
 if($("badgeMode")){
   var paintBadgeUI=function(){
     Array.prototype.forEach.call($("badgeMode").querySelectorAll("[data-badge]"),function(b){
@@ -8791,6 +8841,7 @@ var BTN_ICON={
   wipe:     '<path d="M5 7h14M9.5 7V5h5v2M7 7l1 13h8l1-13"/>',
   fxNow:    '<path d="M4 9.5h13l-3-3M20 14.5H7l3 3"/>',                                    /* swap */
   achOpen:  '<path d="M12 3.6 14.2 9h5.8l-4.6 3.9 1.7 5.7L12 15.4l-5.1 3.2 1.7-5.7L4 9h5.8z"/>',
+  wgFile:   '<path d="M4.5 5.5h15v13h-15z"/><path d="M4.5 9.5h15M8 13h4M8 15.5h6"/>',
   wgShare:  '<path d="M12 15.5V4M8.5 7.5 12 4l3.5 3.5"/><path d="M5 13v6.5h14V13"/>',
   yirGo:    '<circle cx="12" cy="12" r="8.5"/><path d="M12 6.5v5.5l3.5 2"/>',
   /* settings and connections */
