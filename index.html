@@ -2052,9 +2052,17 @@ body.light .toastless{display:none}
       <p class="eyebrow">Weekly goal</p>
       <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
       <p class="empty" style="margin:-2px 0 13px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
-      <p class="eyebrow" style="margin:0 0 8px">Home Screen widget</p>
+      <p class="eyebrow" style="margin:0 0 8px">Home Screen widget <em id="wgState"></em></p>
       <button class="btn line" id="wgFile">Save the widget file</button>
-      <p class="empty" style="margin:9px 0 18px">iOS will not let a web app draw a widget itself, but it can write a small file that one can read. Save this into <b style="color:var(--text)">iCloud Drive \u2192 Scriptable</b>, then set up the widget once. Tap this again whenever you want the widget to catch up.</p>
+      <p class="empty" style="margin:9px 0 13px">iOS will not let a web app draw a widget itself, but it can write a small file that one can read. Use <b style="color:var(--text)">Save to Files</b>, not the Scriptable app icon, and put it in <b style="color:var(--text)">iCloud Drive \u2192 Scriptable</b>. Tap this again whenever you want the widget to catch up.</p>
+      <p class="eyebrow" style="margin:0 0 8px">Or let it keep itself up to date</p>
+      <p class="empty" style="margin:0 0 13px">Point this at a <b style="color:var(--text)">private</b> repo and the app writes the same snapshot there on its own. The widget reads it with the same token, so it follows along without you saving anything. A private repo is properly locked, unlike a secret gist, which anyone holding the address can read.</p>
+      <div class="field"><label for="ghRepo">Private repo</label><input id="ghRepo" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="DenDen810/mainichi-widget"></div>
+      <div class="field"><label for="ghTok">Token</label><input id="ghTok" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_..."></div>
+      <p class="empty" style="margin:-4px 0 13px">A fine-grained token, that one repo only, Contents set to read and write. It is stored on this phone exactly like the API key above, so use one you can revoke. Fine-grained tokens expire within a year and the widget will quietly go stale when yours does.</p>
+      <label class="row" style="display:flex;align-items:center;gap:10px;margin:0 0 11px"><input type="checkbox" id="ghAuto"><span style="font-size:14px;color:var(--text)">Send it up whenever something changes</span></label>
+      <button class="btn line" id="ghNow">Send it up now</button>
+      <p class="empty" id="ghNote" style="margin:9px 0 18px"></p>
       <p class="eyebrow" style="margin:0 0 8px">On the app icon</p>
       <div class="seg" id="badgeMode">
         <button type="button" data-badge="goal">% of goal</button>
@@ -2295,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DP</b> · 24 Aug 2026<br>If this does not say DP, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DQ</b> · 29 Aug 2026<br>If this does not say DQ, your phone is still serving a cached copy.</p>
     </div>
 <div class="panel">
       <div id="installTip" style="display:none">
@@ -2447,6 +2455,8 @@ if(cfg.goalName===undefined)cfg.goalName="Japan trip";
 if(cfg.goalTarget===undefined)cfg.goalTarget=0;
 if(cfg.trial===undefined)cfg.trial=20;      /* trial lesson, one hour, new students */
 if(cfg.hours===undefined)cfg.hours=1;       /* every lesson is an hour */
+if(cfg.ghPath===undefined)cfg.ghPath="widget.json";
+if(cfg.ghAuto===undefined)cfg.ghAuto=false;
 
 /* migrate v1 flat rows */
 (function(){
@@ -2470,8 +2480,11 @@ function num(v){
   return isFinite(n) ? n : 0;
 }
 function saveDB(){
-  try{store.setItem(DB,JSON.stringify(db));return true}
+  try{store.setItem(DB,JSON.stringify(db));}
   catch(e){warn("Storage is full. Try a smaller photo, or export a backup and clear some old sheets.");return false}
+  /* every write is a chance for the widget to be told, debounced downstream */
+  if(typeof ghQueue==="function")ghQueue();
+  return true;
 }
 
 /* one-time repair: anything that got saved as undefined/NaN/"" becomes a real number */
@@ -6278,6 +6291,10 @@ function widgetSnapshot(){
     /* Where this app actually lives, taken from the address bar rather than
        guessed, so tapping the widget always opens the right thing. */
     url:location.origin+location.pathname.replace(/[^\/]*$/,""),
+    /* iOS 16.4 opens an installed home screen web app on this scheme rather
+       than bouncing you into Safari. Undocumented, so the widget tries it and
+       keeps the plain address above as the fallback. */
+    app:"webapp://"+location.host+location.pathname.replace(/[^\/]*$/,""),
     cur:inYen()?"\u00a5":"$",
     week:{earned:round2(got),goal:round2(tgt),
           pct:tgt>0?Math.min(999,Math.round(got/tgt*100)):null,
@@ -6299,7 +6316,114 @@ function widgetSnapshot(){
 function saveWidgetFile(){
   var j=JSON.stringify(widgetSnapshot(),null,1);
   download("mainichijp-widget.json",j,"application/json");
-  toast("Save it into Scriptable in iCloud Drive");
+  cfg.wgAt=new Date().toISOString(); saveSet(); paintWidgetState();
+  toast("Save to Files, into iCloud Drive \u2192 Scriptable");
+}
+
+/* ---- the same snapshot, pushed to a private repo ----
+   The file above is fine but it only moves when you remember to move it. A
+   private repo is the one place both sides can reach that is actually shut:
+   the address alone is worthless without the token, which is not true of a
+   secret gist. The app PUTs the snapshot, the widget GETs it, and nothing in
+   between can read it. */
+function b64utf8(s){
+  /* btoa only speaks latin-1 and the snapshot carries names and a yen sign */
+  var bytes=new TextEncoder().encode(s), out="";
+  for(var i=0;i<bytes.length;i++)out+=String.fromCharCode(bytes[i]);
+  return btoa(out);
+}
+function ghBits(){
+  var tok=(cfg.ghToken||"").trim(); if(!tok)return null;
+  var repo=(cfg.ghRepo||"").trim();
+  if(!repo)return null;
+  /* accept a pasted github.com address as well as owner/repo */
+  var at=repo.toLowerCase().indexOf("github.com/");
+  if(at>-1)repo=repo.slice(at+11);
+  if(repo.slice(-4).toLowerCase()===".git")repo=repo.slice(0,-4);
+  while(repo.charAt(0)==="/")repo=repo.slice(1);
+  while(repo.slice(-1)==="/")repo=repo.slice(0,-1);
+  var bits=repo.split("/");
+  if(bits.length!==2||!bits[0]||!bits[1])return null;
+  var path=(cfg.ghPath||"widget.json").trim();
+  while(path.charAt(0)==="/")path=path.slice(1);
+  return {owner:bits[0],repo:bits[1],path:path||"widget.json",tok:tok};
+}
+function ghURL(g){
+  return "https://api.github.com/repos/"+encodeURIComponent(g.owner)+"/"+
+         encodeURIComponent(g.repo)+"/contents/"+
+         g.path.split("/").map(encodeURIComponent).join("/");
+}
+function ghHead(g){
+  return {"Authorization":"Bearer "+g.tok,
+          "Accept":"application/vnd.github+json",
+          "X-GitHub-Api-Version":"2022-11-28"};
+}
+/* the API's own messages are no use on a phone, so say what to actually do */
+function ghWhy(code){
+  if(code===401)return "GitHub refused the token. It may be mistyped, or expired.";
+  if(code===403)return "The token cannot write here. Give it Contents: read and write on that one repo.";
+  if(code===404)return "No such repo, or the token cannot see it. Check the owner/name, and that the token lists this repo.";
+  if(code===409)return "The file moved underneath us. Try once more.";
+  if(code===422)return "GitHub would not take the file. Check the path is a filename, not a folder.";
+  return "GitHub said no (" + code + ").";
+}
+var ghBusy=false;
+function ghPush(loud){
+  var g=ghBits();
+  if(!g){ if(loud)warn("Add the repo and a token first."); return Promise.resolve(false); }
+  if(ghBusy)return Promise.resolve(false);
+  ghBusy=true;
+  var body=JSON.stringify(widgetSnapshot(),null,1), url=ghURL(g);
+  /* GET first only for the sha: the contents API refuses an overwrite without it */
+  return fetch(url,{headers:ghHead(g),cache:"no-store"})
+    .then(function(r){return r.ok?r.json():null},function(){return null})
+    .then(function(cur){
+      var load={message:"MainichiJP widget snapshot",content:b64utf8(body)};
+      if(cur&&cur.sha)load.sha=cur.sha;
+      return fetch(url,{method:"PUT",headers:ghHead(g),body:JSON.stringify(load)});
+    })
+    .then(function(r){
+      if(!r||!r.ok)throw new Error(ghWhy(r?r.status:0));
+      cfg.wgAt=new Date().toISOString(); cfg.ghAt=cfg.wgAt; saveSet(); paintWidgetState();
+      if(loud)toast("Sent. The widget will catch up on its next refresh.");
+      return true;
+    })
+    .catch(function(e){
+      if(loud)warn(e&&e.message?e.message:"Could not reach GitHub. Check your signal.");
+      return false;
+    })
+    .then(function(v){ghBusy=false;return v});
+}
+/* Data changes in bursts — logging three lessons is three saves. Wait for the
+   burst to finish rather than pushing three times. */
+var ghTimer=null;
+function ghQueue(){
+  try{
+    if(!cfg.ghAuto||!ghBits())return;
+    if(ghTimer)clearTimeout(ghTimer);
+    ghTimer=setTimeout(function(){ghTimer=null;ghPush(false)},9000);
+  }catch(e){}
+}
+/* how old the widget's numbers are, in words */
+function wgAgo(){
+  if(!cfg.wgAt)return "";
+  var then=new Date(cfg.wgAt); if(isNaN(then))return "";
+  var mins=Math.floor((Date.now()-then.getTime())/60000);
+  if(mins<2)return "just now";
+  if(mins<60)return mins+" min ago";
+  var hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+(hrs===1?" hour ago":" hours ago");
+  var days=Math.floor(hrs/24);
+  return days===1?"yesterday":days+" days ago";
+}
+function paintWidgetState(){
+  var s=$("wgState"); if(s)s.textContent=cfg.wgAt?wgAgo():"never sent";
+  var n=$("ghNote");
+  if(n){
+    if(!ghBits())n.textContent="Nothing set up yet, so the widget only moves when you save the file.";
+    else if(cfg.ghAuto)n.textContent="On. Sent "+(cfg.ghAt?wgAgo():"never")+".";
+    else n.textContent="Set up, but only when you tap. Sent "+(cfg.ghAt?wgAgo():"never")+".";
+  }
 }
 
 /* ---- looking at one student ----
@@ -9426,6 +9550,21 @@ $("aiModel").oninput=function(){cfg.aiModel=this.value.trim()||HW_MODEL;saveSet(
 $("hwRules").value=cfg.hwRules||"";
 $("hwRules").oninput=function(){cfg.hwRules=this.value.slice(0,1200);saveSet()};
 paintAi();
+
+/* ---- the widget's own settings ---- */
+$("ghRepo").value=cfg.ghRepo||"";
+$("ghTok").value=cfg.ghToken||"";
+$("ghAuto").checked=!!cfg.ghAuto;
+$("ghRepo").oninput=function(){cfg.ghRepo=this.value.trim();saveSet();paintWidgetState()};
+$("ghTok").oninput=function(){cfg.ghToken=this.value.trim();saveSet();paintWidgetState()};
+$("ghAuto").onchange=function(){
+  cfg.ghAuto=this.checked; saveSet(); paintWidgetState();
+  /* turning it on with nothing set up would silently do nothing */
+  if(cfg.ghAuto&&!ghBits())warn("Add the repo and a token and it will start.");
+  else if(cfg.ghAuto)ghPush(true);
+};
+$("ghNow").onclick=function(){ghPush(true)};
+paintWidgetState();
 
 $("xlsRead").onclick=function(){
   var t=$("xlsBig").value||$("xlsPaste").value;
