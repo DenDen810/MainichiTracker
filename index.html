@@ -2303,7 +2303,11 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DS</b> · 30 Aug 2026<br>If this does not say DS, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DT</b> · 30 Aug 2026<br>If this does not say DT, your phone is still serving a cached copy.</p>
+      <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
+      <p class="empty" id="reNote" style="margin:0 0 9px"></p>
+      <div id="reList"></div>
+      <button class="btn line" id="reClear" style="margin-top:11px;display:none">Clear this list</button>
     </div>
 <div class="panel">
       <div id="installTip" style="display:none">
@@ -2503,6 +2507,77 @@ function saveDB(){
   if(dirty)saveDB();
 })();
 function saveSet(){store.setItem(SET,JSON.stringify(cfg))}
+
+/* ================= why did it restart? =================
+   iOS gives a web app no warning and no error when WebKit throws the page
+   away and reloads it: the screen blanks and you are back at the home tab
+   with the scroll reset. Nothing in this file can catch that, because the
+   code that would catch it is what got killed.
+
+   So instead: leave a note. A breadcrumb is kept up to date while the app
+   runs and marked closed on the way out. If the next launch finds one that
+   was never closed, the app was killed rather than closed, and the note says
+   what was on screen and how long it had been running. Data -> This app
+   shows the last few. That turns "it randomly refreshes" into something with
+   a pattern in it. */
+var LIVE="mjp.live.v1", RESTARTS="mjp.restarts.v1";
+var BOOT_AT=Date.now(), CRUMB={}, CRUMB_T=null;
+function navKind(){
+  try{
+    var n=performance.getEntriesByType("navigation")[0];
+    if(n&&n.type)return n.type;                 /* reload | navigate | back_forward */
+  }catch(e){}
+  return "";
+}
+/* cheap: only ever a few dozen bytes, and throttled to once a second */
+function crumb(what){
+  if(what)CRUMB.act=String(what).slice(0,40);
+  if(CRUMB_T)return;
+  CRUMB_T=setTimeout(function(){
+    CRUMB_T=null;
+    try{
+      CRUMB.open=1; CRUMB.at=Date.now(); CRUMB.start=BOOT_AT;
+      var on=document.querySelector(".view.on");
+      CRUMB.view=on?on.id.replace("v-",""):"";
+      CRUMB.theme=cfg.theme||"";
+      store.setItem(LIVE,JSON.stringify(CRUMB));
+    }catch(e){}
+  },1000);
+}
+function crumbClose(){
+  try{
+    CRUMB.open=0; CRUMB.at=Date.now();
+    store.setItem(LIVE,JSON.stringify(CRUMB));
+  }catch(e){}
+}
+function restarts(){
+  var l=[]; try{l=JSON.parse(store.getItem(RESTARTS))||[]}catch(e){}
+  return Array.isArray(l)?l:[];
+}
+/* runs once, at boot, before anything has had a chance to overwrite it */
+(function(){
+  var prev=null;
+  try{prev=JSON.parse(store.getItem(LIVE))}catch(e){}
+  var nav=navKind();
+  if(prev&&prev.open){
+    var l=restarts();
+    l.unshift({
+      at:Date.now(),
+      nav:nav,
+      view:prev.view||"",
+      act:prev.act||"",
+      theme:prev.theme||"",
+      ran:Math.max(0,Math.round((( prev.at||Date.now())-(prev.start||Date.now()))/1000)),
+      gap:Math.max(0,Math.round((Date.now()-(prev.at||Date.now()))/1000))
+    });
+    try{store.setItem(RESTARTS,JSON.stringify(l.slice(0,10)))}catch(e){}
+  }
+  try{store.removeItem(LIVE)}catch(e){}
+})();
+window.addEventListener("pagehide",crumbClose);
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden)crumbClose(); else crumb("back");
+});
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 
 /* ================= helpers ================= */
@@ -2891,6 +2966,7 @@ Array.prototype.forEach.call(tabs,function(t){
     ["home","students","stats","data"].forEach(function(v){$("v-"+v).classList.toggle("on",v===t.dataset.v)});
     window.scrollTo(0,0);
     renderAll();
+    crumb("opened "+t.dataset.v);
   };
 });
 
@@ -6416,6 +6492,38 @@ function wgAgo(){
   var days=Math.floor(hrs/24);
   return days===1?"yesterday":days+" days ago";
 }
+function paintRestarts(){
+  if(!$("reList"))return;
+  var l=restarts(), box=$("reList");
+  $("reLast").textContent=l.length?(l.length===1?"1 so far":l.length+" so far"):"";
+  $("reClear").style.display=l.length?"":"none";
+  if(!l.length){
+    $("reNote").textContent="None recorded. If the app blanks and comes back at the home tab, it will be listed here with what was on screen at the time.";
+    box.innerHTML="";
+    return;
+  }
+  $("reNote").textContent="Each one is a time iOS threw the page away and reloaded it, rather than you closing it. Almost always memory. What it was doing at the time is the useful part.";
+  var mins=function(s2){
+    if(s2<60)return s2+"s";
+    if(s2<3600)return Math.round(s2/60)+" min";
+    return Math.round(s2/3600)+"h";
+  };
+  box.innerHTML=l.map(function(r){
+    var when=new Date(r.at);
+    var did=r.act?r.act:"idle";
+    return '<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px">'+
+      '<span style="color:var(--text)">'+esc(did)+'</span>'+
+      '<span style="color:var(--dim);white-space:nowrap">'+
+        esc(r.view||"?")+" \u00b7 "+mins(r.ran||0)+" in"+
+      '</span></div>'+
+      '<div style="color:var(--dim);font-size:11px;margin:-4px 0 2px">'+
+        when.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+
+        when.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})+
+        (r.theme?" \u00b7 "+esc(r.theme):"")+
+        (r.nav?" \u00b7 "+esc(r.nav):"")+
+      '</div>';
+  }).join("");
+}
 function paintWidgetState(){
   var s=$("wgState"); if(s)s.textContent=cfg.wgAt?wgAgo():"never sent";
   var n=$("ghNote");
@@ -9566,6 +9674,15 @@ $("ghAuto").onchange=function(){
 $("ghNow").onclick=function(){ghPush(true)};
 paintWidgetState();
 
+if($("reClear")){
+  $("reClear").onclick=function(){
+    try{store.removeItem(RESTARTS)}catch(e){}
+    paintRestarts();
+  };
+}
+paintRestarts();
+crumb("launched");
+
 $("xlsRead").onclick=function(){
   var t=$("xlsBig").value||$("xlsPaste").value;
   if(!String(t).trim()){nudge("xlsBig");return}
@@ -10506,7 +10623,15 @@ document.addEventListener("visibilitychange",function(){
     /* An element that was interrupted by another app is simply paused. There
        is nothing to rebuild and nothing that can run out. */
     try{if(AU_TILL&&AU_TILL.paused===false)AU_TILL.pause()}catch(e){}
-    sizeFx();
+    /* Only re-take the buffer if something is actually animating. This used
+       to call sizeFx() unconditionally, so every single trip out of the app
+       and back re-allocated a full-screen canvas with nothing to draw on it:
+       innerWidth x innerHeight x dpr^2 x 4 bytes, which on this phone is
+       about 12MB held for nothing until the next burst. killFx had just
+       handed that memory back on the way out; this took it straight back.
+       A burst calls sizeFx itself before it draws, so there is nothing to
+       be gained by doing it here. */
+    if(running||parts.length||shower)sizeFx();
     ensureCtx().catch(function(){});
     setTimeout(function(){window.dispatchEvent(new Event("scroll"))},60);
   }
