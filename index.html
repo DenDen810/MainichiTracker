@@ -2049,37 +2049,6 @@ body.light .toastless{display:none}
       <svg class="chart" id="chPace" viewBox="0 0 320 130" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
     <div class="panel">
-      <p class="eyebrow">Weekly goal</p>
-      <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
-      <p class="empty" style="margin:-2px 0 13px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
-      <p class="eyebrow" style="margin:0 0 8px">Home Screen widget <em id="wgState"></em></p>
-      <button class="btn line" id="wgFile">Save the widget file</button>
-      <p class="empty" style="margin:9px 0 13px">iOS will not let a web app draw a widget itself, but it can write a small file that one can read. Use <b style="color:var(--text)">Save to Files</b>, not the Scriptable app icon, and put it in <b style="color:var(--text)">iCloud Drive \u2192 Scriptable</b>. Tap this again whenever you want the widget to catch up.</p>
-      <p class="eyebrow" style="margin:0 0 8px">Or let it keep itself up to date</p>
-      <p class="empty" style="margin:0 0 13px">Point this at a <b style="color:var(--text)">private</b> repo and the app writes the same snapshot there on its own. The widget reads it with the same token, so it follows along without you saving anything. A private repo is properly locked, unlike a secret gist, which anyone holding the address can read.</p>
-      <div class="field"><label for="ghRepo">Private repo</label><input id="ghRepo" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="DenDen810/mainichi-widget"></div>
-      <div class="field"><label for="ghTok">Token</label><input id="ghTok" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_..."></div>
-      <p class="empty" style="margin:-4px 0 13px">A fine-grained token, that one repo only, Contents set to read and write. It is stored on this phone exactly like the API key above, so use one you can revoke. Fine-grained tokens expire within a year and the widget will quietly go stale when yours does.</p>
-      <label class="row" style="display:flex;align-items:center;gap:10px;margin:0 0 11px"><input type="checkbox" id="ghAuto"><span style="font-size:14px;color:var(--text)">Send it up whenever something changes</span></label>
-      <button class="btn line" id="ghNow">Send it up now</button>
-      <p class="empty" id="ghNote" style="margin:9px 0 18px"></p>
-      <p class="eyebrow" style="margin:0 0 8px">On the app icon</p>
-      <div class="seg" id="badgeMode">
-        <button type="button" data-badge="goal">% of goal</button>
-        <button type="button" data-badge="lessons">Lessons</button>
-        <button type="button" data-badge="owed">Owed</button>
-        <button type="button" data-badge="off">Off</button>
-      </div>
-      <p class="empty" id="badgeNote" style="margin:9px 0 18px"></p>
-      <p class="eyebrow">Goal <em id="goalname"></em></p>
-      <div class="hbar">
-        <div class="t"><span id="goalNow">$0</span><b id="goalTgt"></b></div>
-        <div class="track"><i class="shu" id="goalBar" style="width:0%"></i></div>
-        <div class="goalmarks" id="goalMarks"></div>
-      </div>
-      <p class="empty" id="goalFoot" style="margin:11px 0 0"></p>
-    </div>
-    <div class="panel">
       <p class="eyebrow">Top students <em>all time</em></p>
       <div class="pieWrap"><canvas id="pieStu" width="320" height="320"></canvas><div class="pieMid"><b id="pieTot"></b><small id="pieSub"></small></div></div>
       <div id="topStu"></div>
@@ -2169,7 +2138,38 @@ body.light .toastless{display:none}
       </div>
       <button class="btn alt" id="gAdd" style="margin-top:11px">Add this goal</button>
       <div id="gList" style="margin-top:13px"></div>
-      <p class="empty" style="margin:12px 0 0">Add as many as you like. The bar on the stats page runs to the furthest one, with every other one marked along it.</p>
+      <p class="empty" style="margin:12px 0 0">Add as many as you like. The bar below runs to the furthest one, with every other one marked along it.</p>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Weekly goal</p>
+      <div class="field"><label for="wgTgt">Aim for, each week</label><input id="wgTgt" type="number" inputmode="decimal" placeholder="0"></div>
+      <p class="empty" style="margin:-2px 0 13px">Shows on the home screen with how much a day is left to make it. Leave it blank to hide it.</p>
+      <p class="eyebrow" style="margin:0 0 8px">Home Screen widget <em id="wgState"></em></p>
+      <button class="btn line" id="wgFile">Save the widget file</button>
+      <p class="empty" style="margin:9px 0 13px">iOS will not let a web app draw a widget itself, but it can write a small file that one can read. Use <b style="color:var(--text)">Save to Files</b>, not the Scriptable app icon, and put it in <b style="color:var(--text)">iCloud Drive \u2192 Scriptable</b>. Tap this again whenever you want the widget to catch up.</p>
+      <p class="eyebrow" style="margin:0 0 8px">Or let it keep itself up to date</p>
+      <p class="empty" style="margin:0 0 13px">Point this at a <b style="color:var(--text)">private</b> repo and the app writes the same snapshot there on its own. The widget reads it with the same token, so it follows along without you saving anything. A private repo is properly locked, unlike a secret gist, which anyone holding the address can read.</p>
+      <div class="field"><label for="ghRepo">Private repo</label><input id="ghRepo" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="DenDen810/mainichi-widget"></div>
+      <div class="field"><label for="ghTok">Token</label><input id="ghTok" type="password" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_..."></div>
+      <p class="empty" style="margin:-4px 0 13px">A fine-grained token, that one repo only, Contents set to read and write. It is stored on this phone exactly like the API key above, so use one you can revoke. Fine-grained tokens expire within a year and the widget will quietly go stale when yours does.</p>
+      <label class="row" style="display:flex;align-items:center;gap:10px;margin:0 0 11px"><input type="checkbox" id="ghAuto"><span style="font-size:14px;color:var(--text)">Send it up whenever something changes</span></label>
+      <button class="btn line" id="ghNow">Send it up now</button>
+      <p class="empty" id="ghNote" style="margin:9px 0 18px"></p>
+      <p class="eyebrow" style="margin:0 0 8px">On the app icon</p>
+      <div class="seg" id="badgeMode">
+        <button type="button" data-badge="goal">% of goal</button>
+        <button type="button" data-badge="lessons">Lessons</button>
+        <button type="button" data-badge="owed">Owed</button>
+        <button type="button" data-badge="off">Off</button>
+      </div>
+      <p class="empty" id="badgeNote" style="margin:9px 0 18px"></p>
+      <p class="eyebrow">Goal <em id="goalname"></em></p>
+      <div class="hbar">
+        <div class="t"><span id="goalNow">$0</span><b id="goalTgt"></b></div>
+        <div class="track"><i class="shu" id="goalBar" style="width:0%"></i></div>
+        <div class="goalmarks" id="goalMarks"></div>
+      </div>
+      <p class="empty" id="goalFoot" style="margin:11px 0 0"></p>
     </div>
 <div class="panel">
       <p class="eyebrow">Currency <em id="fxNote"></em></p>
@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DQ</b> · 29 Aug 2026<br>If this does not say DQ, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DS</b> · 30 Aug 2026<br>If this does not say DS, your phone is still serving a cached copy.</p>
     </div>
 <div class="panel">
       <div id="installTip" style="display:none">
@@ -10022,7 +10022,7 @@ var KACHING=[
    instead, which is inaudibly different for a five second sting.
    ================================================================= */
 
-var AU_TILL=null, AU_TRACK=null, AU_READY=false;
+var AU_TILL=null, AU_TRACK=null, AU_TRACK2=null, AU_READY=false;
 /* kept so anything still asking about the old machinery gets a sane answer */
 var actx=null, bufs={}, curSrc=null, curGain=null;
 var BUF_KEEP=6;
@@ -10045,7 +10045,7 @@ function auMake(){
 }
 function auInit(){
   if(AU_TILL)return;
-  try{ AU_TILL=auMake(); AU_TRACK=auMake(); }catch(e){}
+  try{ AU_TILL=auMake(); AU_TRACK=auMake(); AU_TRACK2=auMake(); }catch(e){}
 }
 
 /* ---- the one gesture it needs, ever ----
@@ -10056,7 +10056,7 @@ function unlockAudio(){
   auInit();
   if(AU_READY){auWake();return}
   if(!AU_TILL)return;
-  [AU_TILL,AU_TRACK].forEach(function(el){
+  [AU_TILL,AU_TRACK,AU_TRACK2].forEach(function(el){
     try{
       var pr=el.play();
       if(pr&&pr.then)pr.then(function(){try{el.pause();el.currentTime=0}catch(e){}},function(){});
@@ -10103,65 +10103,63 @@ function stopKaching(){
 }
 
 /* ---- the track ----
-   One element, so starting a song always replaces the one before it and two
-   can never overlap. */
-var AU_CTX=null, AU_SRC=null, AU_GAIN=null;
+   Two elements now, not one, and they take turns. The old single-element
+   version could only ever replace: to start a new song it had to stop the
+   old one dead, and a stop that overlaps a start is what was killing the
+   sound entirely. See stopDeck for the actual bug.
+
+   Two decks on ONE AudioContext lets the new song come up while the old one
+   goes down, which is what a crossfade is. The iOS limit is on
+   AudioContexts, not on elements or on the sources hanging off them, so a
+   second deck costs nothing against the budget of four. There is still
+   exactly one context here and it is still built inside a gesture. */
+var AU_CTX=null, AU_DECKS=null, AU_LIVE=0;
 /* one context, ever */
 function auGraph(){
   if(AU_CTX)return AU_CTX;
-  if(!AU_TRACK)return null;
+  if(!AU_TRACK||!AU_TRACK2)return null;
   try{
     var C=window.AudioContext||window.webkitAudioContext;
     if(!C)return null;
     AU_CTX=new C();
-    AU_SRC=AU_CTX.createMediaElementSource(AU_TRACK);
-    AU_GAIN=AU_CTX.createGain();
-    AU_GAIN.gain.value=0;
-    AU_SRC.connect(AU_GAIN);
-    AU_GAIN.connect(AU_CTX.destination);
-  }catch(e){ AU_CTX=null; AU_SRC=null; AU_GAIN=null }
+    AU_DECKS=[AU_TRACK,AU_TRACK2].map(function(el){
+      var src=AU_CTX.createMediaElementSource(el);
+      var gain=AU_CTX.createGain();
+      gain.gain.value=0;
+      src.connect(gain);
+      gain.connect(AU_CTX.destination);
+      return {el:el,src:src,gain:gain,fade:null,kill:null,token:0};
+    });
+  }catch(e){ AU_CTX=null; AU_DECKS=null }
   return AU_CTX;
+}
+/* the decks exist even with no Web Audio, so the desktop .volume path still
+   has something to talk to */
+function auDecks(){
+  if(AU_DECKS)return AU_DECKS;
+  if(!AU_TRACK||!AU_TRACK2)return null;
+  AU_DECKS=[AU_TRACK,AU_TRACK2].map(function(el){
+    return {el:el,src:null,gain:null,fade:null,kill:null,token:0};
+  });
+  return AU_DECKS;
 }
 function auWake(){
   if(!AU_CTX)return;
   try{if(AU_CTX.state!=="running")AU_CTX.resume()}catch(e){}
 }
-var FADE_T=null;
-function stopAudio(){
-  clearInterval(FADE_T); clearTimeout(FADE_T); FADE_T=null;
-  /* Cutting a waveform off mid-cycle is a click, every time. Ride it down
-     over 60ms first, then pause. Inaudible as a fade, and it removes the
-     pop entirely. */
-  var kill=function(){
-    try{if(AU_TRACK){AU_TRACK.pause();AU_TRACK.currentTime=0}}catch(e){}
-  };
-  try{
-    if(AU_GAIN&&AU_CTX&&AU_TRACK&&!AU_TRACK.paused){
-      var t=AU_CTX.currentTime;
-      AU_GAIN.gain.cancelScheduledValues(t);
-      AU_GAIN.gain.setValueAtTime(AU_GAIN.gain.value,t);
-      AU_GAIN.gain.linearRampToValueAtTime(0,t+0.06);
-      setTimeout(kill,80);
-      return;
-    }
-    if(AU_GAIN&&AU_CTX){
-      var t2=AU_CTX.currentTime;
-      AU_GAIN.gain.cancelScheduledValues(t2);
-      AU_GAIN.gain.setValueAtTime(0,t2);
-    }
-  }catch(e){}
-  kill();
-}
-function busClaim(){ stopAudio(); }
-/* Through the gain node where we have one, which is the only thing that
-   works on a phone. The .volume path is the desktop fallback. */
-function fadeTo(el,to,ms,then){
-  clearInterval(FADE_T); FADE_T=null;
-  if(AU_GAIN&&AU_CTX){
+function deckLive(){ var d=auDecks(); return d?d[AU_LIVE]:null }
+function deckIdle(){ var d=auDecks(); return d?d[AU_LIVE?0:1]:null }
+
+/* Level on one deck. Through its gain node where there is one, which is the
+   only thing that works on a phone; .volume is the desktop fallback. */
+function deckFade(dk,to,ms,then){
+  if(!dk)return;
+  clearInterval(dk.fade); clearTimeout(dk.fade); dk.fade=null;
+  if(dk.gain&&AU_CTX){
     try{
       auWake();
       var t=AU_CTX.currentTime;
-      var g=AU_GAIN.gain;
+      var g=dk.gain.gain;
       var dur=Math.max(0.03,ms/1000);
       g.cancelScheduledValues(t);
       g.setValueAtTime(g.value,t);
@@ -10176,18 +10174,79 @@ function fadeTo(el,to,ms,then){
            down instead. */
         g.linearRampToValueAtTime(0,t+dur);
       }
-      if(then)FADE_T=setTimeout(function(){FADE_T=null;then()},ms);
+      if(then)dk.fade=setTimeout(function(){dk.fade=null;then()},ms);
       return;
     }catch(e){}
   }
-  var from=el.volume, steps=Math.max(1,Math.round(ms/50)), i=0;
-  FADE_T=setInterval(function(){
+  var el=dk.el, from=el?el.volume:0, steps=Math.max(1,Math.round(ms/50)), i=0;
+  dk.fade=setInterval(function(){
     i++;
     var v=from+(to-from)*(i/steps);
     try{el.volume=Math.max(0,Math.min(1,v))}catch(e){}
-    if(i>=steps){clearInterval(FADE_T);FADE_T=null;if(then)then()}
+    if(i>=steps){clearInterval(dk.fade);dk.fade=null;if(then)then()}
   },50);
 }
+
+/* Ride one deck down and park it.
+
+   THE BUG THIS FIXES: the old stopAudio scheduled its pause on a bare
+   setTimeout that nothing held a handle to. Logging a second lesson while a
+   song was playing ran stop-then-start in the same tick, the new song began,
+   and 80ms later the previous stop's timer came due and paused it. So the
+   music cut out and the next one never seemed to play. It had played, for
+   80ms, and then been paused by a timer belonging to the song before it.
+   Every deck now owns its pause timer and clears it before scheduling
+   another, so a stop can only ever stop the thing it was aimed at. */
+function stopDeck(dk,ms,hard){
+  if(!dk)return;
+  clearInterval(dk.fade); clearTimeout(dk.fade); dk.fade=null;
+  clearTimeout(dk.kill); dk.kill=null;
+  dk.token++;                       /* anything still in flight for this deck is stale */
+  var el=dk.el;
+  var park=function(){
+    dk.kill=null;
+    try{if(el){el.pause();el.currentTime=0}}catch(e){}
+  };
+  var ramp=(ms===undefined?60:ms);
+  try{
+    if(el&&!el.paused&&ramp>0){
+      /* Cutting a waveform off mid-cycle is a click, every time. Ride it
+         down first, then pause. */
+      deckFade(dk,0,ramp);
+      dk.kill=setTimeout(park,ramp+20);
+      return;
+    }
+    if(dk.gain&&AU_CTX){
+      var t=AU_CTX.currentTime;
+      dk.gain.gain.cancelScheduledValues(t);
+      dk.gain.gain.setValueAtTime(0,t);
+    } else if(el){ try{el.volume=0}catch(e){} }
+  }catch(e){}
+  park();
+}
+/* everything off: the settings switch, and anything claiming the bus */
+function stopAudio(){
+  var d=auDecks(); if(!d)return;
+  MARK_TOKEN++;
+  d.forEach(function(dk){stopDeck(dk,0)});
+}
+function busClaim(){ stopAudio(); }
+/* kept for anything still calling the old element-shaped signature */
+function fadeTo(el,to,ms,then){
+  var d=auDecks();
+  var dk=d&&d.filter(function(x){return x.el===el})[0];
+  if(dk)return deckFade(dk,to,ms,then);
+  if(!el)return;
+  var from=el.volume, steps=Math.max(1,Math.round(ms/50)), i=0;
+  var t=setInterval(function(){
+    i++;
+    var v=from+(to-from)*(i/steps);
+    try{el.volume=Math.max(0,Math.min(1,v))}catch(e){}
+    if(i>=steps){clearInterval(t);if(then)then()}
+  },50);
+}
+
+var XFADE_MS=700;
 
 function playMark(name,cb){
   var list=TRACKS[name]||[];
@@ -10208,17 +10267,40 @@ function playMark(name,cb){
 
   var t=list[(Math.random()*list.length)|0];
   var mine=++MARK_TOKEN;
-  var el=AU_TRACK;
-  stopAudio();
 
+  /* the song that is playing goes out over the same window the new one comes
+     in on, rather than being cut before it starts */
+  var old=deckLive();
+  if(old&&old.el&&!old.el.paused)stopDeck(old,XFADE_MS);
+  else if(old)stopDeck(old,0);
+
+  var dk=deckIdle();
+  if(!dk){once(FALLBACK_MS);return}
+  /* claim this deck: clears any pending pause aimed at it, so the incoming
+     song cannot be killed by the outgoing one's timer */
+  clearInterval(dk.fade); clearTimeout(dk.fade); dk.fade=null;
+  clearTimeout(dk.kill); dk.kill=null;
+  var deckTok=++dk.token;
+  AU_LIVE=(AU_LIVE?0:1);
+
+  var el=dk.el;
   var start=Math.max(0,t.start||0);
   var ended=false;
+  var stale=function(){ return mine!==MARK_TOKEN||deckTok!==dk.token };
   var cleanup=function(){
     el.ontimeupdate=null; el.onloadedmetadata=null; el.onerror=null; el.oncanplay=null;
   };
-  el.onerror=function(){ if(mine!==MARK_TOKEN)return; cleanup(); once(FALLBACK_MS) };
+  /* start silent so the load and the seek are never heard */
+  if(dk.gain&&AU_CTX){
+    try{
+      var t0=AU_CTX.currentTime;
+      dk.gain.gain.cancelScheduledValues(t0);
+      dk.gain.gain.setValueAtTime(0,t0);
+    }catch(e){}
+  }
+  el.onerror=function(){ if(stale())return; cleanup(); once(FALLBACK_MS) };
   el.onloadedmetadata=function(){
-    if(mine!==MARK_TOKEN)return;
+    if(stale())return;
     var stop=(t.end&&t.end>start)?Math.min(t.end,el.duration||t.end):(el.duration||0);
     var dur=Math.max(0.6,(stop||start+4)-start);
     /* seek while the gain is still down, so the jump is never heard */
@@ -10227,12 +10309,12 @@ function playMark(name,cb){
     once(dur*1000,true);
     var fo=Math.min(1.8,dur*0.3), fading=false;
     el.ontimeupdate=function(){
-      if(mine!==MARK_TOKEN||ended)return;
+      if(stale()||ended)return;
       var left=stop-el.currentTime;
-      if(left<=0.02){ended=true;cleanup();stopAudio();return}
-      /* its own flag rather than FADE_T, which the fade IN was still holding
-         on a short clip, so the fade out never started */
-      if(left<=fo&&!fading){fading=true;fadeTo(el,0,left*1000)}
+      if(left<=0.02){ended=true;cleanup();stopDeck(dk,0);return}
+      /* its own flag rather than the fade handle, which the fade IN was still
+         holding on a short clip, so the fade out never started */
+      if(left<=fo&&!fading){fading=true;deckFade(dk,0,left*1000)}
     };
   };
   try{
@@ -10245,10 +10327,10 @@ function playMark(name,cb){
     el.load();
     var pr=el.play();
     if(pr&&pr.then)pr.then(function(){
-      if(mine!==MARK_TOKEN)return;
-      fadeTo(el,0.85,700);                 /* in */
-    },function(){ if(mine===MARK_TOKEN)once(FALLBACK_MS) });
-    else fadeTo(el,0.85,700);
+      if(stale())return;
+      deckFade(dk,0.85,XFADE_MS);          /* in, against the other going out */
+    },function(){ if(!stale())once(FALLBACK_MS) });
+    else deckFade(dk,0.85,XFADE_MS);
   }catch(e){ once(FALLBACK_MS) }
 }
 var MARK_TOKEN=0;
