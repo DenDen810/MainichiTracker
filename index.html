@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DW</b> · 30 Aug 2026<br>If this does not say DW, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DX</b> · 30 Aug 2026<br>If this does not say DX, your phone is still serving a cached copy.</p>
       <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
       <p class="empty" id="reNote" style="margin:0 0 9px"></p>
       <div id="reList"></div>
@@ -9470,6 +9470,21 @@ function themeFreeze(){
 }
 function applyTheme(id){
   themeFreeze();
+  /* A theme change forces a style recalculation across the whole page —
+     there are hundreds of rules shaped like body[data-theme="x"] .thing,
+     one clump per theme, and that recalc has to happen the instant the
+     attribute changes so the colour swap feels instant. That part cannot
+     be deferred; deferring it would just delay the thing you tapped for.
+     What CAN be avoided is it happening at the same time as something else
+     expensive. If you're mid-celebration — confetti still falling, a song
+     still crossfading — and you reach for a theme card, you've told the
+     app you're done looking at that; there's no reason to keep two decks
+     of decoded audio and a running particle loop alive through a recalc
+     that's about to touch the whole tree anyway. So: a theme tap ends the
+     celebration outright, rather than letting it run down on its own
+     alongside everything the switch is about to cost. */
+  try{killFx()}catch(e){}
+  try{stopAudio()}catch(e){}
   try{needFonts(id||"")}catch(e){}
   BAR_PAL=null;                 /* the bars re-read their colours from the new theme */
   try{bag.length=0;paintSeal()}catch(e){}   /* and the sound follows the theme */
