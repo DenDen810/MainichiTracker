@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DV</b> · 30 Aug 2026<br>If this does not say DV, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DW</b> · 30 Aug 2026<br>If this does not say DW, your phone is still serving a cached copy.</p>
       <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
       <p class="empty" id="reNote" style="margin:0 0 9px"></p>
       <div id="reList"></div>
@@ -2540,6 +2540,20 @@ function crumb(what){
       var on=document.querySelector(".view.on");
       CRUMB.view=on?on.id.replace("v-",""):"";
       CRUMB.theme=cfg.theme||"";
+      /* was anything actually animating right as this was written? This
+         answers "was it mid-confetti/audio" directly from what the app was
+         doing, instead of relying on what you remember doing a moment
+         before it died — the last few restarts showed the tab you were on
+         but not this, which was the gap in reading them. */
+      var busy=false;
+      try{
+        if(typeof running!=="undefined"&&
+           (running||(typeof parts!=="undefined"&&parts.length)||(typeof shower!=="undefined"&&shower)))
+          busy=true;
+        var d=auDecks();
+        if(d&&d.some(function(dk){return dk.el&&!dk.el.paused}))busy=true;
+      }catch(e){}
+      CRUMB.busy=busy?1:0;
       store.setItem(LIVE,JSON.stringify(CRUMB));
     }catch(e){}
   },1000);
@@ -2567,6 +2581,7 @@ function restarts(){
       view:prev.view||"",
       act:prev.act||"",
       theme:prev.theme||"",
+      busy:prev.busy?1:0,
       ran:Math.max(0,Math.round((( prev.at||Date.now())-(prev.start||Date.now()))/1000)),
       gap:Math.max(0,Math.round((Date.now()-(prev.at||Date.now()))/1000))
     });
@@ -6520,6 +6535,7 @@ function paintRestarts(){
         when.toLocaleDateString("en-US",{month:"short",day:"numeric"})+" "+
         when.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})+
         (r.theme?" \u00b7 "+esc(r.theme):"")+
+        (r.busy?" \u00b7 mid-animation":"")+
         (r.nav?" \u00b7 "+esc(r.nav):"")+
       '</div>';
   }).join("");
@@ -9646,6 +9662,7 @@ function paintThemesOld(box,cur){
         cfg.themeDay=null;
       }
       cfg.theme=b.dataset.theme; saveSet();
+      crumb("theme "+b.dataset.theme);
       /* update the cards in place. A full repaint here was what reset the
          rail; there is nothing to rebuild for a pick anyway. */
       Array.prototype.forEach.call(box.querySelectorAll("[data-theme]"),function(c){
