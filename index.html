@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DU</b> · 30 Aug 2026<br>If this does not say DU, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DV</b> · 30 Aug 2026<br>If this does not say DV, your phone is still serving a cached copy.</p>
       <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
       <p class="empty" id="reNote" style="margin:0 0 9px"></p>
       <div id="reList"></div>
@@ -9476,14 +9476,29 @@ function applyTheme(id){
      a memory-pressure crash from theme-browsing looks like.
      The colour, the font, the icon above all update instantly on every tap,
      same as before — nothing about the switch itself feels slower. Only the
-     expensive rebuild is held: if another tap arrives within 220ms it is
-     pushed out again, so a quick run of taps ends in exactly one rebuild,
-     for the theme you actually settled on. */
+     expensive rebuild is held: if another tap arrives before it has run it
+     is pushed out again, so a quick run of taps ends in exactly one rebuild,
+     for the theme you actually settled on.
+     A flat delay was not quite enough: switching themes WHILE a lesson's
+     confetti was still falling and its song still crossfading could still
+     land the rebuild in the middle of that, which is its own memory spike.
+     So it does not just wait a fixed time — it waits for the fall and the
+     song to actually be done, checking every 90ms, capped at 3s so a switch
+     can never be held hostage by a shower that never seems to end. */
   clearTimeout(THEME_RENDER_T);
-  THEME_RENDER_T=setTimeout(function(){
+  var settleBy=Date.now()+3000;
+  var trySettle=function(){
     THEME_RENDER_T=null;
+    var animating=running||parts.length||shower;
+    var d=null; try{d=auDecks()}catch(e){}
+    var playing=d&&d.some(function(dk){return dk.el&&!dk.el.paused});
+    if((animating||playing)&&Date.now()<settleBy){
+      THEME_RENDER_T=setTimeout(trySettle,90);
+      return;
+    }
     try{shown=0;renderAll()}catch(e){}
-  },220);
+  };
+  THEME_RENDER_T=setTimeout(trySettle,220);
 }
 var THEME_RENDER_T=null;
 /* ---- browsing forty odd themes ----
