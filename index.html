@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DT</b> · 30 Aug 2026<br>If this does not say DT, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DU</b> · 30 Aug 2026<br>If this does not say DU, your phone is still serving a cached copy.</p>
       <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
       <p class="empty" id="reNote" style="margin:0 0 9px"></p>
       <div id="reList"></div>
@@ -9467,9 +9467,25 @@ function applyTheme(id){
   /* repaint both bars in the new palette rather than waiting for the next tick */
   try{expBar.recolour();heroBar.recolour()}catch(e){}
   paintPlus(t.id);
-  /* the creature and the confetti are drawn, not styled: force a repaint */
-  try{shown=0;renderAll()}catch(e){}
+  /* the creature and the confetti are drawn, not styled: force a repaint.
+     THIS IS WHAT WAS CRASHING THE APP: renderAll() rebuilds every list, both
+     charts, badges, milestones — seventeen functions, the whole screen —
+     and it ran on every single tap. Browsing ten themes in a row used to be
+     ten full app rebuilds back to back, stacked on top of whatever a recent
+     lesson's confetti and audio were still holding in memory. That is what
+     a memory-pressure crash from theme-browsing looks like.
+     The colour, the font, the icon above all update instantly on every tap,
+     same as before — nothing about the switch itself feels slower. Only the
+     expensive rebuild is held: if another tap arrives within 220ms it is
+     pushed out again, so a quick run of taps ends in exactly one rebuild,
+     for the theme you actually settled on. */
+  clearTimeout(THEME_RENDER_T);
+  THEME_RENDER_T=setTimeout(function(){
+    THEME_RENDER_T=null;
+    try{shown=0;renderAll()}catch(e){}
+  },220);
 }
+var THEME_RENDER_T=null;
 /* ---- browsing forty odd themes ----
    A flat grid stopped working somewhere around theme twenty. So: a filter
    row that defaults to what you can actually wear right now, and inside that
