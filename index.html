@@ -2303,7 +2303,7 @@ body.light .toastless{display:none}
       <div class="secbody">
 <div class="panel">
       <p class="eyebrow">About</p>
-      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DX</b> · 30 Aug 2026<br>If this does not say DX, your phone is still serving a cached copy.</p>
+      <p class="empty" style="margin:0">Build <b style="color:var(--text)" id="buildLtr">DY</b> · 7 Sep 2026<br>If this does not say DY, your phone is still serving a cached copy.</p>
       <p class="eyebrow" style="margin:15px 0 8px">Unexpected restarts <em id="reLast"></em></p>
       <p class="empty" id="reNote" style="margin:0 0 9px"></p>
       <div id="reList"></div>
@@ -7435,6 +7435,8 @@ $("gcalConnect").onclick=function(){
       if(cfg.gcalCal)sel.value=cfg.gcalCal;
       cfg.gcalOk=true; saveSet();
       renderGcal();
+      try{gFlushWaiting()}catch(e){}
+      if(cfg.gcalPull)gPullToday(true);
       toast("Connected · "+items.length+" calendars");
     }).catch(function(){toast("Connected, but couldn't list calendars")});
   },true);
@@ -7451,8 +7453,9 @@ $("gcalOut").onclick=function(){
     try{google.accounts.oauth2.revoke(gTok)}catch(e){}
   }
   gTok=null; gExp=0; gCache={t:0,items:[]}; gPushing={};
+  gParked=[]; gAsking=false;
   cfg.gcalPull=false; cfg.gcalPush=false; cfg.gcalOk=false;
-  cfg.gTok=null; cfg.gExp=0; gTok=null; gExp=0;
+  cfg.gTok=null; cfg.gExp=0; gTok=null; gExp=0; cfg.gWait=[];
   saveSet();
   $("gcalToday").innerHTML=""; renderGcal(); toast("Disconnected");
 };
@@ -9866,22 +9869,42 @@ var gTok=(cfg.gTok||null), gExp=(Number(cfg.gExp)||0), gClient=null, gQueue=[], 
 
 function gConnected(){return !!(cfg.gcalCid && gTok && Date.now()<gExp-30000)}
 
+/* THE OTHER HALF OF THE REFRESH.
+   Asking Google for a token opens Google's own window. On a home-screen app
+   that takes the app off the screen, and coming back is a cold start. This
+   used to be reachable from renderAll, so once the hour was up every tab
+   tap fired a token request and the app appeared to restart by itself.
+   Now: a token is only ever requested from something you tapped. Anything
+   else parks its job and paints a Reconnect line. */
+var gAsking=false, gParked=[];
+function gHaveTok(){return !!(gTok&&Date.now()<gExp-60000)}
+function gPark(cb){
+  if(typeof cb==="function"&&gParked.length<40)gParked.push(cb);
+  try{gPaintReconnect()}catch(e){}
+}
+function gRunParked(){
+  var q=gParked; gParked=[];
+  q.forEach(function(f){try{f()}catch(e){}});
+  try{gFlushWaiting()}catch(e){}
+}
 function gReady(cb,interactive){
-  if(gTok&&Date.now()<gExp-60000){cb();return}
+  if(gHaveTok()){cb();return}
   if(!cfg.gcalCid){if(interactive)nudge("gcalCid");return}
-  /* never pop a sign-in on our own initiative — only after you've connected once */
-  if(!interactive&&!cfg.gcalOk)return;
+  if(!interactive){gPark(cb);return}
   if(!(window.google&&google.accounts&&google.accounts.oauth2)){
-    if(interactive)toast("Google script hasn't loaded — check your connection");
+    toast("Google script hasn't loaded — check your connection");
     return;
   }
-  gSilent=!interactive;
+  if(gAsking){gQueue.push(cb);return}
+  gAsking=true;
+  gSilent=false;
   gQueue.push(cb);
   if(!gClient||gClient._cid!==cfg.gcalCid){
     gClient=google.accounts.oauth2.initTokenClient({
       client_id:cfg.gcalCid,
       scope:GSCOPE,
       callback:function(r){
+        gAsking=false;
         var q=gQueue; gQueue=[];
         if(r&&r.access_token){
           gTok=r.access_token;
@@ -9890,38 +9913,80 @@ function gReady(cb,interactive){
           cfg.gTok=gTok; cfg.gExp=gExp; saveSet();
           renderGcal();
           q.forEach(function(f){try{f()}catch(e){}});
+          gRunParked();            /* everything that waited for a tap */
         } else if(!gSilent){
           toast("Google sign-in was cancelled");
         }
       },
       error_callback:function(){
+        gAsking=false;
         gQueue=[];
         gTok=null; gExp=0; cfg.gTok=null; cfg.gExp=0; saveSet();
         try{renderGcal()}catch(e){}
+        try{gPaintReconnect()}catch(e){}
         if(!gSilent)warn("Google sign-in failed.");   /* silent refreshes stay quiet */
       }
     });
     gClient._cid=cfg.gcalCid;
   }
-  gClient.requestAccessToken({prompt:interactive?"consent":""});
+  /* consent only the first time; after that a reconnect should be one tap */
+  gClient.requestAccessToken({prompt:cfg.gcalOk?"":"consent"});
 }
 
-/* On launch: if the stored token has expired but you connected before, ask
-   Google for a new one without any prompt. You are still signed in to Google
-   in the browser, so this needs no tapping. Only if that fails does the
-   button go back to saying Connect. */
+/* Work that could not run because the token had gone. Kept by id rather than
+   as a closure, so it survives the app being restarted. */
+function gWait(kind,id){
+  try{
+    var w=cfg.gWait||[];
+    if(w.some(function(x){return x.k===kind&&x.i===id}))return;
+    w.push({k:kind,i:id});
+    cfg.gWait=w.slice(-50); saveSet();
+  }catch(e){}
+}
+function gFlushWaiting(){
+  var w=cfg.gWait||[];
+  if(!w.length)return;
+  cfg.gWait=[]; saveSet();
+  w.forEach(function(x){
+    try{
+      if(x.k==="lesson"){
+        var l=db.lessons.filter(function(y){return y.id===x.i})[0];
+        if(l&&!l.gcalEventId)gPush(l);
+      } else if(x.k==="booking"){
+        var b=db.bookings.filter(function(y){return y.id===x.i})[0];
+        if(b&&!b.gcalEventId&&!b.doneId)gPushBooking(b);
+      }
+    }catch(e){}
+  });
+}
+/* A quiet line, not a popup, when the calendar needs a tap to wake up. */
+function gPaintReconnect(){
+  var box=$("gcalToday"); if(!box)return;
+  if(!cfg.gcalOk||!cfg.gcalCid||gHaveTok()){return}
+  var waiting=(cfg.gWait||[]).length;
+  box.innerHTML='<p class="eyebrow" style="margin:16px 0 8px">From your calendar</p>'+
+    '<div class="tick"><div class="main"><span>Google sign-in has expired</span>'+
+    '<small>'+(waiting?waiting+(waiting===1?" lesson":" lessons")+" waiting to sync":"Tap to pick it back up")+'</small></div>'+
+    '<button class="add1" id="gcalWake" style="width:auto;padding:0 11px">Reconnect</button></div>';
+  var b=$("gcalWake");
+  if(b)b.onclick=function(){
+    b.disabled=true;
+    gReady(function(){gPullToday(true)},true);
+    setTimeout(function(){b.disabled=false},1500);
+  };
+}
+
+/* On launch: if the stored token is still good, carry on silently. If it has
+   expired, say so and wait for a tap. This used to fire a token request about
+   a second after opening the app, which is why the app so often appeared to
+   restart itself right as you started scrolling. */
 function gWake(){
   if(!cfg.gcalOk||!cfg.gcalCid)return;
-  if(gTok&&Date.now()<gExp-60000){renderGcal();return}
+  if(gHaveTok()){renderGcal();return}
   gTok=null; gExp=0;
-  var go=function(){
-    if(window.google&&google.accounts&&google.accounts.oauth2){
-      gReady(function(){},false);
-    }
-  };
-  /* the Google script may not have landed yet on a cold start */
-  if(window.google&&google.accounts)go();
-  else setTimeout(go,1200);
+  cfg.gTok=null; cfg.gExp=0; saveSet();
+  try{renderGcal()}catch(e){}
+  try{gPaintReconnect()}catch(e){}
 }
 function gApi(path,opts){
   opts=opts||{};
@@ -9930,7 +9995,11 @@ function gApi(path,opts){
     headers:{"Authorization":"Bearer "+gTok,"Content-Type":"application/json"},
     body:opts.body?JSON.stringify(opts.body):undefined
   }).then(function(r){
-    if(r.status===401){gTok=null;gExp=0;throw new Error("auth")}
+    if(r.status===401){
+      gTok=null;gExp=0;cfg.gTok=null;cfg.gExp=0;saveSet();
+      try{renderGcal();gPaintReconnect()}catch(e){}
+      throw new Error("auth");
+    }
     if(!r.ok)throw new Error(r.status);
     return r.status===204?{}:r.json();
   });
@@ -9941,6 +10010,8 @@ function gPush(l){
   if(!cfg.gcalPush||!cfg.gcalCal||!cfg.gcalCid)return;
   if(l.gcalEventId||gPushing[l.id])return;    /* already on the calendar */
   if(l.fromBooking&&db.bookings.some(function(b){return b.id===l.fromBooking&&b.gcalEventId}))return;
+  /* no token: remember it and paint the line, rather than stalling forever */
+  if(!gHaveTok()){gWait("lesson",l.id);gPark(null);return}
   gPushing[l.id]=1;
   gReady(function(){
     var t=(l.time&&/^\d{2}:\d{2}$/.test(l.time))?l.time:"12:00";
@@ -9969,6 +10040,7 @@ function gReminders(){
 function gPushBooking(bk){
   if(!cfg.gcalPush||!cfg.gcalCal||!cfg.gcalCid)return;
   if(bk.gcalEventId||gPushing[bk.id])return;
+  if(!gHaveTok()){gWait("booking",bk.id);gPark(null);return}
   gPushing[bk.id]=1;
   gReady(function(){
     var st=new Date(bk.date+"T"+(bk.time||"12:00")+":00");
@@ -10006,6 +10078,8 @@ function gUnpush(l){
 function gPullToday(force){
   var box=$("gcalToday"); if(!box)return;
   if(!cfg.gcalPull||!cfg.gcalCal||!cfg.gcalCid){box.innerHTML="";return}
+  /* no token: paint the line and stop. Never ask Google from a render. */
+  if(!gHaveTok()){gPaintReconnect();return}
   if(!force&&Date.now()-gCache.t<120000){gRenderPulled(gCache.items);return}
   gReady(function(){
     var d0=new Date(); d0.setHours(0,0,0,0);
@@ -10076,8 +10150,13 @@ function gRenderPulled(items){
 
 function renderGcal(){
   var on=gConnected();
-  $("gcalState").textContent = on?"connected":(cfg.gcalCid?"not signed in":"not connected");
-  $("gcalOpts").style.display = on?"block":"none";
+  var waiting=(cfg.gWait||[]).length;
+  $("gcalState").textContent = on
+    ? ("connected"+(waiting?" · "+waiting+" waiting":""))
+    : (cfg.gcalOk?"signed out, tap Reconnect":(cfg.gcalCid?"not signed in":"not connected"));
+  /* the options stay visible once you have connected once, so Pull and Push
+     are not hidden away the moment the hour runs out */
+  $("gcalOpts").style.display = (on||cfg.gcalOk)?"block":"none";
   $("gcalConnect").textContent = on?"Reconnect":"Connect";
   $("gcalPullBtn").textContent = "Pull events into today: "+(cfg.gcalPull?"on":"off");
   $("gcalPushBtn").textContent = "Push logged lessons: "+(cfg.gcalPush?"on":"off");
@@ -10852,13 +10931,29 @@ function tick(now){
 }
 
 /* ---------- rotation / resize recovery ---------- */
-var reflowT;
+var reflowT, reflowW=window.innerWidth;
 function reflow(){
   clearTimeout(reflowT);
   reflowT=setTimeout(function(){shown=0;renderAll()},180);
 }
-window.addEventListener("orientationchange",function(){closeSheet();reflow()});
-window.addEventListener("resize",reflow);
+/* THE REFRESH.
+   iOS fires resize for things that are not layout changes: the address bar
+   collapsing as you scroll, the keyboard opening, the toolbar coming back
+   when you tap a tab. Each one was landing here and rebuilding the entire
+   page, resetting the total to zero and counting it up again, which is
+   exactly what "it refreshes when I scroll" was. Only a change of WIDTH is a
+   real layout change; height alone is browser furniture moving. */
+function onResize(){
+  var w=window.innerWidth;
+  if(w===reflowW)return;
+  reflowW=w;
+  reflow();
+}
+window.addEventListener("orientationchange",function(){
+  closeSheet();
+  setTimeout(function(){reflowW=window.innerWidth;reflow()},140);
+});
+window.addEventListener("resize",onResize);
 
 /* keeps the page itself network-first, so a new build is never served stale,
    and caches the audio so it works offline */
